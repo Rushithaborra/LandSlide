@@ -2,7 +2,8 @@
 
 FastAPI + PostgreSQL/PostGIS backend for the SIH 2026 (PS 26001) prototype.
 Backend scope only: API, DB schema, rainfall ingestion, rule-based alert
-trigger, citizen report intake. See project root context for full team scope.
+trigger, citizen report intake. See `CLAUDE.md` for full project brief, and
+`docs/` for the team roadmap, the internal 4-day plan, and the pitch deck.
 
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` — written
