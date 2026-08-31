@@ -1,0 +1,13 @@
+{
+  "type": "Polygon",
+  "coordinates": [
+    [
+      [0.0, 0.0],
+      [1.0, 0.0],
+      [1.0, 1.0],
+      [0.0, 1.0],
+      [0.0, 0.0]
+    ]
+  ],
+  "_note": "PLACEHOLDER ONLY. These coordinates are (0,0)-(1,0)-(1,1)-(0,1) — the Gulf of Guinea, not Sikkim or Mizoram or anywhere the team is targeting. This file exists to show the expected shape for scripts/seed_zone.py. Replace with the real pilot zone boundary from Data/GIS lead's QGIS work (a Polygon ring of [lng, lat] pairs, WGS84 / EPSG:4326) before seeding for real."
+}

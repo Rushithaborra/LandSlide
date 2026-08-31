@@ -21,9 +21,13 @@ class Zone(Base):
     geometry = mapped_column(Geometry(geometry_type="POLYGON", srid=4326), nullable=False)
     susceptibility_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     risk_tier: Mapped[str | None] = mapped_column(String, nullable=True)
+    model_version: Mapped[str | None] = mapped_column(String, nullable=True)
     last_updated: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
-    __table_args__ = (CheckConstraint("risk_tier IN ('low','moderate','high')"),)
+    __table_args__ = (
+        CheckConstraint("risk_tier IN ('low','moderate','high')"),
+        CheckConstraint("susceptibility_score IS NULL OR (susceptibility_score >= 0 AND susceptibility_score <= 1)"),
+    )
 
     rainfall_readings: Mapped[list["RainfallReading"]] = relationship(back_populates="zone")
     alerts: Mapped[list["Alert"]] = relationship(back_populates="zone")

@@ -1,15 +1,40 @@
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class RainfallThresholdConfig(BaseModel):
+    """Rainfall intensity-duration (I-D) threshold definition. Deliberately a
+    data structure, not a Python constant — swap the whole thing via env vars
+    (or a future admin endpoint) as the team's literature research firms up,
+    without touching code. No field here has an invented value: every number
+    must trace to `source`/`source_doi`, and `verified_against_primary_text`
+    must be set honestly.
+    """
+
+    region: str
+    equation_type: str = "power_law_intensity_duration"  # I = coefficient * D^exponent
+    coefficient: float
+    exponent: float
+    duration_unit: str = "days"
+    intensity_unit: str = "mm/day"
+    durations_days: list[int] = [1, 3, 5, 7, 10, 15, 20]
+    source: str
+    source_doi: str | None = None
+    # False unless someone has actually read the primary text and confirmed
+    # these coefficients. Do not flip this to True on trust alone.
+    verified_against_primary_text: bool = False
+
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="__", extra="ignore")
 
     database_url: str = "postgresql://postgres:postgres@localhost:5432/landslide_ews"
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
 
-    # Literature-sourced rainfall intensity-duration threshold for alert triggering.
-    # Placeholder default — replace with the team's cited source before demo.
-    rainfall_alert_threshold_mm_per_hour: float = 20.0
+    # No default: the app must be told what threshold to use, from .env or
+    # real env vars — see RAINFALL_THRESHOLD__* in .env.example. Startup
+    # fails loudly rather than silently falling back to a guessed number.
+    rainfall_threshold: RainfallThresholdConfig
 
 
 settings = Settings()

@@ -9,8 +9,9 @@ CREATE TABLE IF NOT EXISTS zones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     geometry geometry(Polygon, 4326) NOT NULL,
-    susceptibility_score DOUBLE PRECISION,
+    susceptibility_score DOUBLE PRECISION CHECK (susceptibility_score IS NULL OR (susceptibility_score BETWEEN 0 AND 1)),
     risk_tier TEXT CHECK (risk_tier IN ('low', 'moderate', 'high')),
+    model_version TEXT,
     last_updated TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

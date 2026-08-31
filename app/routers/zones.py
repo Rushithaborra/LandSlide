@@ -31,6 +31,7 @@ def update_susceptibility(zone_id: uuid.UUID, payload: SusceptibilityUpdate, db:
         raise HTTPException(status_code=404, detail="Zone not found")
     zone.susceptibility_score = payload.susceptibility_score
     zone.risk_tier = payload.risk_tier
+    zone.model_version = payload.model_version
     db.commit()
     db.refresh(zone)
     return zone

@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from geoalchemy2.shape import to_shape
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import RainfallReading, Zone
-from app.schemas import AlertOut, RainfallReadingOut
+from app.schemas import RainfallReadingOut
 from app.services import open_meteo
 from app.services.alert_engine import check_and_trigger
 
@@ -22,11 +23,16 @@ def fetch_and_store(zone_id: uuid.UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Zone not found")
 
     centroid = to_shape(zone.geometry).centroid
-    hourly = open_meteo.fetch_hourly_rainfall(lat=centroid.y, lng=centroid.x)
+    daily = open_meteo.fetch_daily_rainfall(lat=centroid.y, lng=centroid.x)
 
     readings = [
-        RainfallReading(zone_id=zone_id, timestamp=h.timestamp, intensity_mm=h.intensity_mm, source="open-meteo")
-        for h in hourly
+        RainfallReading(
+            zone_id=zone_id,
+            timestamp=datetime.combine(d.day, datetime.min.time(), tzinfo=timezone.utc),
+            intensity_mm=d.intensity_mm,
+            source="open-meteo",
+        )
+        for d in daily
     ]
     db.add_all(readings)
     db.commit()
@@ -34,7 +40,7 @@ def fetch_and_store(zone_id: uuid.UUID, db: Session = Depends(get_db)):
         db.refresh(r)
 
     if readings:
-        check_and_trigger(db, zone_id, readings[-1].intensity_mm)
+        check_and_trigger(db, zone_id)
 
     return readings
 

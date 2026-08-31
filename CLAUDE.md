@@ -33,13 +33,23 @@ deck — do not suggest pulling any of it into this build.
 - One citizen report flows form → backend → dashboard, live
 
 ## Two-layer risk logic — keep conceptually separate (a pitch talking point, slide 4)
-- **Static (ML):** `zones.susceptibility_score` / `risk_tier`, written by the
-  ML lead's pipeline via `PUT /zones/{id}/susceptibility`. Backend reads/serves,
-  never computes.
-- **Dynamic (rules, backend-owned):** rainfall intensity-duration threshold in
-  `app/services/alert_engine.py`. Must stay literature-sourced (see roadmap doc
-  §4) and explainable — never dressed up as ML. Honest answer to "is this AI or
-  rules?": two layers, named separately on purpose.
+- **Static (ML):** `zones.susceptibility_score` / `risk_tier` / `model_version`,
+  written by the ML lead's pipeline via `PUT /zones/{id}/susceptibility`.
+  Backend reads/serves, never computes.
+- **Dynamic (rules, backend-owned):** rainfall intensity-duration (I-D)
+  threshold in `app/services/alert_engine.py`, loaded from
+  `app.config.settings.rainfall_threshold` (config-driven, no hardcoded
+  number — see `.env.example`). Currently sourced from Harilal et al. (2019),
+  *Landslides* 16(12), DOI 10.1007/s10346-019-01244-1, a Sikkim-specific
+  paper — **not yet verified against the primary text** (paywalled), flagged
+  via `verified_against_primary_text: false`. Verify or replace before
+  quoting it to judges.
+- The two layers **combine**: `SUSCEPTIBILITY_MULTIPLIERS` in `alert_engine.py`
+  scales the I-D threshold by the zone's `risk_tier` (high-susceptibility
+  zones alert at a lower rainfall bar). This multiplier table is the team's
+  own explainable rule, not literature-sourced — say so if asked.
+- Honest answer to "is this AI or rules?": two layers, named separately on
+  purpose. Never dress the rainfall-trigger layer up as ML.
 
 ## Tech stack
 - API: FastAPI (Python)
@@ -55,7 +65,13 @@ deck — do not suggest pulling any of it into this build.
 
 ## Data model
 `migrations/001_schema.sql`: `zones` (PostGIS geometry, susceptibility_score,
-risk_tier), `rainfall_readings`, `alerts`, `citizen_reports`.
+risk_tier, model_version), `rainfall_readings`, `alerts`, `citizen_reports`.
+
+## Testing
+`tests/test_alert_engine.py` — 12 passing unit tests against the pure
+decision core (`intensity_duration_threshold`, `evaluate_daily_rainfall`),
+no DB required. Run with `pytest tests/ -v`. `check_and_trigger` (the
+DB-touching wrapper) still needs integration testing against a live Postgres.
 
 ## Integration points to coordinate on
 - ML lead (B): writes susceptibility scores via `PUT /zones/{id}/susceptibility`
@@ -78,3 +94,8 @@ environment — DB-backed endpoints are written but unverified against a live
 DB. `docker-compose.yml` targets `postgis/postgis:16-3.4`; run
 `docker compose up -d && python scripts/migrate.py` on a machine with Docker,
 then re-verify.
+
+`scripts/seed_zone.py` deliberately does not invent pilot-zone coordinates —
+it takes a GeoJSON Polygon file. `config/pilot_zone.example.geojson` is an
+obvious placeholder (Gulf of Guinea, not Sikkim) showing the expected shape;
+swap in the real boundary once Data/GIS lead has it from QGIS.

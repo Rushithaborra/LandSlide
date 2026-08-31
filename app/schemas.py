@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ZoneOut(BaseModel):
@@ -11,14 +12,18 @@ class ZoneOut(BaseModel):
     name: str
     susceptibility_score: float | None
     risk_tier: str | None
+    model_version: str | None
     last_updated: datetime
 
 
 class SusceptibilityUpdate(BaseModel):
-    """Written by the ML lead's pipeline. Backend only stores/serves this value."""
+    """ML -> backend contract for PUT /zones/{id}/susceptibility. Written by
+    the ML lead's pipeline; backend only stores/serves these values, never
+    computes them."""
 
-    susceptibility_score: float
-    risk_tier: str
+    susceptibility_score: float = Field(ge=0, le=1, description="Model output, 0-1 probability-like score")
+    risk_tier: Literal["low", "moderate", "high"]
+    model_version: str = Field(min_length=1, description="e.g. 'rf-v1' or a git commit hash of the training run")
 
 
 class RainfallReadingOut(BaseModel):
