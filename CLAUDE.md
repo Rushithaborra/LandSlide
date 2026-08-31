@@ -20,6 +20,29 @@ Everything else (sensors, native mobile, full multilingual SMS, IMD MoU,
 pan-NER expansion) is the documented "Roadmap — Next Phase" on slide 9 of the
 deck — do not suggest pulling any of it into this build.
 
+## Coding philosophy — library-first, minimal-code
+Before writing custom code for anything nontrivial, ask "does an established,
+well-maintained library already solve this?" and prefer that over hand-rolled
+logic — especially for validation/schema handling, HTTP, DB ops, geospatial
+work, raster/DEM processing, ML preprocessing/training, testing, config, and
+serialization. Concretely:
+- Prefer FastAPI/Pydantic/SQLAlchemy/GeoAlchemy2/Shapely/httpx/pytest (already
+  in this project) over custom equivalents; check existing dependencies before
+  adding a new one, and don't add one to save a couple of lines.
+- **Do not hand-roll scientific/geospatial/ML algorithms** when scikit-learn,
+  GeoPandas, Shapely, Rasterio, etc. already provide them — the roadmap itself
+  specifies QGIS/Python and scikit-learn logistic regression/random forest for
+  exactly this reason. Defensible, reproducible engineering over clever code.
+- Keep functions small and reusable; remove dead code, unused imports,
+  duplicate validation, and redundant DB/API calls as you go.
+- This is an SIH prototype — simplest production-sensible solution, not
+  over-engineered, but never sacrifice correctness for fewer lines.
+- Priority order: **correctness → security → maintainability → readability →
+  simplicity → line count.**
+- Before calling any task done, do a quick pass: can this be simpler? is
+  anything duplicated or unused? does an existing dependency make this
+  cleaner? would removing an abstraction help? Then re-run the relevant tests.
+
 ## My role: Backend (C)
 | Days | Deliverable |
 |---|---|
