@@ -105,6 +105,14 @@ DB-touching wrapper) still needs integration testing against a live Postgres.
   the placeholder `[AUC / accuracy on held-out points]` — do not invent it)
   and current real-vs-simulated status (deck slide 9) kept accurate
 
+## End-of-session summary (do this every session, unprompted)
+Before ending each session, give:
+1. **What changed** — files touched, features/endpoints added or modified, tests run and their result.
+2. **Tech/framework rundown** — every library or framework touched this session and *why* it was the right choice (not just named — the reasoning), so the user can defend each choice under jury Q&A without re-deriving it live. Tie back to the roadmap's own stated tech choices (`docs/landslide-ews-roadmap.pdf` §4, deck slide 8) where relevant.
+3. **Current implemented/simulated/pending status** — pull from README.md, flag anything that changed since last session.
+4. **Anything a judge could plausibly ask about** that this session touched — a new citation, a new assumption, a new simplification — phrased as a likely question + the honest answer, matching the roadmap's own Jury Q&A prep style (§5).
+Keep it tight — this is Q&A ammunition, not a changelog dump.
+
 ## Honesty rule
 If something is simulated/mocked (SMS delivery, IMD data, a citizen report),
 flag it clearly rather than letting it silently look real in the demo. See
