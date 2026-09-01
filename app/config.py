@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/landslide_ews"
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
 
+    # Citizen report photo upload (app/routers/reports.py)
+    upload_dir: str = "uploads"
+    max_photo_size_bytes: int = 10 * 1024 * 1024  # 10MB
+    allowed_photo_content_types: list[str] = [
+        "image/jpeg", "image/png", "image/heic", "image/heif",
+    ]
+
     # No default: the app must be told what threshold to use, from .env or
     # real env vars — see RAINFALL_THRESHOLD__* in .env.example. Startup
     # fails loudly rather than silently falling back to a guessed number.

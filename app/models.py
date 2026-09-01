@@ -70,14 +70,26 @@ class CitizenReport(Base):
     __tablename__ = "citizen_reports"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    client_report_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), unique=True, nullable=True)
     zone_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("zones.id", ondelete="SET NULL"), nullable=True
     )
-    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-    photo_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    report_type: Mapped[str] = mapped_column(String, nullable=False)
+    severity: Mapped[str] = mapped_column(String, nullable=False)
     geo_lat: Mapped[float] = mapped_column(Float, nullable=False)
     geo_lng: Mapped[float] = mapped_column(Float, nullable=False)
-    description: Mapped[str | None] = mapped_column(String, nullable=True)
+    geo_accuracy_m: Mapped[float | None] = mapped_column(Float, nullable=True)
+    place_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    reporter_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    reporter_phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    photo_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     verified_status: Mapped[str] = mapped_column(String, default="unverified")
 
-    __table_args__ = (CheckConstraint("verified_status IN ('unverified','verified','rejected')"),)
+    __table_args__ = (
+        CheckConstraint("report_type IN ('crack','movement','road','other')"),
+        CheckConstraint("severity IN ('low','moderate','high','critical')"),
+        CheckConstraint("verified_status IN ('unverified','verified','rejected')"),
+    )

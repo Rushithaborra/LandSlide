@@ -41,12 +41,24 @@ CREATE INDEX IF NOT EXISTS idx_alerts_zone ON alerts (zone_id, triggered_at DESC
 
 CREATE TABLE IF NOT EXISTS citizen_reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    -- Client-generated UUID, sent by the reporting frontend so a retried
+    -- submission (e.g. after an offline-queue flush) can be deduped instead
+    -- of creating a second row. Unique but nullable -- older/other clients
+    -- that don't send one still work, just without dedupe protection.
+    client_report_id UUID UNIQUE,
     zone_id UUID REFERENCES zones(id) ON DELETE SET NULL,
-    submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    photo_url TEXT,
+    report_type TEXT NOT NULL CHECK (report_type IN ('crack', 'movement', 'road', 'other')),
+    severity TEXT NOT NULL CHECK (severity IN ('low', 'moderate', 'high', 'critical')),
     geo_lat DOUBLE PRECISION NOT NULL,
     geo_lng DOUBLE PRECISION NOT NULL,
-    description TEXT,
+    geo_accuracy_m DOUBLE PRECISION,
+    place_name TEXT,
+    description TEXT NOT NULL,
+    reporter_name TEXT,
+    reporter_phone TEXT,
+    photo_url TEXT,
+    captured_at TIMESTAMPTZ NOT NULL,
+    submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     verified_status TEXT NOT NULL DEFAULT 'unverified' CHECK (verified_status IN ('unverified', 'verified', 'rejected'))
 );
 
