@@ -55,12 +55,17 @@ and `docs/` for the team roadmap, the internal 4-day plan, and the pitch deck.
   photo somewhere and pass the resulting URL.
 - No auth on any endpoint — out of scope for this round.
 
-**Pending — needs a live Postgres/PostGIS instance (none available in this
-environment tonight):**
-- Applying `migrations/001_schema.sql`
-- Verifying `/zones`, `/rainfall`, `/reports`, `/alerts` end-to-end
-- Running `scripts/seed_zone.py` for real (needs both a DB and a real pilot
-  zone boundary — see below)
+**Resolved 2026-09-01** — a native Postgres 18 + PostGIS 3.6 now runs locally
+(`bin/pgsql`, no Docker/admin rights needed — see `CLAUDE.md` "Environment
+notes"). `migrations/001_schema.sql` applied for real; `/reports` verified
+end-to-end against the live DB (real insert, real photo upload, real public
+URL via `scripts/run_public_dev_server.ps1`). `/zones`, `/rainfall`,
+`/alerts` should also work now but haven't each been individually
+re-exercised against this DB yet.
+
+**Still pending:**
+- Running `scripts/seed_zone.py` for real (needs a real pilot zone boundary
+  from Data/GIS lead — schema/DB side is ready)
 - A true "alert fires live" rehearsal against real ingested data
 
 ## ML data pipeline (`scripts/ml/`)

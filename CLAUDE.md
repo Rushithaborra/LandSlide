@@ -154,11 +154,29 @@ flag it clearly rather than letting it silently look real in the demo. See
 up to date as things change.
 
 ## Environment notes
-No Docker or local Postgres/psql available as of the last session in this
-environment — DB-backed endpoints are written but unverified against a live
-DB. `docker-compose.yml` targets `postgis/postgis:16-3.4`; run
-`docker compose up -d && python scripts/migrate.py` on a machine with Docker,
-then re-verify.
+No Docker available in this environment, so instead of `docker-compose.yml`
+(`postgis/postgis:16-3.4`, still the documented path on a machine that has
+Docker), this machine runs a **native, no-installer Postgres 18 + PostGIS
+3.6** in `bin/pgsql` (binaries-only zip from EDB + the OSGeo PostGIS bundle
+copied on top — no admin rights needed, unlike the MSI installer). Data
+directory: `bin/pgdata`. `bin/` is gitignored (1.3GB+, machine-specific).
+
+**All DB-backed endpoints are now verified against this live database** —
+migration applied for real, `/reports` tested end-to-end (real insert, real
+photo saved to disk, real retrieval), not just import-checked.
+
+`scripts/run_public_dev_server.ps1` starts Postgres + the backend + a
+Cloudflare quick tunnel (`bin/cloudflared.exe`, no account needed) so a
+teammate on another device/network can hit a real public URL — used to
+unblock E (reporting frontend) on 2026-09-01. **The tunnel URL is ephemeral
+and changes on every restart** — see `docs/backend_api_for_E.md` for the
+current URL and full API contract. `scripts/stop_public_dev_server.ps1`
+stops everything.
+
+`scripts/seed_zone.py` deliberately does not invent pilot-zone coordinates —
+it takes a GeoJSON Polygon file. `config/pilot_zone.example.geojson` is an
+obvious placeholder (Gulf of Guinea, not Sikkim) showing the expected shape;
+swap in the real boundary once Data/GIS lead has it from QGIS.
 
 `scripts/seed_zone.py` deliberately does not invent pilot-zone coordinates —
 it takes a GeoJSON Polygon file. `config/pilot_zone.example.geojson` is an
