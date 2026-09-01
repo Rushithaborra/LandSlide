@@ -6,10 +6,13 @@ in this directory.
 ## Project context
 4-day internal-round hackathon build for SIH 2026, Problem Statement 26001
 (Disaster Management). Pitch deck is finalized (`docs/landslide_ews_pitch.pptx`,
-11 slides). This directory is **backend only** — role: Team Member C, Backend
-Lead. Full team context: `docs/landslide-ews-roadmap.pdf` (differentiation
-strategy, Q&A prep) and `docs/internal-round-4day-plan.pdf` (this round's
-2-feature team split).
+11 slides). Primary role: Team Member C, Backend Lead — but this directory
+has also taken on the Sikkim data audit and ML data pipeline (`scripts/ml/`)
+this session, since that groundwork (real GSI inventory, real DEM, defensible
+negatives) has to exist before the ML lead's model training can start. Full
+team context: `docs/landslide-ews-roadmap.pdf` (differentiation strategy, Q&A
+prep) and `docs/internal-round-4day-plan.pdf` (this round's 2-feature team
+split).
 
 ## Scope discipline
 Team deliberately scoped to **2 features**, built deep instead of 6 shallow:
@@ -90,11 +93,38 @@ serialization. Concretely:
 `migrations/001_schema.sql`: `zones` (PostGIS geometry, susceptibility_score,
 risk_tier, model_version), `rainfall_readings`, `alerts`, `citizen_reports`.
 
+## ML data pipeline (`scripts/ml/`) — susceptibility model groundwork
+**Scope is intentionally road-corridor, not full-state** — the GSI Sikkim
+inventory is 96.1% within 100m of a mapped road (measured, not assumed),
+a field-survey artifact. Sampling negatives from the same corridor (not
+uniformly across Sikkim) avoids the model learning "distance to road" as a
+shortcut instead of real terrain signal, and this scope choice matches the
+project's own road-connectivity framing rather than hiding a limitation.
+See README.md "ML data pipeline" section for the full pipeline order,
+verified results (777/777 pos/neg, min inter-class distance 203.7m, real
+slope signal 33.2° vs 28.4°), and two environment workarounds worth knowing
+about before touching this code: a `pyogrio`/`fiona` DLL block (worked
+around via plain-JSON GeoJSON I/O) and a `pysheds`/numpy 2.x incompatibility
+(one-line `np.in1d = np.isin` shim).
+
+**Two-layer separation applies here too**: `rainfall_threshold_case_study.py`
+validates the *existing* rainfall rule engine against 68 dated historical
+events — it reuses `app.services.alert_engine.intensity_duration_threshold`
+directly (not a duplicate copy) but its output never joins
+`training_dataset.csv`. The susceptibility model must stay rainfall-free.
+
+**Not yet done**: land cover / lithology features (roadmap-mentioned, not
+sourced), and no model has been trained — dataset construction was
+explicitly stopped for review before that step.
+
 ## Testing
-`tests/test_alert_engine.py` — 12 passing unit tests against the pure
-decision core (`intensity_duration_threshold`, `evaluate_daily_rainfall`),
-no DB required. Run with `pytest tests/ -v`. `check_and_trigger` (the
-DB-touching wrapper) still needs integration testing against a live Postgres.
+- `tests/test_alert_engine.py` — 12 passing unit tests against the pure
+  decision core (`intensity_duration_threshold`, `evaluate_daily_rainfall`),
+  no DB required. `check_and_trigger` (the DB-touching wrapper) still needs
+  integration testing against a live Postgres.
+- `tests/test_negative_sampling.py`, `tests/test_terrain_features.py` — 12
+  passing tests against synthetic geometry/DEMs (no network, no real data
+  files needed). Together: 24 tests, `pytest tests/ -v`.
 
 ## Integration points to coordinate on
 - ML lead (B): writes susceptibility scores via `PUT /zones/{id}/susceptibility`

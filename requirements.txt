@@ -2,10 +2,21 @@ fastapi==0.115.6
 uvicorn[standard]==0.34.0
 sqlalchemy==2.0.36
 geoalchemy2==0.16.0
-shapely==2.0.6
+shapely==2.1.2
 psycopg2-binary==2.9.10
 pydantic==2.10.4
 pydantic-settings==2.7.0
 httpx==0.28.1
 python-dotenv==1.0.1
 pytest==8.3.4
+
+# ML data pipeline (scripts/ml/)
+pandas==3.0.5
+geopandas==1.1.4
+rasterio==1.5.1
+pyproj==3.7.2
+scipy==1.18.0
+xarray==2026.7.0
+xarray-spatial==0.10.18
+pysheds==0.5
+matplotlib==3.11.1

@@ -4,3 +4,10 @@ __pycache__/
 .env
 *.db
 .pytest_cache/
+
+# Large regeneratable geodata -- rerun scripts/ml/fetch_dem.py and
+# fetch_osm_roads.py to reproduce. Small derived CSVs/plots stay tracked
+# for review.
+data/raw/dem/
+data/raw/sikkim_roads.geojson
+data/processed/dem_sikkim_utm45n.tif

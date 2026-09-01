@@ -1,0 +1,881 @@
+Sl_No,Slide_No,State,District,Slide_Name,NH_SH_Location,Latitude,Longitude,Material_Involved,Movement_Type,History
+26052,SKM/SS/78A08/2015/256,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.08275,88.434778,Debris,Slide,
+26053,SKM/SS/78A08/2015/254,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.084222,88.446083,Debris,Slide,
+26054,SKM/SS/78A08/2015/255,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.084722,88.443833,Debris,Slide,
+26055,SKM/SS/78A08/2015/257,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.087667,88.416528,Debris,Slide,
+26056,SKM/SS/78A08/2015/258,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.090083,88.413139,Debris,Slide,
+26057,SKM/SS/78A08/2015/259,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.090944,88.406833,Debris,Slide,
+26058,SKM/SS/78A08/2015/253,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.093278,88.457444,Debris,Slide,
+26059,SKM/SS/78A08/2015/248,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.096444,88.433375,Debris,Slide,
+26060,SKM/SS/78A08/2015/260,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.097833,88.3785,Debris,Slide,
+26061,SKM/SS/78A08/2015/245,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.098417,88.400167,Debris,Slide,
+26062,SKM/SS/78A08/2015/261,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.101083,88.3615,Debris,Slide,
+26063,SKM/SS/78A08/2015/244,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.101083,88.400417,Debris,Slide,
+26064,SKM/SS/78A08/2015/243,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.101111,88.403333,Debris,Slide,
+26065,SKM/SS/78A08/2015/247,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.101194,88.394611,Debris,Slide,
+26066,SKM/SS/78A08/2015/252,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.102,88.458667,Debris,Slide,
+26067,SKM/SS/78A08/2015/242,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.1025,88.400778,Debris,Slide,
+26068,SKM/SS/78A08/2015/246,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.102639,88.394639,Debris,Slide,
+26069,SKM/SS/78A08/2015/240,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.102944,88.404667,Debris,Subsidence,
+26070,SKM/SS/78A08/2015/241,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.103111,88.402722,Debris,Slide,
+26071,SKM/SS/78A08/2015/250,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.105972,88.444556,Debris,Subsidence,
+26072,SKM/SS/78A08/2015/251,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.106694,88.449389,Debris,Slide,
+26073,SKM/SS/78A08/2015/249,Sikkim,South Sikkim,,Pachekhani-Melli Road,27.106944,88.43375,Rock,Fall,
+26074,SKM/SS/78A08/2015/262,Sikkim,South Sikkim,,Melli-Sumbuk Road,27.107417,88.363139,Debris,Slide,
+26075,SKM/WS/78A08/2015/315,Sikkim,West Sikkim,,Melli-Jorethang Road,27.110583,88.340472,Debris,Slide,
+26076,SKM/NS/78A04/2017/130,Sikkim,West Sikkim,,SH,27.1205,88.152722,Debris,Slide,
+26077,SKM/NS/78A04/2017/131,Sikkim,West Sikkim,,SH,27.121444,88.153417,Debris,Slide,
+26078,SKM/NS/78A04/2017/128,Sikkim,West Sikkim,,SH,27.1215,88.142222,Debris,Slide,
+26079,SKM/NS/78A04/2017/104,Sikkim,West Sikkim,,SH,27.121611,88.237,Debris,Slide,
+26080,SKM/NS/78A04/2017/129,Sikkim,West Sikkim,,SH,27.121611,88.145528,Debris,Slide,
+26081,SKM/NS/78A04/2017/127,Sikkim,West Sikkim,Lower Siktam,SH,27.121917,88.139472,Rock,Slide,
+26082,SKM/NS/78A04/2017/126,Sikkim,West Sikkim,,SH,27.122,88.139889,Debris,Slide,
+26083,SKM/NS/78A04/2017/103,Sikkim,West Sikkim,,SH,27.122472,88.227611,Debris,Slide,
+26084,SKM/SS/78A08/2015/320,Sikkim,South Sikkim,,Namchi-Kitam Road,27.122611,88.343389,Debris,Slide,
+26085,SKM/NS/78A04/2017/102,Sikkim,West Sikkim,,SH,27.123833,88.225333,Debris,Slide,
+26086,SKM/WS/78A08/2015/316,Sikkim,West Sikkim,,Melli-Jorethang Road,27.123889,88.319778,Debris,Slide,
+26087,SKM/NS/78A04/2017/125,Sikkim,West Sikkim,Siktam,SH,27.124556,88.139778,Debris,Slide,
+26088,SKM/SS/78A08/2015/314,Sikkim,South Sikkim,,Melli-Rabikhola Road,27.124778,88.445083,Debris,Slide,
+26089,SKM/SS/78A08/2015/225,Sikkim,South Sikkim,,Namchi-Palum Road,27.125528,88.384556,Rock,Fall,
+26090,SKM/NS/78A04/2017/123,Sikkim,West Sikkim,,SH,27.125861,88.14275,Debris,Slide,
+26091,SKM/SS/78A08/2015/226,Sikkim,South Sikkim,,Namchi-Palum Road,27.126306,88.378667,Debris,Slide,
+26092,SKM/SS/78A08/2015/322,Sikkim,South Sikkim,,Namchi-Kitam Road,27.126444,88.340444,Debris,Slide,
+26093,SKM/WS/78A08/2015/317,Sikkim,West Sikkim,,Melli-Jorethang Road,27.126472,88.31675,Debris,Slide,
+26094,SKM/WS/78A08/2015/318,Sikkim,West Sikkim,,Melli-Jorethang Road,27.127194,88.308306,Debris,Slide,
+26095,SKM/WS/78A08/2015/319,Sikkim,West Sikkim,,Melli-Jorethang Road,27.12825,88.292194,Debris,Slide,
+26096,SKM/NS/78A04/2017/124,Sikkim,West Sikkim,,SH,27.128333,88.148833,Rock,Slide,
+26097,SKM/SS/78A08/2015/312,Sikkim,South Sikkim,,Melli-Rabikhola Road,27.128694,88.442778,Debris,Slide,
+26098,SKM/NS/78A04/2017/122,Sikkim,West Sikkim,,SH,27.128694,88.141639,Debris,Slide,
+26099,SKM/WS/78A08/2015/383,Sikkim,West Sikkim,,Jorthang-Malbasey Road,27.128972,88.262111,Debris,Slide,
+26100,SKM/SS/78A08/2015/313,Sikkim,South Sikkim,,Melli-Rabikhola Road,27.129,88.441361,Debris,Slide,
+26101,SKM/WS/78A08/2015/382,Sikkim,West Sikkim,,Jorthang-Malbasey Road,27.129861,88.266222,Debris,Slide,
+26102,SKM/SS/78A08/2015/216,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.130056,88.412944,Debris,Slide,
+26103,SKM/SS/78A08/2015/323,Sikkim,South Sikkim,,Namchi-Kitam Road,27.130444,88.340222,Debris,Slide,
+26104,SKM/SS/78A08/2015/224,Sikkim,South Sikkim,,Namchi-Palum Road,27.131444,88.386,Debris,Slide,
+26105,SKM/SS/78A08/2015/223,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.131528,88.384417,Debris,Slide,
+26106,SKM/SS/78A08/2015/221,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.133556,88.39475,Rock,Slide,
+26107,SKM/SS/78A08/2015/217,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.133583,88.404583,Rock,Fall,
+26108,SKM/SS/78A08/2015/222,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.133722,88.390833,Debris,Slide,
+26109,SKM/SS/78A08/2015/324,Sikkim,South Sikkim,,Namchi-Kitam Road,27.133806,88.342778,Debris,Slide,
+26110,SKM/SS/78A08/2015/227,Sikkim,South Sikkim,,Namchi-Palum Road,27.134306,88.370528,Debris,Slide,
+26111,SKM/SS/78A08/2015/218,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.134389,88.40425,Debris,Slide,
+26112,SKM/SS/78A08/2015/220,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.135833,88.391111,Debris,Slide,
+26113,SKM/SS/78A08/2015/325,Sikkim,South Sikkim,,Namchi-Kitam Road,27.137667,88.342694,Debris,Slide,
+26114,SKM/SS/78A08/2015/219,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.137694,88.401556,Debris,Slide,
+26115,SKM/SS/78A08/2015/228,Sikkim,South Sikkim,,Namchi-Palum Road,27.139944,88.368167,Rock,Slide,
+26116,SKM/SS/78A08/2015/229,Sikkim,South Sikkim,,Namchi-Palum Road,27.140889,88.368222,Debris,Slide,
+26117,SKM/NS/78A04/2017/101,Sikkim,West Sikkim,,SH,27.141,88.211194,Debris,Slide,
+26118,SKM/NS/78A04/2017/114,Sikkim,West Sikkim,Tharpu,SH,27.141944,88.180222,Debris,Slide,
+26119,SKM/NS/78A04/2017/115,Sikkim,West Sikkim,,SH,27.142028,88.172139,Debris,Slide,
+26120,SKM/SS/78A08/2015/231,Sikkim,South Sikkim,,Namchi-Palum Road,27.143556,88.373083,Debris,Slide,
+26121,SKM/NS/78A04/2017/139,Sikkim,West Sikkim,,SH,27.144056,88.127361,Earth,Slide,
+26122,SKM/WS/78A08/2015/264,Sikkim,West Sikkim,,Namchi-Assangthang Road,27.144167,88.311083,Rock,Fall,
+26123,SKM/SS/78A08/2015/230,Sikkim,South Sikkim,,Namchi-Palum Road,27.145056,88.370778,Rock,Slide,
+26124,SKM/WS/78A08/2015/265,Sikkim,West Sikkim,,Namchi-Assangthang Road,27.145444,88.305694,Debris,Slide,
+26125,SKM/SS/78A07/2015/326,Sikkim,South Sikkim,,Melli-Jorethang Road,27.149722,88.348333,Debris,Slide,
+26126,SKM/NS/78A04/2017/121,Sikkim,West Sikkim,,SH,27.149889,88.096861,Earth,Slide,
+26127,SKM/NS/78A04/2017/109,Sikkim,West Sikkim,,SH,27.149972,88.184222,Debris,Slide,
+26128,SKM/SS/78A08/2015/311,Sikkim,South Sikkim,,Melli-Phong Road,27.150778,88.4385,Debris,Slide,
+26129,SKM/WS/78A08/2015/266,Sikkim,West Sikkim,,Namchi-Assangthang Road,27.151028,88.309889,Debris,Slide,
+26130,SKM/NS/78A04/2017/108,Sikkim,West Sikkim,Lower Timburbung,SH,27.152722,88.190833,Earth,Slide,
+26131,SKM/SS/78A08/2015/232,Sikkim,South Sikkim,,Namchi-Palum Road,27.152861,88.390361,Rock,Slide,
+26132,SKM/SS/78A08/2015/215,Sikkim,South Sikkim,,Sadam-Bhajyang Road,27.153083,88.412056,Debris,Slide,
+26133,SKM/WS/78A08/2015/267,Sikkim,West Sikkim,,Namchi-Assangthang Road,27.153306,88.3135,Debris,Slide,
+26134,SKM/NS/78A04/2017/120,Sikkim,West Sikkim,,SH,27.153444,88.095639,Debris,Slide,
+26135,SKM/SS/78A08/2015/175,Sikkim,South Sikkim,,Namchi-Namthang Road,27.153528,88.494389,Debris,Slide,
+26136,SKM/SS/78A08/2015/307,Sikkim,South Sikkim,,Melli-Phong Road,27.15425,88.500333,Debris,Slide,
+26137,SKM/WS/78A08/2015/379,Sikkim,West Sikkim,,,27.1545,88.275667,Debris,Slide,
+26138,SKM/SS/78A08/2015/310,Sikkim,South Sikkim,,Melli-Phong Road,27.154722,88.443056,Debris,Slide,
+26139,SKM/SS/78A08/2015/176,Sikkim,South Sikkim,,Namchi-Namthang Road,27.154889,88.493194,Debris,Slide,
+26140,SKM/WS/78A08/2015/269,Sikkim,West Sikkim,,Namchi-Assangthang Road,27.155028,88.319556,Rock,Slide,
+26141,SKM/SS/78A08/2015/233,Sikkim,South Sikkim,,Namchi-Palum Road,27.155306,88.390278,Debris,Slide,
+26142,SKM/SS/78A08/2015/279,Sikkim,South Sikkim,,Namchi-Namthang Road,27.15625,88.430722,Debris,Slide,
+26143,SKM/ES/78A12/2015/162,Sikkim,East Sikkim,,Namchi-Namthang Road,27.156806,88.5225,Rock,Fall,
+26144,SKM/NS/78A04/2017/98,Sikkim,West Sikkim,,SH,27.156944,88.230778,Debris,Slide,
+26145,SKM/ES/78A2/2015/167,Sikkim,East Sikkim,,Namchi-Namthang Road,27.157056,88.512778,Debris,Slide,
+26146,SKM/NS/78A04/2017/113,Sikkim,West Sikkim,,SH,27.157361,88.171667,Debris,Slide,
+26147,SKM/WS/78A08/2015/293,Sikkim,West Sikkim,,Namchi-Jorthang Road,27.157694,88.306806,Debris,Slide,
+26148,SKM/ES/78A12/2015/163,Sikkim,East Sikkim,,Namchi-Namthang Road,27.157694,88.522194,Rock,Topple,
+26149,SKM/NS/78A04/2017/119,Sikkim,West Sikkim,,SH,27.157694,88.092833,Debris,Slide,
+26150,SKM/NS/78A04/2017/97,Sikkim,West Sikkim,,SH,27.157806,88.230306,Debris,Slide,
+26151,SKM/NS/78A04/2017/116,Sikkim,West Sikkim,,SH,27.157861,88.090194,Earth,Slide,
+26152,SKM/SS/78A08/2015/273,Sikkim,South Sikkim,,Namchi-Namthang Road,27.158,88.347972,Debris,Slide,
+26153,SKM/NS/78A04/2017/140,Sikkim,West Sikkim,,SH,27.158056,88.141528,Debris,Slide,
+26154,SKM/SS/78A08/2015/177,Sikkim,South Sikkim,,Namchi-Namthang Road,27.158111,88.491722,Debris,Slide,
+26155,SKM/ES/78A2/2015/168,Sikkim,East Sikkim,,Namchi-Namthang Road,27.158111,88.512472,Debris,Slide,
+26156,SKM/WS/78A08/2015/271,Sikkim,West Sikkim,,Namchi-Assangthang Road,27.158139,88.344806,Debris,Slide,
+26157,SKM/WS/78A08/2015/270,Sikkim,West Sikkim,,Namchi-Assangthang Road,27.158222,88.34325,Debris,Slide,
+26158,SKM/NS/78A04/2017/134,Sikkim,West Sikkim,,SH,27.158222,88.100361,Debris,Slide,
+26159,SKM/ES/78A12/2015/164,Sikkim,East Sikkim,,Namchi-Namthang Road,27.158361,88.521833,Debris,Slide,
+26160,SKM/SS/78A08/2015/276,Sikkim,South Sikkim,,Namchi-Namthang Road,27.158417,88.420139,Debris,Slide,
+26161,SKM/SS/78A08/2015/303,Sikkim,South Sikkim,,Namthang-Kabrey Road,27.158583,88.466306,Rock,Fall,
+26162,SKM/SS/78A08/2015/278,Sikkim,South Sikkim,,Namchi-Namthang Road,27.158944,88.427111,Debris,Slide,
+26163,SKM/ES/78A2/2015/169,Sikkim,East Sikkim,,Namchi-Namthang Road,27.158972,88.514611,Rock,Fall,
+26164,SKM/NS/78A04/2017/117,Sikkim,West Sikkim,,SH,27.158972,88.090944,Debris,Slide,
+26165,SKM/SS/78A08/2015/309,Sikkim,South Sikkim,,Melli-Phong Road,27.159194,88.444361,Debris,Slide,
+26166,SKM/NS/78A04/2017/118,Sikkim,West Sikkim,,SH,27.159361,88.09225,Earth,Slide,
+26167,SKM/WS/78A08/2015/294,Sikkim,West Sikkim,,Namchi-Jorthang Road,27.159472,88.300028,Debris,Slide,
+26168,SKM/WS/78A08/2015/268,Sikkim,West Sikkim,,Namchi-Assangthang Road,27.159639,88.318889,Debris,Subsidence,
+26169,SKM/SS/78A08/2015/234,Sikkim,South Sikkim,,Namchi-Palum Road,27.159972,88.379083,Rock,Slide,
+26170,SKM/SS/78A08/2015/277,Sikkim,South Sikkim,,Namchi-Namthang Road,27.160056,88.423028,Debris,Slide,
+26171,SKM/NS/78A04/2017/132,Sikkim,West Sikkim,,SH,27.160056,88.091806,Debris,Slide,
+26172,SKM/SS/78A08/2015/272,Sikkim,South Sikkim,,Namchi-Namthang Road,27.160194,88.415056,Debris,Slide,
+26173,SKM/SS/78A12/2015/170,Sikkim,South Sikkim,,Namchi-Namthang Road,27.160444,88.512472,Rock,Fall,
+26174,SKM/SS/78A12/2015/174,Sikkim,South Sikkim,,Namchi-Namthang Road,27.160722,88.505889,Debris,Slide,
+26175,SKM/NS/78A04/2017/133,Sikkim,West Sikkim,,SH,27.161,88.094306,Debris,Slide,
+26176,SKM/SS/78A12/2015/171,Sikkim,South Sikkim,,Namchi-Namthang Road,27.161306,88.512944,Debris,Slide,
+26177,SKM/SS/78A08/2015/274,Sikkim,South Sikkim,,Namchi-Namthang Road,27.161444,88.410556,Debris,Slide,
+26178,SKM/SS/78A12/2015/173,Sikkim,South Sikkim,,Namchi-Namthang Road,27.161917,88.509639,Debris,Slide,
+26179,SKM/SS/78A08/2015/181,Sikkim,South Sikkim,,Namchi-Namthang Road,27.162111,88.491444,Rock,Fall,
+26180,SKM/SS/78A12/2015/172,Sikkim,South Sikkim,,Namchi-Namthang Road,27.162194,88.510611,Debris,Slide,
+26181,SKM/SS/78A08/2015/212,Sikkim,South Sikkim,,Namchi-Namthang Road,27.16275,88.383306,Earth,Slide,
+26182,SKM/SS/78A08/2015/275,Sikkim,South Sikkim,,Namchi-Namthang Road,27.162778,88.413222,Rock,Slide,
+26183,SKM/SS/78A08/2015/179,Sikkim,South Sikkim,,Namchi-Namthang Road,27.162781,88.484864,Debris,Slide,
+26184,SKM/NS/78A04/2017/142,Sikkim,West Sikkim,,SH,27.163472,88.143083,Debris,Slide,
+26185,SKM/SS/78A08/2015/282,Sikkim,South Sikkim,,Namchi-Namthang Road,27.163556,88.458833,Debris,Slide,
+26186,SKM/SS/78A08/2015/214,Sikkim,South Sikkim,,Namchi-Namthang Road,27.16375,88.406417,Rock,Slide,
+26187,SKM/SS/78A08/2015/281,Sikkim,South Sikkim,,Namchi-Namthang Road,27.163861,88.462306,Debris,Slide,
+26188,SKM/ES/78A12/2015/165,Sikkim,East Sikkim,,Namchi-Namthang Road,27.163861,88.52,Debris,Slide,
+26189,SKM/NS/78A04/2017/141,Sikkim,West Sikkim,,SH,27.163861,88.141361,Debris,Slide,
+26190,SKM/NS/78A04/2017/100,Sikkim,West Sikkim,Malbasley,SH,27.164472,88.213889,Rock,Slide,
+26191,SKM/NS/78A04/2017/96,Sikkim,West Sikkim,,SH,27.1645,88.228444,Rock,Slide,
+26192,SKM/SS/78A08/2015/396,Sikkim,South Sikkim,,Sikkip-Wak-Namchi Road,27.164528,88.348472,Debris,Slide,
+26193,SKM/SS/78A08/2015/308,Sikkim,South Sikkim,,Melli-Phong Road,27.165,88.444444,Debris,Slide,
+26194,SKM/SS/78A08/2015/395,Sikkim,South Sikkim,,Sikkip-Wak-Namchi Road,27.165278,88.348528,Debris,Slide,
+26195,SKM/NS/78A04/2017/112,Sikkim,West Sikkim,,SH,27.165333,88.162028,Debris,Slide,
+26196,SKM/SS/78A08/2015/180,Sikkim,South Sikkim,,Namchi-Namthang Road,27.165528,88.496556,Debris,Slide,
+26197,SKM/SS/78A08/2015/178,Sikkim,South Sikkim,,Namchi-Namthang Road,27.165586,88.488511,Debris,Slide,
+26198,SKM/SS/78A08/2015/183,Sikkim,South Sikkim,,Namchi-Namthang Road,27.165833,88.436667,Debris,Slide,
+26199,SKM/NS/78A04/2017/143,Sikkim,West Sikkim,,SH,27.166278,88.144333,Debris,Slide,
+26200,SKM/SS/78A08/2015/213,Sikkim,South Sikkim,,Namchi-Namthang Road,27.166528,88.401333,Debris,Slide,
+26201,SKM/SS/78A08/2015/304,Sikkim,South Sikkim,,Perbing-Chuba Road,27.166611,88.417528,Debris,Slide,
+26202,SKM/SS/78A08/2015/394,Sikkim,South Sikkim,,Sikkip-Wak-Namchi Road,27.167611,88.348889,Debris,Slide,
+26203,SKM/NS/78A04/2017/99,Sikkim,West Sikkim,,SH,27.167972,88.224778,Rock,Slide,
+26204,SKM/SS/78A08/2015/211,Sikkim,South Sikkim,,Namchi-Namthang Road,27.168167,88.384556,Debris,Slide,
+26205,SKM/SS/78A08/2015/302,Sikkim,South Sikkim,,,27.169028,88.486333,Debris,Slide,
+26206,SKM/SS/78A08/2015/198,Sikkim,South Sikkim,,Namchi-Damthang Road,27.169472,88.363778,Debris,Slide,
+26207,SKM/SS/78A08/2015/280,Sikkim,South Sikkim,,Namchi-Namthang Road,27.169583,88.462361,Debris,Slide,
+26208,SKM/NS/78A04/2017/135,Sikkim,West Sikkim,Bhoreng,SH,27.170833,88.086361,Earth,Slide,
+26209,SKM/NS/78A04/2017/95,Sikkim,West Sikkim,,SH,27.171083,88.245417,Debris,Slide,
+26210,SKM/SS/78A08/2015/393,Sikkim,South Sikkim,,Sikkip-Wak-Namchi Road,27.171139,88.354611,Debris,Slide,
+26211,SKM/NS/78A04/2017/110,Sikkim,West Sikkim,,SH,27.171639,88.159333,Debris,Slide,
+26212,SKM/NS/78A04/2017/111,Sikkim,West Sikkim,,SH,27.171833,88.160861,Debris,Slide,
+26213,SKM/NS/78A04/2017/137,Sikkim,West Sikkim,,SH,27.172083,88.090333,Earth,Slide,
+26214,SKM/SOUTH/78A08/2017/001,Sikkim,South Sikkim,"Gumpa Monastery, Upper Gurpisey","State Highway (Namchi-
+Damthang Road, South Sikkim)",27.172228,88.372,Debris,Complex,2017
+26215,SKM/SS/78A08/2015/210,Sikkim,South Sikkim,,Namchi-Namthang Road,27.172333,88.381444,Debris,Slide,
+26216,SKM/SS/78A08/2015/297,Sikkim,South Sikkim,,Namchi-Jorthang Road,27.172444,88.386972,Rock,Slide,
+26217,SKM/NS/78A04/2017/136,Sikkim,West Sikkim,Ribdi,SH,27.172444,88.089528,Earth,Slide,
+26218,SKM/NS/78A04/2017/138,Sikkim,West Sikkim,,SH,27.173861,88.092111,Earth,Slide,
+26219,SKM/SS/78A08/2015/296,Sikkim,South Sikkim,,Namchi-Jorthang Road,27.173917,88.38525,Rock,Slide,
+26220,SKM/SS/78A08/2015/182,Sikkim,South Sikkim,,Namchi-Namthang Road,27.174389,88.452028,Debris,Slide,
+26221,SKM/SS/78A08/2015/295,Sikkim,South Sikkim,,Namchi-Jorthang Road,27.175,88.385028,Rock,Slide,
+26222,SKM/SS/78A08/2015/300,Sikkim,South Sikkim,,Namchi-Jorthang Road,27.175778,88.402417,Debris,Slide,
+26223,SKM/SS/78A08/2015/305,Sikkim,South Sikkim,,Perbing-Chuba Road,27.176,88.429556,Debris,Slide,
+26224,SKM/SS/78A08/2015/299,Sikkim,South Sikkim,,Namchi-Jorthang Road,27.176944,88.402056,Debris,Slide,
+26225,SKM/SS/78A08/2015/301,Sikkim,South Sikkim,,Namchi-Jorthang Road,27.177056,88.402611,Rock,Slide,
+26226,SKM/SS/78A08/2015/263,Sikkim,South Sikkim,,,27.177167,88.369611,Rock,Slide,
+26227,SKM/SS/78A08/2015/306,Sikkim,South Sikkim,,Perbing-Chuba Road,27.178111,88.430556,Debris,Slide,
+26228,SKM/ES/78A12/2015/101,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.178889,88.533097,Rock,Slide,
+26229,SKM/NS/78A04/2017/106,Sikkim,West Sikkim,,SH,27.179278,88.190972,Earth,Slide,
+26230,SKM/ES/78A12/2015/141,Sikkim,East Sikkim,,NH-31A,27.179639,88.519778,Debris,Slide,
+26231,SKM/ES/78A12/2015/143,Sikkim,East Sikkim,,NH-31A,27.180417,88.51025,Rock,Slide,
+26232,SKM/ES/78A12/2015/142,Sikkim,East Sikkim,,NH-31A,27.180528,88.518611,Debris,Slide,
+26233,SKM/NS/78A04/2017/105,Sikkim,West Sikkim,Gumpa Dara,SH,27.181167,88.192028,Debris,Slide,
+26234,SKM/WS/78A08/2015/378,Sikkim,West Sikkim,,,27.181222,88.309528,Debris,Slide,
+26235,SKM/SS/78A08/2015/298,Sikkim,South Sikkim,,Namchi-Jorthang Road,27.18175,88.395778,Debris,Slide,
+26236,SKM/ES/78A12/2015/144,Sikkim,East Sikkim,,NH-31A,27.182111,88.508,Rock,Slide,
+26237,SKM/NS/78A03/2017/82,Sikkim,West Sikkim,Barakheley Dara,SH,27.185944,88.197944,Debris,Slide,
+26238,SKM/NS/78A03/2017/83,Sikkim,West Sikkim,,SH,27.185972,88.205833,Earth,Slide,
+26239,SKM/WS/78A08/2015/351,Sikkim,West Sikkim,,legship-Sikkip Road,27.186361,88.320417,Debris,Slide,
+26240,SKM/NS/78A03/2017/84,Sikkim,West Sikkim,,SH,27.186611,88.206278,Earth,Slide,
+26241,SKM/ES/78A12/2015/102,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.18815,88.562083,Debris,Slide,
+26242,SKM/ES/78A12/2015/145,Sikkim,East Sikkim,,NH-31A,27.188528,88.501194,Rock,Slide,
+26243,SKM/SS/78A08/2015/197,Sikkim,South Sikkim,,Namchi-Damthang Road,27.189222,88.391056,Debris,Slide,
+26244,SKM/ES/78A12/2015/103,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.189261,88.595686,Debris,Slide,
+26245,SKM/ES/78A12/2015/39,Sikkim,East Sikkim,Padamchey,Rangpo-Rorathang Road,27.19,88.564472,Rock,Fall,
+26246,SKM/ES/78A12/2015/104,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.190067,88.596483,Rock,Slide,
+26247,SKM/ES/78A12/2015/105,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.190833,88.596889,Debris,Slide,
+26248,SKM/WS/78A08/2015/350,Sikkim,West Sikkim,,legship-Sikkip Road,27.191639,88.325861,Debris,Slide,
+26249,SKM/WS/78A08/2015/374,Sikkim,West Sikkim,,Sangadorji-Bum Road,27.191917,88.2885,Debris,Slide,
+26250,SKM/ES/78A12/2015/106,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.192989,88.603083,Debris,Slide,
+26251,SKM/ES/78A12/2015/135,Sikkim,East Sikkim,,Rhenak Road,27.193794,88.650528,Debris,Slide,
+26252,SKM/SS/78A08/2015/206,Sikkim,South Sikkim,,Kholaghari village Road,27.194333,88.388889,Debris,Slide,
+26253,SKM/ES/78A12/2015/108,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.195083,88.631992,Debris,Slide,
+26254,SKM/ES/78A12/2015/109,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.195511,88.6342,Debris,Slide,
+26255,SKM/ES/78A12/2015/107,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.195703,88.625444,Debris,Slide,
+26256,SKM/SS/78A08/2015/207,Sikkim,South Sikkim,,Kholaghari village Road,27.195722,88.387472,Debris,Slide,
+26257,SKM/NS/78A03/2017/81,Sikkim,West Sikkim,Phuchenbong,SH,27.197111,88.208722,Debris,Slide,
+26258,SKM/SS/78A12/2015/146,Sikkim,South Sikkim,,NH-31A,27.197417,88.4905,Rock,Slide,
+26259,SKM/ES/78A12/2015/110,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.198856,88.638725,Debris,Slide,
+26260,SKM/ES/78A12/2015/134,Sikkim,East Sikkim,,Rhenak Road,27.198928,88.66095,Debris,Slide,
+26261,SKM/SS/78A08/2015/385,Sikkim,South Sikkim,,Sikkip-Wak-Namchi Road,27.199028,88.350417,Debris,Slide,
+26262,SKM/ES/78A12/2015/111,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.199722,88.641633,Rock,Topple,
+26263,SKM/SS/78A08/2015/386,Sikkim,South Sikkim,,Sikkip-Wak-Namchi Road,27.200389,88.3545,Debris,Slide,
+26264,SKM/WS/78A08/2015/384,Sikkim,West Sikkim,,Sikkip-Wak-Namchi Road,27.200861,88.340861,Debris,Slide,
+26265,SKM/ES/78A12/2015/133,Sikkim,East Sikkim,,Rhenak Road,27.201278,88.665381,Debris,Slide,
+26266,SKM/WS/78A08/2015/366,Sikkim,West Sikkim,,Kaluk-Rinchenpong Road,27.20175,88.268194,Debris,Slide,
+26267,SKM/ES/78A12/2015/132,Sikkim,East Sikkim,,Rhenak Road,27.201875,88.667278,Debris,Slide,
+26268,SKM/SS/78A08/2015/209,Sikkim,South Sikkim,,Kholaghari village Road,27.202417,88.391583,Debris,Slide,
+26269,SKM/ES/78A12/2015/113,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.202433,88.656708,Rock,Topple,
+26270,SKM/ES/78A12/2015/34,Sikkim,East Sikkim,Pendam,,27.203167,88.588667,Debris,Slide,
+26271,SKM/ES/78A12/2015/38,Sikkim,East Sikkim,Pamdambhasmey,Rangpo-Rorathang Road,27.203194,88.600278,Debris,Slide,
+26272,SKM/ES/78A12/2015/114,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.203869,88.658333,Debris,Slide,
+26273,SKM/ES/78A12/2015/112,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.204556,88.647222,Debris,Slide,
+26274,SKM/WS/78A08/2015/349,Sikkim,West Sikkim,,legship-Sikkip Road,27.204694,88.32375,Debris,Slide,
+26275,SKM/ES/78A12/2015/33,Sikkim,East Sikkim,East Pendam,,27.205,88.591722,Rock,Fall,
+26276,SKM/SS/78A08/2015/56,Sikkim,South Sikkim,,Phong-Bermiok Road,27.205,88.442122,Debris,Slide,
+26277,SKM/ES/78A12/2015/115,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.205047,88.689053,Debris,Slide,
+26278,SKM/SS/78A08/2015/54,Sikkim,South Sikkim,,Phong-Bermiok Road,27.206611,88.442814,Debris,Slide,
+26279,SKM/ES/78A12/2015/118,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.206653,88.679953,Rock,Fall,
+26280,SKM/WS/78A08/2015/348,Sikkim,West Sikkim,,legship-Sikkip Road,27.206917,88.323278,Debris,Slide,
+26281,SKM/SS/78A08/2015/55,Sikkim,South Sikkim,,Phong-Bermiok Road,27.207039,88.446667,Debris,Slide,
+26282,SKM/ES/78A12/2015/116,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.207264,88.672817,Debris,Slide,
+26283,SKM/ES/78A12/2015/117,Sikkim,East Sikkim,,Rorathang-Rongli Road,27.207606,88.676047,Rock,Fall,
+26284,SKM/SS/78A08/2015/208,Sikkim,South Sikkim,,Kholaghari village Road,27.20825,88.387667,Earth,Slide,
+26285,SKM/ES/78A12/2015/35,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.2115,88.58775,Debris,Slide,
+26286,SKM/ES/78A12/2015/36,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.212222,88.587889,Debris,Slide,
+26287,SKM/SS/78A08/2015/196,Sikkim,South Sikkim,,Namchi-Damthang Road,27.212583,88.399333,Debris,Slide,
+26288,SKM/SS/78A08/2015/202,Sikkim,South Sikkim,,Kholaghari village Road,27.21275,88.391444,Debris,Slide,
+26289,SKM/WS/78A08/2015/347,Sikkim,West Sikkim,,legship-Sikkip Road,27.213556,88.321833,Debris,Slide,
+26290,SKM/ES/78A11/2015/13,Sikkim,East Sikkim,,,27.214222,88.608361,Debris,Slide,
+26291,SKM/SS/78A08/2015/203,Sikkim,South Sikkim,,Kholaghari village Road,27.214639,88.392417,Debris,Slide,
+26292,SKM/ES/78A12/2015/37,Sikkim,East Sikkim,,Rangpo-Rorathang Road,27.214806,88.588083,Debris,Slide,
+26293,SKM/SS/78A08/2015/205,Sikkim,South Sikkim,,Kholaghari village Road,27.215056,88.393306,Debris,Slide,
+26294,SKM/SS/78A08/2015/195,Sikkim,South Sikkim,,Namchi-Damthang Road,27.21525,88.402278,Debris,Slide,
+26295,SKM/NS/78A03/2017/85,Sikkim,West Sikkim,,SH,27.216361,88.199667,Debris,Slide,
+26296,SKM/SS/78A08/2015/204,Sikkim,South Sikkim,,Kholaghari village Road,27.216639,88.392361,Rock,Slide,
+26297,SKM/WS/78A08/2015/367,Sikkim,West Sikkim,,Kaluk-Rinchenpong Road,27.216722,88.274639,Debris,Slide,
+26298,SKM/NS/78A04/2017/93,Sikkim,West Sikkim,Rishithang,SH,27.217278,88.236944,Debris,Slide,
+26299,SKM/NS/78A04/2017/91,Sikkim,West Sikkim,,SH,27.217667,88.233472,Debris,Slide,
+26300,SKM/NS/78A04/2017/92,Sikkim,West Sikkim,,SH,27.217667,88.234639,Debris,Slide,
+26301,SKM/NS/78A04/2017/90,Sikkim,West Sikkim,,SH,27.218278,88.232472,Debris,Slide,
+26302,SKM/NS/78A04/2017/89,Sikkim,West Sikkim,,SH,27.21875,88.233694,Debris,Slide,
+26303,SKM/SS/78A08/2015/200,Sikkim,South Sikkim,,Kholaghari village Road,27.219444,88.391111,Debris,Slide,
+26304,SKM/NS/78A04/2017/88,Sikkim,West Sikkim,,SH,27.219444,88.234361,Rock,Slide,
+26305,SKM/NS/78A03/2017/80,Sikkim,West Sikkim,,SH,27.2195,88.210222,Debris,Slide,
+26306,SKM/WS/78A08/2015/369,Sikkim,West Sikkim,,Sangadorji-Bum Road,27.219917,88.276306,Debris,Slide,
+26307,SKM/WS/78A08/2015/370,Sikkim,West Sikkim,,Sangadorji-Bum Road,27.220306,88.261861,Debris,Slide,
+26308,SKM/WS/78A08/2015/373,Sikkim,West Sikkim,,Sangadorji-Bum Road,27.220472,88.281028,Debris,Slide,
+26309,SKM/ES/78A12/2015/131,Sikkim,East Sikkim,,Rhenak-Kopchey Road,27.22075,88.699833,Debris,Slide,
+26310,SKM/WS/78A08/2015/371,Sikkim,West Sikkim,,Sangadorji-Bum Road,27.220778,88.279917,Debris,Slide,
+26311,SKM/NS/78A04/2017/87,Sikkim,West Sikkim,Rishi,SH,27.220806,88.237361,Rock,Slide,
+26312,SKM/ES/78A11/2015/14,Sikkim,East Sikkim,,,27.220861,88.657111,Debris,Slide,
+26313,SKM/ES/78A12/2015/27,Sikkim,East Sikkim,Mamring,,27.220889,88.652278,Debris,Slide,
+26314,SKM/SS/78A08/2015/199,Sikkim,South Sikkim,,Kholaghari village Road,27.220917,88.385083,Debris,Slide,
+26315,SKM/SS/78A08/2015/194,Sikkim,South Sikkim,,Namchi-Damthang Road,27.220972,88.397639,Debris,Slide,
+26316,SKM/SS/78A08/2015/189,Sikkim,South Sikkim,,Temi village Road,27.221444,88.376167,Debris,Slide,
+26317,SKM/SS/78A08/2015/188,Sikkim,South Sikkim,,Temi village Road,27.2215,88.370667,Debris,Slide,
+26318,SKM/SS/78A08/2015/201,Sikkim,South Sikkim,,Kholaghari village Road,27.221778,88.390861,Debris,Slide,
+26319,SKM/WS/78A08/2015/372,Sikkim,West Sikkim,,Sangadorji-Bum Road,27.222917,88.281972,Debris,Slide,
+26320,SKM/SS/78A12/2015/147,Sikkim,South Sikkim,,NH-31A,27.223833,88.491833,Debris,Slide,
+26321,SKM/SS/78A08/2015/187,Sikkim,South Sikkim,,Temi village Road,27.224778,88.372083,Debris,Slide,
+26322,SKM/SS/78A08/2015/186,Sikkim,South Sikkim,,Temi village Road,27.225083,88.373333,Debris,Slide,
+26323,SKM/NS/78A04/2017/86,Sikkim,West Sikkim,,SH,27.225556,88.240333,Debris,Slide,
+26324,SKM/SS/78A12/2015/148,Sikkim,South Sikkim,,NH-31A,27.22575,88.49325,Rock,Slide,
+26325,SKM/WS/78A08/2015/392,Sikkim,West Sikkim,,Tinktitam village Road,27.226556,88.308861,Debris,Slide,
+26326,SKM/NS/78A03/2017/79,Sikkim,West Sikkim,,SH,27.2275,88.220278,Debris,Slide,
+26327,SKM/NS/78A04/2017/94,Sikkim,West Sikkim,,SH,27.227528,88.219639,Debris,Slide,
+26328,SKM/SS/78A12/2015/149,Sikkim,South Sikkim,,Singtam-Dikchu Road,27.228556,88.493889,Debris,Slide,
+26329,SKM/SS/78A08/2015/185,Sikkim,South Sikkim,,Temi village Road,27.229417,88.378444,Debris,Slide,
+26330,SKM/ES/78A12/2015/28,Sikkim,East Sikkim,Taza,,27.22975,88.619361,Earth,Slide,
+26331,SKM/WS/78A08/2015/391,Sikkim,West Sikkim,,Tinktitam village Road,27.230583,88.306056,Debris,Slide,
+26332,SKM/SS/78A08/2015/184,Sikkim,South Sikkim,Chemchey,Temi village Road,27.232639,88.378417,Debris,Slide,
+26333,SKM/NS/78A04/2017/68,Sikkim,West Sikkim,,SH,27.233194,88.246361,Debris,Slide,
+26334,SKM/ES/78A12/2015/22,Sikkim,East Sikkim,,NH-31A,27.233389,88.5015,Debris,Slide,
+26335,SKM/ES/78A12/2015/120,Sikkim,East Sikkim,,Machong-Rongli Road,27.233417,88.634806,Debris,Slide,
+26336,SKM/SS/78A08/2015/235,Sikkim,South Sikkim,,Tinktam-Rheyong Road,27.233667,88.348389,Debris,Slide,
+26337,SKM/ES/78A12/2015/29,Sikkim,East Sikkim,,,27.235694,88.6025,Debris,Slide,
+26338,SKM/ES/78A12/2015/30,Sikkim,East Sikkim,,,27.23575,88.602389,Debris,Slide,
+26339,SKM/SS/78A12/2015/150,Sikkim,South Sikkim,,Singtam-Dikchu Road,27.23575,88.506472,Debris,Slide,
+26340,SKM/SS/78A12/2015/151,Sikkim,South Sikkim,,Singtam-Dikchu Road,27.23575,88.507972,Debris,Slide,
+26341,SKM/ES/78A12/2015/21,Sikkim,East Sikkim,,NH-31A,27.235778,88.506306,Debris,Slide,
+26342,SKM/SS/78A08/2015/360,Sikkim,South Sikkim,,,27.235861,88.433167,Debris,Slide,
+26343,SKM/ES/78A12/2015/121,Sikkim,East Sikkim,,Machong-Rongli Road,27.235917,88.645167,Rock,Fall,
+26344,SKM/ES/78A12/2015/152,Sikkim,East Sikkim,,NH-31A,27.236361,88.50875,Debris,Slide,
+26345,SKM/ES/78A12/2015/20,Sikkim,East Sikkim,,NH-31A,27.236583,88.509611,Debris,Slide,
+26346,SKM/NS/78A04/2017/69,Sikkim,West Sikkim,,SH,27.236889,88.235917,Rock,Slide,
+26347,SKM/ES/78A12/2015/32,Sikkim,East Sikkim,,,27.237694,88.598806,Debris,Slide,
+26348,SKM/EAS/78A12/2014/002,Sikkim,East Sikkim,6 km from Martam,"0.5 km before Sikkim Supreme
+(On NH-31A)",27.23772,88.51384,Debris,Slide,26 August 2014
+26349,SKM/SS/78A08/2015/236,Sikkim,South Sikkim,,Tinktam-Rheyong Road,27.237889,88.346444,Debris,Slide,
+26350,SKM/WS/78A08/2015/390,Sikkim,West Sikkim,,Tinktitam village Road,27.237917,88.30475,Rock,Slide,
+26351,SKM/ES/78A12/2015/31,Sikkim,East Sikkim,Dikling,,27.238111,88.601528,Debris,Slide,
+26352,SKM/EAS/78A08/2014/003,Sikkim,East Sikkim,Sirwani Landslide,"Sirwani (On Singtam-Mangkha
+road )",27.23924,88.48416,Debris,Slide,"2011, 25 August 2014"
+26353,SKM/WS/78A08/2015/387,Sikkim,West Sikkim,,Tinktitam village Road,27.239972,88.332778,Debris,Slide,
+26354,SKM/ES/78A08/2015/49,Sikkim,East Sikkim,,Singtam-Dikchu Road,27.240028,88.486472,Debris,Slide,
+26355,SKM/ES/78A08/2015/50,Sikkim,East Sikkim,,Singtam-Dikchu Road,27.240194,88.486278,Debris,Slide,
+26356,SKM/NS/78A04/2017/71,Sikkim,West Sikkim,Upper Bermiok,SH,27.240389,88.234028,Debris,Slide,
+26357,SKM/ES/78A08/2015/52,Sikkim,East Sikkim,,,27.240556,88.48025,Debris,Slide,
+26358,SKM/WS/78A08/2015/389,Sikkim,West Sikkim,,Tinktitam village Road,27.240639,88.306056,Debris,Slide,
+26359,SKM/ES/78A08/2015/51,Sikkim,East Sikkim,,Singtam-Dikchu Road,27.240861,88.486278,Debris,Slide,
+26360,SKM/NS/78A04/2017/70,Sikkim,West Sikkim,,SH,27.241333,88.233972,Debris,Slide,
+26361,SK/ED/78A12/2017/01,Sikkim,East Sikkim,Pachey landslide near Pakyong Town,"Pakyong-Machong Road near
+Pakyong",27.24144,88.60681,Debris,Fall and Slide,9 July 2017
+26362,SKM/WS/78A08/2015/388,Sikkim,West Sikkim,,Tinktitam village Road,27.242139,88.327389,Debris,Slide,
+26363,SKM/SS/78A08/2015/237,Sikkim,South Sikkim,,Tinktam-Rheyong Road,27.242917,88.354417,Debris,Slide,
+26364,SKM/WS/78A08/2015/368,Sikkim,West Sikkim,,Kaluk-Rinchenpong Road,27.243806,88.2725,Debris,Slide,
+26365,SKM/SS/78A08/2015/239,Sikkim,South Sikkim,,Tinktam-Rheyong Road,27.244056,88.348056,Debris,Slide,
+26366,SKM/SS/78A08/2015/238,Sikkim,South Sikkim,,Tinktam-Rheyong Road,27.244472,88.350472,Rock,Fall,
+26367,SKM/ES/78A12/2015/153,Sikkim,East Sikkim,,NH-31A,27.245028,88.524389,Debris,Slide,
+26368,SKM/NS/78A04/2017/72,Sikkim,West Sikkim,Upper Bermiok,SH,27.245028,88.226861,Debris,Slide,
+26369,SKM/ES/78A12/2015/19,Sikkim,East Sikkim,Sangkhola,NH-31A,27.245139,88.524444,Debris,Slide,
+26370,SKM/NS/78A04/2017/45,Sikkim,West Sikkim,Hee gown,SH,27.245972,88.185278,Debris,Slide,
+26371,SKM/ES/78A11/2015/16,Sikkim,East Sikkim,,,27.246056,88.62575,Rock,Slide,
+26372,SKM/ES/78A12/2015/119,Sikkim,East Sikkim,,Machong-Rongli Road,27.246194,88.625694,Rock,Fall,
+26373,SKM/NS/78A04/2017/44,Sikkim,West Sikkim,,SH,27.246944,88.184833,Debris,Slide,
+26374,SKM/NS/78A04/2017/73,Sikkim,West Sikkim,Budha Bari,SH,27.247111,88.225222,Debris,Slide,
+26375,SKM/NS/78A04/2017/01,Sikkim,West Sikkim,Upper Bega,SH,27.248583,88.117444,Debris,Slide,
+26376,SKM/NS/78A04/2017/02,Sikkim,West Sikkim,Upper Bega,SH,27.248833,88.117194,Debris,Slide,
+26377,SKM/WS/78A07/2015/346,Sikkim,West Sikkim,,Legship-Rishi Road,27.25,88.301889,Debris,Slide,
+26378,SKM/ES/78A11/2015/154,Sikkim,East Sikkim,,NH-31A,27.250556,88.53325,Debris,Slide,
+26379,SKM/ES/78A11/2015/130,Sikkim,East Sikkim,,Machong-Rongli Road,27.250889,88.715444,Debris,Slide,
+26380,SKM/ES/78A11/2015/122,Sikkim,East Sikkim,,Machong-Rongli Road,27.250972,88.659833,Rock,Fall,
+26381,SKM/SS/78A07/2015/190,Sikkim,South Sikkim,,Ben village Road,27.251417,88.3845,Debris,Slide,
+26382,SK/ESK/78A11/2019/03,Sikkim,East Sikkim,Sang,"NH10A/ GangtokSiliguri
+Highway",27.251639,88.531361,Rock,Slide,2019
+26383,SKM/NS/78A03/2017/43,Sikkim,West Sikkim,Hee Sapong,SH,27.251722,88.182972,Debris,Slide,
+26384,SKM/NS/78A03/2017/42,Sikkim,West Sikkim,Hee Pool,SH,27.252139,88.176944,Rock,Slide,
+26385,SKM/WS/78A07/2015/365,Sikkim,West Sikkim,,Kaluk-Rinchenpong Road,27.252167,88.272778,Rock,Fall,
+26386,SKM/ES/78A11/2015/123,Sikkim,East Sikkim,,Machong-Rongli Road,27.252667,88.694194,Debris,Slide,
+26387,SKM/NS/78A15/2017/165,Sikkim,East Sikkim,,SH,27.253528,88.786111,Debris,Slide,
+26388,SKM/NS/78A03/2017/67,Sikkim,West Sikkim,Martam Ralong,SH,27.253889,88.210028,Debris,Slide,
+26389,SKM/WS/78A07/2015/345,Sikkim,West Sikkim,,Legship-Rishi Road,27.254222,88.3005,Debris,Slide,
+26390,SKM/NS/78A03/2017/34,Sikkim,West Sikkim,Sangkhu,SH,27.254389,88.145306,Debris,Slide,
+26391,SKM/ES/78A11/2015/128,Sikkim,East Sikkim,,Machong-Rongli Road,27.25475,88.711,Debris,Slide,
+26392,SKM/ES/78A11/2015/155,Sikkim,East Sikkim,,NH-31A,27.254778,88.542444,Debris,Slide,
+26393,SKM/SS/78A07/2015/192,Sikkim,South Sikkim,,Ben village Road,27.254917,88.390889,Debris,Slide,
+26394,SKM/SS/78A07/2015/193,Sikkim,South Sikkim,,Ben village Road,27.255167,88.396944,Debris,Slide,
+26395,SKM/ES/78A11/2015/17,Sikkim,East Sikkim,,NH-31A,27.255278,88.543611,Debris,Slide,
+26396,SKM/SS/78A07/2015/191,Sikkim,South Sikkim,,Ben village Road,27.255389,88.388944,Debris,Slide,
+26397,SKM/NS/78A03/2017/38,Sikkim,West Sikkim,Sangkhu,SH,27.255861,88.156139,Debris,Slide,
+26398,SKM/ES/78A11/2015/127,Sikkim,East Sikkim,,Machong-Rongli Road,27.256,88.706167,Debris,Slide,
+26399,SKM/NS/78A03/2017/40,Sikkim,West Sikkim,,SH,27.256556,88.148722,Debris,Slide,
+26400,SKM/NS/78A03/2017/37,Sikkim,West Sikkim,Sangkhu,SH,27.25675,88.148611,Debris,Slide,
+26401,SKM/EAS/78A11/2014/001,Sikkim,East Sikkim,Mangthang Landslide,"Mangthang (On Dhajey-
+Mangthang road )",27.25677,88.55359,Debris,Slide,"June 2014, 16 August 2014"
+26402,SKM/ES/78A11/2015/15,Sikkim,East Sikkim,,,27.257083,88.65975,Debris,Slide,2014
+26403,SKM/ES/78A11/2015/124,Sikkim,East Sikkim,,Machong-Rongli Road,27.257083,88.696583,Debris,Slide,
+26404,SKM/ES/78A11/2015/125,Sikkim,East Sikkim,,Machong-Rongli Road,27.257139,88.697556,Debris,Slide,
+26405,SKM/WS/78A07/2015/363,Sikkim,West Sikkim,,Legship-Mayong Road,27.257194,88.305444,Debris,Slide,
+26406,SKM/NS/78A03/2017/39,Sikkim,West Sikkim,,SH,27.257361,88.165333,Debris,Slide,
+26407,SKM/SS/78A07/2015/327,Sikkim,South Sikkim,,,27.257417,88.418889,Debris,Slide,
+26408,SKM/ES/78A11/2015/156,Sikkim,East Sikkim,,NH-31A,27.257972,88.548861,Debris,Slide,
+26409,SKM/ES/78A11/2015/126,Sikkim,East Sikkim,,Machong-Rongli Road,27.258222,88.704778,Debris,Slide,
+26410,SKM/NS/78A03/2017/76,Sikkim,West Sikkim,,SH,27.258306,88.245306,Debris,Slide,
+26411,SKM/NS/78A03/2017/78,Sikkim,West Sikkim,,SH,27.258389,88.246611,Debris,Slide,
+26412,SKM/NS/78A03/2017/36,Sikkim,West Sikkim,Sangkhu,SH,27.258556,88.147028,Debris,Slide,
+26413,SKM/NS/78A03/2017/74,Sikkim,West Sikkim,,SH,27.258778,88.202639,Debris,Slide,
+26414,SKM/NS/78A03/2017/35,Sikkim,West Sikkim,Sangkhu,SH,27.258889,88.145611,Rock,Fall,
+26415,SKM/SS/78A07/2015/328,Sikkim,South Sikkim,,,27.259306,88.423028,Debris,Slide,
+26416,SKM/ES/78A11/2015/18,Sikkim,East Sikkim,,NH-31A,27.259694,88.550417,Debris,Slide,
+26417,SKM/NS/78A03/2017/77,Sikkim,West Sikkim,Rat Mathe,SH,27.259722,88.248972,Debris,Slide,
+26418,SKM/ES/78A11/2015/129,Sikkim,East Sikkim,,Machong-Rongli Road,27.259833,88.711722,Debris,Slide,
+26419,SKM/SS/78A07/2015/289,Sikkim,South Sikkim,,Gangla village Road,27.26,88.381361,Debris,Slide,
+26420,SKM/NS/78A03/2017/41,Sikkim,West Sikkim,Radhu Basti,SH,27.260167,88.171889,Debris,Slide,
+26421,SKM/WS/78A07/2015/364,Sikkim,West Sikkim,,Legship-Mayong Road,27.260194,88.302417,Debris,Slide,
+26422,SKM/NS/78A03/2017/75,Sikkim,West Sikkim,,SH,27.260861,88.233278,Debris,Slide,
+26423,SKM/NS/78A15/2017/164,Sikkim,East Sikkim,,SH,27.2615,88.788778,Debris,Slide,
+26424,SKM/WS/78A07/2015/344,Sikkim,West Sikkim,,Legship-Rishi Road,27.26175,88.2945,Debris,Slide,
+26425,SKM/NS/78A03/2017/66,Sikkim,West Sikkim,,SH,27.261778,88.197194,Debris,Slide,
+26426,SKM/SS/78A07/2015/329,Sikkim,South Sikkim,,,27.262056,88.4305,Debris,Slide,
+26427,SKM/ES/78A11/2015/158,Sikkim,East Sikkim,,NH-31A,27.262583,88.562389,Debris,Slide,
+26428,SKM/SS/78A07/2015/290,Sikkim,South Sikkim,,Gangla village Road,27.263194,88.377139,Debris,Slide,
+26429,SKM/NS/78A15/2017/163,Sikkim,East Sikkim,,SH,27.263278,88.786667,Debris,Slide,
+26430,SKM/ES/78A11/2015/157,Sikkim,East Sikkim,,NH-31A,27.264361,88.558389,Debris,Slide,
+26431,SKM/NS/78A15/2017/160,Sikkim,East Sikkim,,SH,27.264694,88.792667,Debris,Slide,
+26432,SKM/NS/78A15/2017/161,Sikkim,East Sikkim,,SH,27.26525,88.789556,Debris,Slide,
+26433,SKM/NS/78A15/2017/162,Sikkim,East Sikkim,,SH,27.265389,88.788278,Debris,Slide,
+26434,SKM/ES/78A11/2015/40,Sikkim,East Sikkim,Martam,,27.265944,88.534556,Rock,Fall,
+26435,SKM/WS/78A07/2015/343,Sikkim,West Sikkim,,Legship-Rishi Road,27.268944,88.2875,Debris,Slide,
+26436,SKM/NS/78A03/2017/19,Sikkim,West Sikkim,Liching,SH,27.269556,88.137861,Debris,Slide,
+26437,SKM/NS/78A03/2017/18,Sikkim,West Sikkim,Som,SH,27.269778,88.144278,Debris,Slide,
+26438,SKM/NS/78A03/2017/31,Sikkim,West Sikkim,Sapong,SH,27.269861,88.178139,Debris,Slide,
+26439,SKM/NS/78A03/2017/03,Sikkim,West Sikkim,,SH,27.269917,88.077111,Debris,Slide,
+26440,SKM/NS/78A03/2017/30,Sikkim,West Sikkim,Lungzick,SH,27.27,88.179944,Rock,Fall,
+26441,SKM/SS/78A07/2015/330,Sikkim,South Sikkim,,Robang-Tarku Road,27.270056,88.430139,Debris,Slide,
+26442,SKM/NS/78A03/2017/32,Sikkim,West Sikkim,Sapong,SH,27.270056,88.174444,Debris,Slide,
+26443,SKM/NS/78A03/2017/17,Sikkim,West Sikkim,Jhum Khola,SH,27.270667,88.142056,Rock,Fall,
+26444,SKM/NS/78A03/2017/33,Sikkim,West Sikkim,Lower Sapong,SH,27.27075,88.167417,Debris,Slide,
+26445,SKM/SS/78A07/2015/331,Sikkim,South Sikkim,,Robang-Tarku Road,27.271583,88.430389,Debris,Slide,
+26446,SKM/SS/78A07/2015/286,Sikkim,South Sikkim,,Gangla village Road,27.272056,88.394139,Debris,Slide,
+26447,SKM/SS/78A07/2015/285,Sikkim,South Sikkim,,Sangmo village Road,27.273083,88.389528,Debris,Slide,
+26448,SKM/WS/78A07/2015/362,Sikkim,West Sikkim,,,27.27325,88.303417,Debris,Slide,
+26449,SKM/SS/78A07/2015/287,Sikkim,South Sikkim,,Gangla village Road,27.273861,88.398722,Debris,Slide,
+26450,SKM/WS/78A07/2015/361,Sikkim,West Sikkim,,,27.2755,88.308056,Debris,Slide,
+26451,SKM/NS/78A03/2017/04,Sikkim,West Sikkim,Kachapati,SH,27.27575,88.084972,Debris,Slide,
+26452,SKM/WS/78A07/2015/358,Sikkim,West Sikkim,,Legship-Geyzing Road,27.275917,88.254278,Rock,Slide,
+26453,SKM/SS/78A07/2015/288,Sikkim,South Sikkim,,Gangla village Road,27.276167,88.398722,Debris,Slide,
+26454,SKM/SS/78A07/2015/332,Sikkim,South Sikkim,,Robang-Tarku Road,27.279889,88.436472,Debris,Slide,
+26455,SKM/NS/78A15/2017/159,Sikkim,East Sikkim,Lungthang,SH,27.279972,88.804278,Debris,Slide,
+26456,SKM/NS/78A03/2017/23,Sikkim,West Sikkim,Sardong,SH,27.279972,88.186917,Debris,Slide,
+26457,SKM/NS/78A03/2017/26,Sikkim,West Sikkim,Lungzick,SH,27.280667,88.190861,Debris,Slide,
+26458,SKM/NS/78A03/2017/05,Sikkim,West Sikkim,,SH,27.280889,88.084333,Debris,Slide,
+26459,SKM/NS/78A03/2017/28,Sikkim,West Sikkim,Arigown,SH,27.281028,88.227667,Debris,Slide,
+26460,SKM/NS/78A03/2017/22,Sikkim,West Sikkim,Sardong,SH,27.281444,88.187833,Debris,Slide,
+26461,SKM/NS/78A03/2017/29,Sikkim,West Sikkim,Arigown,SH,27.281611,88.229556,Debris,Slide,
+26462,SKM/SS/78A07/2015/334,Sikkim,South Sikkim,,Robang-Tarku Road,27.282,88.415028,Debris,Slide,
+26463,SKM/ES/78A11/2015/97,Sikkim,East Sikkim,,,27.282444,88.598917,Debris,Slide,
+26464,SKM/NS/78A03/2017/09,Sikkim,West Sikkim,Sarkitar,SH,27.282667,88.108278,Debris,Slide,
+26465,SKM/NS/78A03/2017/21,Sikkim,West Sikkim,Sardong,SH,27.282917,88.189556,Debris,Slide,
+26466,SKM/NS/78A03/2017/08,Sikkim,West Sikkim,,SH,27.283194,88.106667,Debris,Slide,
+26467,SKM/NS/78A03/2017/25,Sikkim,West Sikkim,,SH,27.283444,88.192639,Debris,Slide,
+26468,SKM/NS/78A03/2017/20,Sikkim,West Sikkim,Sardong,SH,27.283639,88.189944,Debris,Slide,
+26469,SK/EAS/78A11/2014/01,Sikkim,East Sikkim,Dhankutey dhara Slide,"3km away from Rumtek on
+Rumtek - Martam road.",27.28408,88.54611,Earth,Slide,28 August 2013
+26470,SKM/WS/78A07/2015/359,Sikkim,West Sikkim,,Legship-Geyzing Road,27.284139,88.264889,Debris,Slide,
+26471,SKM/SS/78A07/2015/291,Sikkim,South Sikkim,,Gangla village Road,27.28425,88.370056,Debris,Slide,
+26472,SKM/NS/78A03/2017/24,Sikkim,West Sikkim,,SH,27.284528,88.195583,Debris,Slide,
+26473,SKM/NS/78A03/2017/10,Sikkim,West Sikkim,,SH,27.28475,88.106194,Rock,Fall,
+26474,SKM/NS/78A03/2017/27,Sikkim,West Sikkim,Sardong,SH,27.285,88.197583,Debris,Slide,
+26475,SKM/SS/78A07/2015/292,Sikkim,South Sikkim,,Gangla village Road,27.287194,88.369444,Debris,Slide,
+26476,SKM/NS/78A03/2017/11,Sikkim,West Sikkim,,SH,27.287361,88.102611,Debris,Slide,
+26477,SKM/NS/78A03/2017/13,Sikkim,West Sikkim,,SH,27.288167,88.102778,Rock,Fall,
+26478,SKM/NS/78A03/2017/12,Sikkim,West Sikkim,,SH,27.288444,88.102667,Rock,Fall,
+26479,SKM/NS/78A15/2017/158,Sikkim,East Sikkim,,SH,27.288667,88.816111,Debris,Slide,
+26480,SKM/NS/78A03/2017/06,Sikkim,West Sikkim,,SH,27.289861,88.084389,Debris,Slide,
+26481,SKM/NS/78A15/2017/157,Sikkim,East Sikkim,Nathang Valley,SH,27.292583,88.820417,Debris,Slide,
+26482,SKM/ES/78A11/2015/159,Sikkim,East Sikkim,,NH-31A,27.292944,88.589417,Debris,Slide,
+26483,SKM/WS/78A07/2015/380,Sikkim,West Sikkim,,,27.293417,88.294917,Debris,Slide,
+26484,SKM/ES/78A11/2015/98,Sikkim,East Sikkim,,Namok Road,27.293556,88.642056,Debris,Slide,
+26485,SKM/NS/78A03/2017/07,Sikkim,West Sikkim,Kumuk,SH,27.294889,88.079944,Debris,Slide,
+26486,SKM/NS/78A03/2017/14,Sikkim,West Sikkim,,SH,27.29525,88.102694,Debris,Slide,
+26487,SKM/NS/78A03/2017/16,Sikkim,West Sikkim,,SH,27.295444,88.094583,Debris,Slide,
+26488,SKM/NS/78A03/2017/15,Sikkim,West Sikkim,,SH,27.296028,88.10175,Debris,Slide,
+26489,SKM/SS/78A07/2015/335,Sikkim,South Sikkim,,Robang-Tarku Road,27.297139,88.388472,Debris,Slide,
+26490,SKM/SS/78A07/2015/338,Sikkim,South Sikkim,,Lingmo village Road,27.29975,88.419778,Debris,Slide,
+26491,SKM/NS/78A03/2017/46,Sikkim,West Sikkim,Singdong,SH,27.301972,88.218778,Debris,Slide,
+26492,SKM/SS/78A07/2015/284,Sikkim,South Sikkim,,Sangmo village Road,27.302861,88.373944,Debris,Slide,
+26493,SKM/SS/78A07/2015/333,Sikkim,South Sikkim,,Robang-Tarku Road,27.303083,88.433167,Debris,Slide,
+26494,SKM/NS/78A03/2017/107,Sikkim,West Sikkim,,SH,27.304028,88.178806,Debris,Slide,
+26495,SKM/NS/78A03/2017/47,Sikkim,West Sikkim,Singdong,SH,27.30675,88.199083,Rock,Slide,
+26496,SKM/SS/78A07/2015/336,Sikkim,South Sikkim,,Robang-Tarku Road,27.306806,88.375194,Debris,Slide,
+26497,SKM/SS/78A07/2015/283,Sikkim,South Sikkim,,Sangmo village Road,27.306861,88.368444,Debris,Slide,
+26498,SKM/SS/78A07/2015/337,Sikkim,South Sikkim,,Lingmo village Road,27.311667,88.418611,Debris,Subsidence,
+26499,SKM/NS/78A03/2017/48,Sikkim,West Sikkim,Rimbi,SH,27.313722,88.189917,Rock,Slide,
+26500,SKM/ES/78A11/2015/42,Sikkim,East Sikkim,,Lingdum Road,27.313917,88.557583,Debris,Slide,
+26501,SKM/NS/78A15/2017/156,Sikkim,East Sikkim,Purana Baba Mandir,SH,27.3145,88.8365,Debris,Slide,
+26502,SKM/SS/78A07/2015/340,Sikkim,South Sikkim,,Lingmo village Road,27.314694,88.417917,Debris,Subsidence,
+26503,SKM/ES/78A11/2015/41,Sikkim,East Sikkim,,Lingdum Road,27.315028,88.558139,Rock,Fall,
+26504,SKM/ES/78A11/2015/43,Sikkim,East Sikkim,,Lingdum Road,27.315028,88.558611,Debris,Slide,
+26505,SKM/ES/78A11/2015/47,Sikkim,East Sikkim,Khamdong,,27.315083,88.506056,Debris,Slide,
+26506,SKM/NS/78A03/2017/62,Sikkim,West Sikkim,,SH,27.315778,88.178944,Debris,Slide,
+26507,SKM/ES/78A11/2015/44,Sikkim,East Sikkim,Sangmoo,Lingdum Road,27.316,88.559889,Rock,Slide,
+26508,SKM/NS/78A03/2017/63,Sikkim,West Sikkim,,SH,27.316583,88.178917,Debris,Slide,
+26509,SKM/ES/78A11/2015/45,Sikkim,East Sikkim,Lingdum,Lingdum Road,27.316944,88.560056,Rock,Fall,
+26510,SKM/NS/78A03/2017/64,Sikkim,West Sikkim,,SH,27.317083,88.178556,Debris,Slide,
+26511,SKM/NS/78A03/2017/61,Sikkim,West Sikkim,,SH,27.317417,88.182861,Debris,Slide,
+26512,SK/WES/78A03/2014/02,Sikkim,West Sikkim,Tamabung slide,"Tamabung (On Dharap-Nambu
+road)",27.31892,88.16222,Debris,Flow,1 September 2013 at 21:30 hrs.
+26513,SKM/NS/78A03/2017/65,Sikkim,West Sikkim,,SH,27.320111,88.177833,Debris,Slide,
+26514,SKM/NS/78A03/2017/49,Sikkim,West Sikkim,Lower Melli,SH,27.320611,88.219611,Debris,Slide,
+26515,SKM/NS/78A03/2017/59,Sikkim,West Sikkim,,SH,27.324944,88.213861,Debris,Slide,
+26516,SKM/NS/78A03/2017/52,Sikkim,West Sikkim,,SH,27.326444,88.219,Rock,Slide,
+26517,SKM/ES/78A11/2015/100,Sikkim,East Sikkim,,Namok Road,27.329361,88.649278,Debris,Slide,
+26518,SKM/ES/78A11/2015/99,Sikkim,East Sikkim,,Namok Road,27.329472,88.648917,Debris,Slide,
+26519,SKM/NS/78A03/2017/58,Sikkim,West Sikkim,,SH,27.3305,88.215639,Debris,Slide,
+26520,SKM/NS/78A03/2017/57,Sikkim,West Sikkim,,SH,27.33075,88.216333,Debris,Slide,
+26521,SKM/ES/78A07/2015/48,Sikkim,East Sikkim,Makha,Singtam-Dikchu Road,27.330778,88.49225,Debris,Slide,
+26522,SKM/SS/78A07/2015/339,Sikkim,South Sikkim,,Lingmo village Road,27.330917,88.450528,Debris,Slide,
+26523,SKM/NS/78A03/2017/56,Sikkim,West Sikkim,,SH,27.33325,88.213583,Debris,Slide,
+26524,SKM/NS/78A03/2017/53,Sikkim,West Sikkim,Tadong,SH,27.333333,88.212972,Debris,Slide,
+26525,SKM/NS/78A03/2017/54,Sikkim,West Sikkim,,SH,27.335,88.206722,Debris,Slide,
+26526,SKM/ES/78A11/2015/417,Sikkim,East Sikkim,,Changhu_Nathula Road,27.337194,88.621833,Debris,Slide,
+26527,SKM/NS/78A03/2017/50,Sikkim,West Sikkim,,SH,27.339806,88.227361,Rock,Slide,
+26528,SKM/ES/78A11/2015/416,Sikkim,East Sikkim,,Changhu_Nathula Road,27.340917,88.628389,Debris,Slide,
+26529,SKM/ES/78A11/2015/412,Sikkim,East Sikkim,,Changhu_Nathula Road,27.341444,88.626194,Debris,Slide,
+26530,SKM/NS/78A03/2017/51,Sikkim,West Sikkim,13th Mile,SH,27.342,88.223722,Rock,Slide,
+26531,SKM/NS/78A03/2017/60,Sikkim,West Sikkim,,SH,27.345028,88.246639,Debris,Slide,
+26532,SKM/NS/78A03/2017/55,Sikkim,West Sikkim,,SH,27.347278,88.196833,Debris,Slide,
+26533,SKM/ES/78A11/2015/46,Sikkim,East Sikkim,Sichey,Ranka Road,27.348722,88.600556,Debris,Slide,
+26534,SKM/SS/78A07/2015/53,Sikkim,South Sikkim,,Chongrang Road,27.351194,88.272417,Rock,Fall,
+26535,SKM/WS/78A07/2015/381,Sikkim,West Sikkim,,Chongrang Road,27.3515,88.273028,Debris,Slide,
+26536,SKM/NS/78A15/2017/155,Sikkim,East Sikkim,,SH,27.358583,88.840194,Debris,Slide,
+26537,SKM/NS/78A15/2017/154,Sikkim,East Sikkim,,SH,27.361583,88.839306,Debris,Slide,
+26538,SKM/NS/78A15/2017/148,Sikkim,East Sikkim,Yakla,SH,27.364583,88.787333,Debris,Slide,
+26539,SKM/NS/78A15/2017/153,Sikkim,East Sikkim,Naya Baba Mandir,SH,27.364722,88.834917,Debris,Slide,
+26540,SKM/ES/78A11/2015/410,Sikkim,East Sikkim,,Changhu_Nathula Road,27.365056,88.655167,Debris,Slide,
+26541,SKM/SS/78A07/2015/342,Sikkim,South Sikkim,,Lingmo village Road,27.366944,88.449806,Debris,Slide,
+26542,SKM/NS/78A15/2017/146,Sikkim,East Sikkim,Thengu,SH,27.367111,88.776028,Rock,Slide,
+26543,SKM/ES/78A11/2015/161,Sikkim,East Sikkim,,,27.368194,88.711167,Rock,Fall,
+26544,SKM/ES/78A11/2015/398,Sikkim,East Sikkim,,Changhu_Nathula Road,27.368278,88.711278,Debris,Slide,
+26545,SKM/NS/78A15/2017/149,Sikkim,East Sikkim,,SH,27.368917,88.794611,Debris,Slide,
+26546,SKM/ES/78A11/2015/405,Sikkim,East Sikkim,,Changhu_Nathula Road,27.369306,88.691583,Debris,Slide,
+26547,SKM/ES/78A11/2015/160,Sikkim,East Sikkim,,,27.369333,88.714917,Rock,Fall,
+26548,SKM/SS/78A07/2015/341,Sikkim,South Sikkim,,Lingmo village Road,27.369778,88.456833,Debris,Slide,
+26549,SKM/ES/78A11/2015/415,Sikkim,East Sikkim,,Changhu_Nathula Road,27.370083,88.67925,Debris,Slide,
+26550,SKM/ES/78A11/2015/406,Sikkim,East Sikkim,,Changhu_Nathula Road,27.370472,88.686417,Debris,Slide,
+26551,SKM/ES/78A11/2015/408,Sikkim,East Sikkim,,Changhu_Nathula Road,27.37075,88.679444,Debris,Slide,
+26552,SKM/ES/78A11/2015/407,Sikkim,East Sikkim,,Changhu_Nathula Road,27.370861,88.683167,Debris,Slide,
+26553,SKM/ES/78A07/2015/166,Sikkim,East Sikkim,,Namchi-Namthang Road,27.370972,88.710111,Rock,Fall,
+26554,SKM/ES/78A11/2015/399,Sikkim,East Sikkim,,Changhu_Nathula Road,27.371472,88.709722,Debris,Slide,
+26555,SKM/ES/78A11/2015/409,Sikkim,East Sikkim,,Changhu_Nathula Road,27.371806,88.677167,Debris,Slide,
+26556,SKM/ES/78A11/2015/404,Sikkim,East Sikkim,,Changhu_Nathula Road,27.372278,88.688944,Debris,Slide,
+26557,SKM/ES/78A11/2015/57,Sikkim,East Sikkim,,North Sikkim Highway,27.372333,88.617556,Rock,Fall,
+26558,SKM/ES/78A11/2015/136,Sikkim,East Sikkim,,Changhu_Nathula Road,27.372806,88.739139,Debris,Slide,
+26559,SKM/ES/78A11/2015/140,Sikkim,East Sikkim,,Changhu_Nathula Road,27.373083,88.720028,Debris,Slide,
+26560,SKM/ES/78A11/2015/397,Sikkim,East Sikkim,,Changhu_Nathula Road,27.373472,88.721944,Debris,Slide,
+26561,SKM/ES/78A11/2015/137,Sikkim,East Sikkim,,Changhu_Nathula Road,27.373472,88.731722,Debris,Slide,
+26562,SKM/NS/78A11/2015/78,Sikkim,North Sikkim,,Gangtok-Chungthang Road,27.374583,88.542444,Rock,Fall,
+26563,SKM/NS/78A11/2015/02,Sikkim,North Sikkim,,North Sikkim Highway,27.374583,88.542333,Debris,Slide,
+26564,SKM/NS/78A15/2017/147,Sikkim,East Sikkim,Thengu,SH,27.37475,88.782889,Rock,Slide,
+26565,SKM/ES/78A11/2015/138,Sikkim,East Sikkim,,Changhu_Nathula Road,27.375028,88.728278,Debris,Slide,
+26566,SKM/NS/78A11/2015/79,Sikkim,North Sikkim,,Gangtok-Chungthang Road,27.375139,88.542833,Rock,Fall,
+26567,SKM/ES/78A11/2015/400,Sikkim,East Sikkim,,Changhu_Nathula Road,27.375139,88.708028,Debris,Slide,
+26568,SKM/NS/78A11/2015/01,Sikkim,North Sikkim,,North Sikkim Highway,27.375194,88.54275,Rock,Fall,
+26569,SKM/ES/78A11/2015/58,Sikkim,East Sikkim,,North Sikkim Highway,27.375806,88.625278,Rock,Fall,
+26570,SKM/ES/78A11/2015/139,Sikkim,East Sikkim,,Changhu_Nathula Road,27.375833,88.726722,Rock,Slide,
+26571,SKM/NS/78A15/2017/150,Sikkim,East Sikkim,Yakla,SH,27.376222,88.799667,Debris,Slide,
+26572,SKM/ES/78A11/2015/59,Sikkim,East Sikkim,,North Sikkim Highway,27.376306,88.629583,Rock,Fall,
+26573,SKM/NS/78A15/2017/144,Sikkim,East Sikkim,Changu,SH,27.376861,88.766167,Debris,Slide,
+26574,SKM/NS/78A15/2017/145,Sikkim,East Sikkim,Thengu,SH,27.378306,88.770083,Debris,Slide,
+26575,SKM/ES/78A11/2015/402,Sikkim,East Sikkim,,Changhu_Nathula Road,27.378417,88.697222,Debris,Slide,
+26576,SKM/NS/78A11/2015/80,Sikkim,North Sikkim,,Gangtok-Chungthang Road,27.378444,88.541667,Rock,Fall,
+26577,SKM/ES/78A11/2015/60,Sikkim,East Sikkim,,North Sikkim Highway,27.378611,88.631083,Rock,Fall,
+26578,SKM/ES/78A11/2015/414,Sikkim,East Sikkim,,Changhu_Nathula Road,27.378667,88.699611,Rock,Topple,
+26579,SKM/WS/78A07/2015/357,Sikkim,West Sikkim,,Dhupidara Road,27.379639,88.315361,Debris,Slide,
+26580,SKM/ES/78A11/2015/413,Sikkim,East Sikkim,,Changhu_Nathula Road,27.380806,88.726,Debris,Slide,
+26581,SKM/NS/78A15/2017/152,Sikkim,East Sikkim,,SH,27.380861,88.812361,Debris,Slide,
+26582,SKM/ES/78A11/2015/61,Sikkim,East Sikkim,,North Sikkim Highway,27.381278,88.632611,Rock,Fall,
+26583,SKM/ES/78A11/2015/411,Sikkim,East Sikkim,,Changhu_Nathula Road,27.381306,88.690444,Debris,Slide,
+26584,SKM/ES/78A11/2015/403,Sikkim,East Sikkim,,Changhu_Nathula Road,27.381556,88.691806,Debris,Slide,
+26585,SKM/ES/78A11/2015/63,Sikkim,East Sikkim,,North Sikkim Highway,27.381917,88.640333,Rock,Fall,
+26586,SKM/ES/78A11/2015/401,Sikkim,East Sikkim,,Changhu_Nathula Road,27.383361,88.702611,Debris,Slide,
+26587,SKM/WS/78A07/2015/356,Sikkim,West Sikkim,,Dhupidara Road,27.383611,88.305806,Rock,Topple,
+26588,SKM/NS/78A15/2017/151,Sikkim,East Sikkim,Sherethang,SH,27.38375,88.808694,Debris,Slide,
+26589,SKM/ES/78A11/2015/62,Sikkim,East Sikkim,,North Sikkim Highway,27.383806,88.633083,Rock,Fall,
+26590,SKM/ES/78A11/2015/64,Sikkim,East Sikkim,,North Sikkim Highway,27.384444,88.639611,Rock,Slide,
+26591,SKM/WS/78A07/2015/355,Sikkim,West Sikkim,,Dhupidara Road,27.389222,88.310972,Rock,Fall,
+26592,SKM/WS/78A07/2015/354,Sikkim,West Sikkim,,Dhupidara Road,27.393139,88.310139,Debris,Slide,
+26593,SKM/ES/78A11/2015/65,Sikkim,East Sikkim,,North Sikkim Highway,27.394,88.62525,Rock,Slide,
+26594,SKM/WS/78A07/2015/353,Sikkim,West Sikkim,,Dhupidara Road,27.395028,88.307389,Rock,Fall,
+26595,SKM/ES/78A11/2015/66,Sikkim,East Sikkim,,North Sikkim Highway,27.395444,88.623583,Rock,Slide,
+26596,SKM/NS/78A11/2015/04,Sikkim,North Sikkim,Kabi,North Sikkim Highway,27.3955,88.623556,Debris,Slide,
+26597,SKM/WS/78A07/2015/352,Sikkim,West Sikkim,,Dhupidara Road,27.3955,88.306889,Debris,Slide,
+26598,SKM/NS/78A11/2015/82,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.395556,88.517528,Rock,Slide,
+26599,SKM/ES/78A11/2015/67,Sikkim,East Sikkim,,North Sikkim Highway,27.395639,88.621667,Debris,Slide,
+26600,SKM/NS/78A11/2015/81,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.397083,88.519167,Debris,Slide,
+26601,SKM/WS/78A07/2015/375,Sikkim,West Sikkim,,Narkhola Road,27.397389,88.356139,Rock,Fall,
+26602,SKM/ES/78A11/2015/68,Sikkim,East Sikkim,,North Sikkim Highway,27.398083,88.614583,Debris,Slide,
+26603,SKM/WS/78A07/2015/377,Sikkim,West Sikkim,,Narkhola Road,27.399806,88.329139,Debris,Slide,
+26604,SKM/WS/78A07/2015/376,Sikkim,West Sikkim,,Narkhola Road,27.400278,88.356861,Debris,Slide,
+26605,SKM/NS/78A11/2015/76,Sikkim,North Sikkim,,North Sikkim Highway,27.40825,88.571167,Rock,Slide,
+26606,SKM/NS/78A11/2015/77,Sikkim,North Sikkim,,North Sikkim Highway,27.409667,88.543722,Rock,Fall,
+26607,SKM/NOR/78A11/2014/007,Sikkim,North Sikkim,Tanek Rockslide,"Tanek (On North-Sikkim High
+Way)",27.4097,88.54371,Rock,Fall,24 June 2014
+26608,SKM/NS/78A11/2015/09,Sikkim,North Sikkim,,North Sikkim Highway,27.409861,88.543722,Rock,Fall,
+26609,SKM/NS/78A11/2015/83,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.411306,88.516611,Rock,Slide,
+26610,SKM/NS/78A11/2015/69,Sikkim,North Sikkim,,North Sikkim Highway,27.412111,88.627083,Debris,Slide,
+26611,SKM/NS/78A11/2015/03,Sikkim,North Sikkim,Kabi,North Sikkim Highway,27.412111,88.626944,Debris,Slide,
+26612,SKM/NS/78A11/2015/24,Sikkim,North Sikkim,,North Sikkim Highway,27.417306,88.622361,Debris,Slide,
+26613,SKM/NS/78A11/2015/71,Sikkim,North Sikkim,,North Sikkim Highway,27.417389,88.621222,Debris,Slide,
+26614,SKM/NS/78A11/2015/23,Sikkim,North Sikkim,,North Sikkim Highway,27.417444,88.621083,Debris,Slide,
+26615,SKM/NS/78A11/2015/25,Sikkim,North Sikkim,,North Sikkim Highway,27.417778,88.623389,Rock,Fall,
+26616,SKM/NS/78A11/2015/26,Sikkim,North Sikkim,,North Sikkim Highway,27.417972,88.623361,Rock,Fall,
+26617,SKM/NS/78A11/2015/70,Sikkim,North Sikkim,,North Sikkim Highway,27.418,88.623333,Debris,Slide,
+26618,SKM/NS/78A11/2015/05,Sikkim,North Sikkim,,North Sikkim Highway,27.418472,88.616083,Debris,Slide,
+26619,SKM/NS/78A11/2015/06,Sikkim,North Sikkim,,North Sikkim Highway,27.418667,88.616778,Debris,Slide,
+26620,SKM/NS/78A11/2015/84,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.420028,88.515944,Rock,Fall,
+26621,SKM/NS/78A11/2015/85,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.426,88.514,Debris,Slide,
+26622,SKM/NS/78A11/2015/74,Sikkim,North Sikkim,,North Sikkim Highway,27.426361,88.583028,Debris,Slide,
+26623,SKM/NS/78A11/2015/75,Sikkim,North Sikkim,,North Sikkim Highway,27.426361,88.583028,Debris,Slide,
+26624,SKM/NS/78A11/2015/72,Sikkim,North Sikkim,,North Sikkim Highway,27.429556,88.611667,Debris,Slide,
+26625,SKM/NS/78A11/2015/86,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.433083,88.514528,Debris,Slide,
+26626,SKM/NS/78A11/2015/87,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.435944,88.515167,Rock,Slide,
+26627,SKM/NS/78A11/2015/10,Sikkim,North Sikkim,Sheyam,North Sikkim Highway,27.436556,88.526639,Debris,Slide,
+26628,SKM/NS/78A11/2015/73,Sikkim,North Sikkim,,North Sikkim Highway,27.437444,88.613972,Debris,Slide,
+26629,SKM/NS/78A11/2015/07,Sikkim,North Sikkim,Chawang,North Sikkim Highway,27.437889,88.601694,Debris,Slide,
+26630,SKM/NS/78A11/2015/08,Sikkim,North Sikkim,,North Sikkim Highway,27.437889,88.601694,Debris,Slide,
+26631,SKM/NS/78A11/2015/11,Sikkim,North Sikkim,,North Sikkim Highway,27.438139,88.527028,Debris,Slide,
+26632,SKM/NS/78A11/2015/88,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.438389,88.514389,Debris,Slide,
+26633,SKM/NS/78A11/2015/12,Sikkim,North Sikkim,,North Sikkim Highway,27.438778,88.527444,Debris,Slide,
+26634,SKM/NS/78A11/2015/89,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.441056,88.513694,Rock,Slide,
+26635,SKM/NS/78A11/2015/90,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.448306,88.519667,Debris,Slide,
+26636,SKM/NS/78A11/2015/91,Sikkim,North Sikkim,,Dikchu-Mangshila Road,27.461694,88.523472,Debris,Slide,
+26637,SKM/NS/78A11/2015/92,Sikkim,North Sikkim,,North Sikkim Highway,27.4795,88.528472,Rock,Slide,
+26638,SKM/NS/78A11/2015/95,Sikkim,North Sikkim,,North Sikkim Highway,27.480472,88.531194,Rock,Slide,
+26639,SKM/NS/78A11/2015/96,Sikkim,North Sikkim,,North Sikkim Highway,27.481083,88.530667,Debris,Slide,
+26640,SKM/NS/78A11/2015/93,Sikkim,North Sikkim,,North Sikkim Highway,27.482583,88.52875,Rock,Slide,
+26641,SKM/NS/78A11/2015/94,Sikkim,North Sikkim,,North Sikkim Highway,27.482583,88.529528,Debris,Slide,
+26642,SKM/NOR/78A11/2014/006,Sikkim,North Sikkim,Ambithang Landslide,"Ambithang (On Rangrang-
+Mangan road )",27.48603,88.53269,Debris,Slide,8 July 2014
+26643,SKM/NS/78A10/2017/166,Sikkim,North Sikkim,Mangan,NH,27.502,88.5375,Debris,Slide,
+26644,SKM/NOR/78A10/2014/004,Sikkim,North Sikkim,Pakshek Landslide,"Pakshek ( Mangan-Chungthang
+road on North highway)",27.5091,88.53848,Rock,Slide,1 July 2014
+26645,SKM/NS/78A10/2017/169,Sikkim,North Sikkim,Lanthey Khola,NH,27.514972,88.565472,Debris,Slide,
+26646,SKM/NOR/78A10/2014/005,Sikkim,North Sikkim,Lanthakhola,"Lanthakhola (On Mangan to
+Chungthang road )",27.5152,88.56456,Debris,Slide,"1983, 8 July 2014"
+26647,SKM/NS/78A10/2017/170,Sikkim,North Sikkim,,NH,27.516444,88.587361,Debris,Slide,
+26648,SKM/NS/78A10/2017/167,Sikkim,North Sikkim,,NH,27.517278,88.539667,Debris,Slide,
+26649,SKM/NS/78A10/2017/168,Sikkim,North Sikkim,,NH,27.517306,88.542889,Rock,Slide,
+26650,SKM/NS/78A10/2017/175,Sikkim,North Sikkim,,NH,27.527194,88.603222,Debris,Slide,
+26651,SKM/NS/78A10/2017/171,Sikkim,North Sikkim,,NH,27.527333,88.590778,Debris,Slide,
+26652,SKM/NS/78A10/2017/176,Sikkim,North Sikkim,,NH,27.527722,88.607972,Debris,Slide,
+26653,SKM/NS/78A10/2017/174,Sikkim,North Sikkim,,NH,27.527917,88.60225,Debris,Slide,
+26654,SKM/NS/78A10/2017/173,Sikkim,North Sikkim,,NH,27.528722,88.600833,Debris,Slide,
+26655,SKM/NS/78A10/2017/172,Sikkim,North Sikkim,,NH,27.529639,88.598139,Debris,Slide,
+26656,SKM/NS/78A10/2017/177,Sikkim,North Sikkim,Naga,NH,27.531667,88.606333,Debris,Slide,
+26657,SKM/NS/78A10/2017/178,Sikkim,North Sikkim,,NH,27.533722,88.609278,Rock,Slide,
+26658,SKM/NS/78A10/2017/179,Sikkim,North Sikkim,,NH,27.535056,88.610194,Debris,Slide,
+26659,SK/ED/78A6/2016/01,Sikkim,North Sikkim,Dzongu landslide,"Left bank slope of Talong Chu
+(locally known as Kanaka river),
+just opposite to the Dzongu
+(Upper) village",27.535333,88.497972,Rock,"Slide/Avalanch
+e",13 August 2016 at 13:30 hrs.
+26660,SKM/NS/78A10/2017/180,Sikkim,North Sikkim,,NH,27.5435,88.628306,Debris,Slide,
+26661,SKM/NS/78A10/2017/196,Sikkim,North Sikkim,,NH,27.54375,88.58475,Debris,Slide,
+26662,SKM/NS/78A10/2017/181,Sikkim,North Sikkim,,NH,27.545694,88.636,Debris,Slide,
+26663,SKM/NS/78A10/2017/195,Sikkim,North Sikkim,,NH,27.545861,88.585194,Debris,Slide,
+26664,SKM/NS/78A10/2017/194,Sikkim,North Sikkim,,NH,27.546333,88.586472,Debris,Slide,
+26665,SKM/NS/78A10/2017/190,Sikkim,North Sikkim,,NH,27.547111,88.602667,Debris,Slide,
+26666,SKM/NS/78A10/2017/182,Sikkim,North Sikkim,,NH,27.548417,88.641944,Debris,Slide,
+26667,SKM/NS/78A10/2017/191,Sikkim,North Sikkim,,NH,27.549194,88.583556,Debris,Slide,
+26668,SKM/NS/78A10/2017/183,Sikkim,North Sikkim,Tung,NH,27.549306,88.644889,Debris,Slide,
+26669,SKM/NS/78A10/2017/184,Sikkim,North Sikkim,,NH,27.550917,88.646056,Debris,Slide,
+26670,SKM/NS/78A10/2017/185,Sikkim,North Sikkim,,NH,27.552528,88.653528,Rock,Slide,
+26671,SKM/NS/78A10/2017/189,Sikkim,North Sikkim,,NH,27.552861,88.622306,Debris,Slide,
+26672,SKM/NS/78A10/2017/192,Sikkim,North Sikkim,,NH,27.553556,88.581222,Debris,Slide,
+26673,SKM/NS/78A10/2017/193,Sikkim,North Sikkim,,NH,27.553583,88.577194,Debris,Slide,
+26674,SKM/NS/78A10/2017/186,Sikkim,North Sikkim,,NH,27.554889,88.654444,Debris,Slide,
+26675,SKM/NS/78A10/2017/188,Sikkim,North Sikkim,,NH,27.55525,88.647556,Debris,Slide,
+26676,SKM/NS/78A10/2017/187,Sikkim,North Sikkim,,NH,27.575444,88.651417,Debris,Slide,
+26677,SKM/NS/78A10/2017/197,Sikkim,North Sikkim,Chungthang,NH,27.609056,88.652028,Debris,Slide,
+26678,SKM/NS/78A10/2017/198,Sikkim,North Sikkim,,NH,27.611333,88.655222,Debris,Slide,
+26679,SKM/NS/78A10/2017/199,Sikkim,North Sikkim,,NH,27.613444,88.656528,Debris,Slide,
+26680,SKM/NS/78A10/2017/230,Sikkim,North Sikkim,,NH,27.61775,88.623639,Debris,Slide,
+26681,SKM/NS/78A10/2017/229,Sikkim,North Sikkim,,NH,27.619722,88.618861,Debris,Slide,
+26682,SKM/NS/78A10/2017/228,Sikkim,North Sikkim,,NH,27.621806,88.618694,Debris,Slide,
+26683,SKM/NS/78A10/2017/200,Sikkim,North Sikkim,,NH,27.628083,88.685306,Debris,Slide,
+26684,SKM/NS/78A10/2017/202,Sikkim,North Sikkim,,NH,27.629361,88.695194,Debris,Slide,
+26685,SKM/NS/78A10/2017/201,Sikkim,North Sikkim,,NH,27.6295,88.692778,Debris,Slide,
+26686,SKM/NS/78A10/2017/227,Sikkim,North Sikkim,,NH,27.629944,88.619833,Debris,Slide,
+26687,SKM/NS/78A10/2017/203,Sikkim,North Sikkim,,NH,27.637167,88.712028,Debris,Slide,
+26688,SKM/NS/78A10/2017/204,Sikkim,North Sikkim,,NH,27.638694,88.711694,Debris,Slide,
+26689,SKM/NS/78A10/2017/226,Sikkim,North Sikkim,Munshithang,NH,27.641139,88.612,Debris,Slide,
+26690,SKM/NS/78A10/2017/225,Sikkim,North Sikkim,,NH,27.652861,88.607,Debris,Slide,
+26691,SKM/NS/78A10/2017/224,Sikkim,North Sikkim,Rabom,NH,27.662444,88.602556,Debris,Slide,
+26692,SKM/NS/78A10/2017/205,Sikkim,North Sikkim,,NH,27.675778,88.733417,Debris,Slide,
+26693,SKM/NS/78A10/2017/223,Sikkim,North Sikkim,,NH,27.676722,88.597194,Debris,Slide,
+26694,SKM/NS/78A10/2017/206,Sikkim,North Sikkim,,NH,27.686389,88.73875,Debris,Slide,
+26695,SKM/NS/78A10/2017/222,Sikkim,North Sikkim,Bansoi,NH,27.697139,88.57025,Debris,Slide,
+26696,SKM/NS/78A10/2017/221,Sikkim,North Sikkim,,NH,27.700444,88.566083,Debris,Slide,
+26697,SKM/NS/78A10/2017/220,Sikkim,North Sikkim,,NH,27.701333,88.565083,Debris,Slide,
+26698,SKM/NS/78A10/2017/219,Sikkim,North Sikkim,,NH,27.703917,88.562306,Debris,Slide,
+26699,SKM/NS/78A10/2017/218,Sikkim,North Sikkim,,NH,27.704028,88.56175,Debris,Slide,
+26700,SKM/NS/78A10/2017/217,Sikkim,North Sikkim,,NH,27.704306,88.560694,Debris,Slide,
+26701,SKM/NS/78A10/2017/216,Sikkim,North Sikkim,,NH,27.713944,88.557361,Debris,Slide,
+26702,SKM/NS/78A10/2017/215,Sikkim,North Sikkim,,NH,27.723611,88.550472,Debris,Slide,
+26703,SKM/NS/78A10/2017/214,Sikkim,North Sikkim,,NH,27.724222,88.552861,Debris,Slide,
+26704,SKM/NS/78A10/2017/213,Sikkim,North Sikkim,Chaten,NH,27.726083,88.54975,Debris,Slide,
+26705,SKM/NS/78A10/2017/212,Sikkim,North Sikkim,,NH,27.728472,88.551667,Debris,Slide,
+26706,SKM/NS/78A10/2017/211,Sikkim,North Sikkim,Lachen,NH,27.735278,88.54925,Debris,Slide,
+26707,SKM/NS/78A10/2017/210,Sikkim,North Sikkim,,NH,27.74075,88.54525,Debris,Slide,
+26708,SKM/NS/78A10/2017/209,Sikkim,North Sikkim,,NH,27.740944,88.545361,Debris,Slide,
+26709,SKM/NS/78A10/2017/208,Sikkim,North Sikkim,,NH,27.745194,88.544278,Debris,Slide,
+26710,SKM/NS/78A10/2017/207,Sikkim,North Sikkim,,NH,27.749111,88.542972,Debris,Slide,
+26711,SKM/EAST/78A12/2015/001,Sikkim,East Sikkim,3rd Mile Subsidence,"Kumrek (On Rangpo-Kumrek
+road )",27.18822222,88.56238889,Debris,Subsidence,July 2015
+26712,SKM/EAST/78A12/2015/002,Sikkim,East Sikkim,Kumrek landslide,"Kumrek (On Rangpo-Kumrek
+road )",27.179,88.53313889,Rock,Slide,8 July 2015
+26713,SKM/NORTH/78A11/2015/003,Sikkim,North Sikkim,Rangrang Landslide,"Rangrang (On Mangan to
+Dikchu road )",27.46166,88.52341,Debris,Debris slide,1 June 2015
+26714,SKM/EAST/78A11/2015/004,Sikkim,East Sikkim,Tumin Landslide,Tumin,27.33208,88.50902,Debris,Debris slide,11 July 2015
+26715,SKM/ND/78A/06_10/ 2016/01,Sikkim,North Sikkim,Dzongu landslide,"Left bank slope of Talong Chu
+(locally known as Kanaka river),
+just opposite to the Dzongu
+(Upper) village",27.53533333,88.49797222,"Mainly rock boulders
+containing mica
+schist along with
+boulders of gneiss
+and quartzite.","Slide/Avalanch
+e","2006, 13 August 2016 at 13:30 hrs."
+26716,"State: Sikkim/district: East
+District/toposheet:
+78A/11/year: 2018/serial no.",Sikkim,East Sikkim,"Upper Syari, Deorali, Gangtok","Near Butter fly Chowk, Syari,
+Deorali, Gangtok",27.31583333,88.60666667,Debris,"Bulging and
+slope failure","7 August 2018, 9 August 2018"
+26717,"State: Sikkim/district: East
+District/toposheet:
+78A/11/year: 2018/serial no.",Sikkim,East Sikkim,"1st BN Sikkim Scouts and the road
+stretch (JNM axis) ahead of MS-8",State Highway; near 8th Mile,27.37027778,88.67361111,Debris,Subsidence,August 2018
+26718,"State: Sikkim/district: North
+District/toposheet:
+78A/11/year: 2018/serial no.",Sikkim,North Sikkim,Kabi Landslide,"State Highway; 4 km before
+Kabi village",27.39305556,88.63527778,Rock,Slide,"Mid-July 2018, 2 August 2018"
+26719,"Sikkim/ East District/
+78A/11/2019/",Sikkim,East Sikkim,Chubba Khola,"Marchak-Rumtek road, about 9
+kms from Ranipool",27.28081944,88.57090278,Boulders and debris,Slide,2017
+26720,"Sikkim/ East District/
+78A/11/2019/",Sikkim,East Sikkim,Martam,"NH-10A, Martam",27.25941667,88.55038889,Boulders and debris,Debris slide,2017
+26721,"State: Sikkim/District : West
+District/Toposheet:
+78A/03/year: 2019",Sikkim,West District,Yuksom-Tsong Village landslide,"Yuksom in West Sikkim, local
+village road up to Tsong Village",27.36473056,88.23727778,"Multiple slide
+comprising of Earth
+or soil slide / flow","Multiple type
+of movements
+includes debris
+slide / Earth or
+soil slide / flow
+/ lateral spread",16 September 2019
+26722,"State: Sikkim/District: East
+District/Toposheet:
+78A/11/year: 2019/",Sikkim,East Sikkim,"Palzor Stadium road, Gangtok","Near Tamang Monastery,
+Palzor Stadium road, Gangtok",27.33825,88.60911111,Debris,"Slide/Subsidenc
+e",23 April 2019 at 05:00 hrs.
+26723,"Sikkim/ East District/
+78A/11/2019/",Sikkim,East Sikkim,Tumlabung,"Near Lower Tumlabung on
+Ranipool-Tumlabung Bye Pass
+road",27.27352778,88.57783333,Debris,Slide,July/August 2019
+26724,SK/NS/78A11/,Sikkim,East Sikkim (Near Kaabi),Kaabi II,"NH 31A, Near B2 Bridge.",27.38107778,88.64063333,Rock,Rock Slide,
+26725,"Sikkim/ North District/
+78A/11/2020/02",Sikkim,North Sikkim,"Dhare Slide, Kabi","North Sikkim Highway/
+Dhare/Kabi",27.39866667,88.62358333,Soil,Slide,24 May 2020 at 12:30 hrs.
+26726,"Sikkim/ North District/
+78A/11/2020/03",Sikkim,North Sikkim,"Satala Slide, Kabi","North Sikkim Highway/
+Satala/Kabi",27.39838889,88.62566667,Debris cum rock,Slide,24 May 2020 at 13:50 hrs.
+26727,"State: Sikkim/North District/
+78A/11/2020/03.",Sikkim,North Sikkim,Kabi Landslide,"State Highway; 4 km before
+Kabi village",27.39305556,88.63527778,Rock,Slide,"Mid-July 2018, 2 August 2018, 24 May
+2020"
+26728,SI/ESI/ 78A11/ 2021/RP1,Sikkim,East Sikkim,Ranipool to Pakyong road slide,717A State road,27.25352778,88.60377778,Rock cum debris,Slide,"September 2020, 18-19 October 2021"
+26729,Sikkim/NK/78A11/2022/SP1,Sikkim,North Sikkim,Salim Pakel village,Village road,27.5401,88.56929167,Rock cum debris,Slide,2019
+26730,Sikkim/NK/78A10/2022/II,Sikkim,North Sikkim,"Shipgyre slide right bank of Teesta
+(Shipgyre Slide II)",State road,27.55314167,88.62179722,Debris,Slide,2012
+26731,"Sikkim/North Sikkim/SV01
+78A10/ 2022",Sikkim,North Sikkim,Shipgyer village,Village road,27.54975833,88.57530833,Rock cum debris,Slide,2020
+26732,Sikkim/NK/78A10/2022/III,Sikkim,North Sikkim,"Shipgyer slide right bank of Teesta
+(Shipgyer slide III)",State road,27.54810833,88.60807778,Debris,Slide,2012
+26733,Sikkim/NK/78A10/2022/IV,Sikkim,North Sikkim,West of Shipgyer,State road,27.55236944,88.58208333,Debris,Slide,2019
+26734,SK/ES/78 A11/BG-I,Sikkim,East Sikkim,Bhojagari- I,Indira Bye Pass Road,27.36388889,88.62083333,Debris,Slide,
+26735,SK/ES/78 A11/CP,Sikkim,East Sikkim,Chisopani I Landslide,Pendam-Singtam Road,27.23166667,88.5025,Debris,Slide,"July 2020, December 2020"
+26736,SK/ES/78 A11/CL,Sikkim,East Sikkim,Chuba Landslide,Chuba link Road,27.27458333,88.55002778,Debris,Slide,18-19 October 2021
+26737,SK/ES/78 A11/SW-1,Sikkim,East Sikkim,Swastik Market Slide,NH-10,27.35694444,88.61833333,Soil,Slide,
+26738,SK/ES/78 A11/DD,Sikkim,East Sikkim,Deepudada Slide,Singtam-Dikchu Road,27.25858333,88.46166667,Debris,Slide,"Between April 2018 and December
+2021"
+26739,SK/ES/78 A11/DA-I,Sikkim,East Sikkim,"Development area- I (Near Little Pixes
+School)",Development area,27.33941667,88.60990556,Soil,Slide,6 June 2021 in the morning
+26740,SK/ES/78 A/07/2021/14,Sikkim,East Sikkim,Dikchu-Samdong road,Near Jurassic Park Sikkim,27.3699335,88.4859279,Debris cum rock,Slide,23 August 2021
+26741,SK/SS/78 A08/DS,Sikkim,South Sikkim,Dojak Landslide,Singtam-Namchi Road,27.28955556,88.37748333,Debris,Slide,2020
+26742,SK/ES/78 A11/SKIII,Sikkim,East Sikkim,Sang Khola III,Sang Khola,27.25333333,88.53194444,Rock,Slide,July 2020
+26743,SK/ES/78 A11/TJ-1,Sikkim,East Sikkim,Tibetian Jhora,NH-10,27.34222222,88.60722222,Debris,Slide,
+26744,SK/ES/78 A11/LB-I,Sikkim,East Sikkim,Lower Burtuk,Indra by-pass,27.35861111,88.62027778,Debris,Slide,
+26745,SK/ES/78 A/11/2021/15,Sikkim,East Sikkim,Mangthang,Mangthang,27.2533846,88.5489504,Debris,Flows,22 August 2021
+26746,SK/ES/78 A11/PB,Sikkim,East Sikkim,Pagla Bhir,Rumtek-Rice Valley road.,27.28666667,88.55347222,Rock cum debris,Slide,27 August 2021
+26747,SK/ES/78 A11/PK,Sikkim,East Sikkim,Pakyong Slide,Pakyong Road,27.24722222,88.60666667,Debris,Slide,September 2021
+26748,SK/SS/78 A08/PS,Sikkim,South Sikkim,Phalidhaara Landslide,Singtam-Namchi Road,27.17054167,88.38358056,Debris,Slide,May 2021
+26749,SK/ES/78 A11/SK-II,Sikkim,East Sikkim,Sangkhola II,Sangkhola-Zingla road.,27.26066667,88.53383333,Rock cum debris,Slide,"September 2021, October 2021"
+26750,SK/ES/78 A11/S,Sikkim,East Sikkim,Singbel Slide,Khamdong-Dung Dung road,27.31663889,88.45861111,Debris,Slide,18th & 19th October 2021
+26751,SK/ES/78 A11/SD,Sikkim,East Sikkim,Singtam-Dikchu,North Sikkim Highway,27.23444444,88.49083333,Rock,Slide,
+26752,SK/ES/78 A11/SG-1,Sikkim,East Sikkim,Sisa Golai Slide I,NH-10,27.32663889,88.61016667,Debris,Subsidence,1 June 2021 at 10:30 hrs.
+26753,SK/ES/78 A11/SW-II,Sikkim,East Sikkim,Swastik-II,NH-10,27.35333333,88.61666667,"Debris material
+(>2mm to cobble size
+) to boulder.",Slide,
+26754,SK/ES/78 A11/TG-I,Sikkim,East Sikkim,Tamang Gompa Slide-I,Near Tamang Gompa,27.33972222,88.62055556,Debris,Slide,8 June 2021 at night
+26755,SK/ES/78 A11/TVP-I,Sikkim,East Sikkim,Tashi View Point -I,National Highway to Mangan,27.37055556,88.61611111,Debris,Slide,5 June 2021 in the midnight
+26756,SK/ES/78 A11/,Sikkim,North Sikkim,Tingda,State Highway Burtuk-Kabi.,27.39472222,88.62361111,Debris,Slide,"2018, July 2021"
+26757,SK/ES/78 A/07/2021/13,Sikkim,South Sikkim,"Tokdey block, Lingmoo",Tokdey,27.3250091,88.4704442,Debris cum rock,Slide,"2020, 23 August 2021"
+26758,SK/ES/78 A11/TL,Sikkim,East Sikkim,Tshalumthang Landslide,Sangkhola-Zingla Road,27.25252778,88.52777778,Debris,Slide,July 2021
+26759,SK/ES/78 A11/UB-I,Sikkim,East Sikkim,Upper Burtuk slide,Indra By-Pass.,27.35805556,88.62111111,Debris,Slide,
+26760,SK/NS/78 A10/ Bop 1,Sikkim,North Sikkim,Bop Slide,Chungthang-Lachung Road,27.61936111,88.66131389,Rock,Slide,18 June 2021
+26761,SK/ES/78 A11/KL,Sikkim,East Sikkim,Khamdong Landslide,Singtam Dikchu Road,27.25061389,88.46280278,Debris,Slide,2021
+26762,"SK/NS/78 A10/Lachen Road
+Slide-I",Sikkim,North Sikkim,Lachen Slide,Chungthang - Lachen Road,27.69920278,88.56659722,Debris,Slide,
+26763,SK/ES/78 A11/IBP-I,Sikkim,East Sikkim,Indira Bye Pass -I,Indira Bye Pass Road,27.32888889,88.60777778,Rock,Slide,18 May 2021
+26764,SK/ES/78 A10/LS,Sikkim,North Sikkim,Lachung Landslide,Chungthang-Lachung Road,27.68445278,88.7379,Debris,Slide,2021
+26765,SK/NS/78 A16/ Lingtam Slide-I,Sikkim,East Sikkim,Lingtam Slide,Rongli-Lingtam road,27.22122778,88.735475,Debris,Slide,18th-19th October 2021
+26766,SK/ES/78A11/2021/1,Sikkim,East Sikkim,Shotak slide,"Along Burtuk Kabi Road, East of
+Shotak village.",27.38155556,88.63883333,Debris,Slide,September 2021.
+26767,SK/ES/78 A11/PGS-I,Sikkim,East Sikkim,Paani House slide I,NH-10,27.32320833,88.60986944,Debris,Slide,19 October 2021 at 20:00 hrs.
+26768,SK/SS/78 A08/SS01,Sikkim,South Sikkim,Sombaria Landslide,Jorethang-Sombaria Road,27.12344167,88.24483889,Debris,Slide,18th-19th October 2021.
+26769,SK/ES/78 A11/2021/CPWD-1,Sikkim,East Sikkim,"CPWD AEQ LANDSLIDE (Asst. Engineer
+Quarter Slide)",NH-10,27.34027222,88.61273333,Debris,Slide,19 October 2021 at 18:00 hrs.
+26770,SK/ES/78 A16/TL01,Sikkim,East Sikkim,Tarpin Landslide,Rorathang-Rongli Road,27.19558889,88.62802778,Debris,Slide,18th-19th October 2021.
+26771,"SK/NS/78 A10/ 2021/Que Khola-
+I",Sikkim,East Sikkim,Que Khola Landslide,Rongli-Phadamchen road,27.236,88.75722222,Debris,Slide,1 August 2021 at 16:00 hrs.
+26772,"SK/NS/78 A10/ 2022/Taronag
+Slide-I",Sikkim,East Sikkim,Taronag Slide,Rorathnag-Rongli road,27.20258333,88.65547222,Rock,Slide,18th-19th October 2021
+26773,SK/ES/78 A11/2021/NPB-1,Sikkim,East Sikkim,Pagla Bhir slide,"Rumtek-Sang Road through
+Martam Rice valley",27.28577778,88.5535,Debris,Slide,27 August 2021
+26774,"SK/NS/78 A10/ 2022/Manul
+Slide-I",Sikkim,North Sikkim,Manul Slide,Mangan - Chungthang Road,27.51473889,88.57758889,Rock,"Shallow Planar
+slide",
+26775,"Sikkim/East Sikkim/ 78A10/
+2021",Sikkim,North Sikkim,Shipgyer village,NH10,27.55704444,88.57932222,Debris,Slide,2019
+26776,"Sikkim/East Sikkim/ 78A08/
+2022",Sikkim,East Sikkim,Bardang Tunnel slide,NH10,27.20683333,88.48930556,Debris,Slide,2021
+26777,SK/SSK/78A08/ 2022/MamringI,Sikkim,South Sikkim,Mamring slide,"State road Namchi-Namthang
+road.",27.16993889,88.51481944,Debris,Slide,September 2021
+26778,SK/ESK/ 78A11/ 2021/P-I,Sikkim,East Sikkim,"Pakyong (Near Farm to Table
+restaurant)",Pakyong roads,27.25225,88.60811111,Rock cum Debris,slide,"May 2017, July-August 2021"
+26779,"Sikkim/East Sikkim/ 78A12/
+2021",Sikkim,East Sikkim,"Pakyong road near Central bank of
+India","717A, state road",27.24777778,88.5975,Debris,Slide,2021
+26780,SK/NSK/ 78A11/ 2021/RR-I,Sikkim,North Sikkim,Rang-Rang,NH 310A,27.47888889,88.52861111,Rock,Slide,September 2021
+26781,Sikkim/Namchi/78 A07/2022/01,Sikkim,Namchi,7th Mile_ Legship-Ravangla Road,Legship-Ravangla Road,27.28847,88.30139,Debris,Slide,"10 July 2022 from 8:30 hrs. to 10:00
+hrs."
+26782,SKM/Gangtok/78A11/2022,Sikkim,Gangtok District,14th Mile,Gangtok-Rangpo Road,27.2535,88.54141667,Debris,Slide,"August 2022, 7th-8th October 2022"
+26783,SKM/ Namchi/78 A07/2022/01,Sikkim,Namchi,Pathing Yang Yang Slide,"Ravangla-Yang Yang Road via
+Pathing",27.30140833,88.3916,Debris cum rock,Slide,18 November 2022
+26784,SKM/ Soreng/78 A08/2022/01,Sikkim,Soreng,01/JR/Baiguney,Jorethang-Legship Road,27.14871944,88.28128889,Debris,Slide,20 November 2022
+26785,"SKM/Namchi/78A08/2022/Doro
+p I",Sikkim,Namchi,Dorop I Slide,Melli-Jorethang Road,27.11955556,88.32275,Debris,Slide,August 2022
+26786,"SKM/Soreng/78A08/2022/Kamli
+ng/01",Sikkim,Soreng,Kamling,Jorethang-Legship Road,27.190191,88.325507,Debris,Slide,November 2022
+26787,SKM/Gangtok/78A11/2022,Sikkim,Gangtok District,Lumsay Slide,Adampul road,27.32633333,88.59544444,Debris,Slide,June 2022
+26788,"SKM/Namchi/78A08/2022/Gom
+I",Sikkim,Namchi,Gom I Slide,Melli-Jorethang Road,27.11236111,88.32455556,Debris,Slide,August 2022
+26789,SKM/ES/78 A11/2022/TVP-I1,Sikkim,East Sikkim,Tashi view point-II(TVP-II),"NH-10, Gangtok-Mangan
+highway",27.37211111,88.61671944,Debris,Slide,29 May 2022
+26790,SK/ES/78 A07/Marchak,Sikkim,East Sikkim,Marchak,Gangtok-Marchak-Singtam road,27.28119444,88.58952778,Debris,Slide,11th-12th June 2022
+26791,"SKM/ES/78
+A12/2022/Basnettgaon",Sikkim,Pakyong,Basnettgaon Landslide.,Old Pakyong Airport Road,27.24883333,88.60191667,Debris,Slide,10 October 2022
+26792,SKM/ES/78 A12/2022/Kitgolai,Sikkim,Pakyong,Kitgolai Landslide,SH-717,27.21391667,88.60833333,Debris,Slide,25 August 2022
+26793,"SKM/ Pakyong/78
+A11/2022/Lower Samsing Slide",Sikkim,Pakyong,Lower Samsing Slide,SH 717A,27.2536,88.6043,Debris,Slide,August 2022
+26794,"SKM/Gangtok/78A11/2023/01/
+Sokpay",Sikkim,Gangtok District,Sokpay slide,"Sokpay, Dikchu-Radong road",27.39336667,88.52236944,Debris,Slide,"2016, 2019, 26 March 2023"
+26795,SK/ES/78 A11/Sang,Sikkim,East Sikkim,Sang,Gangtok-Singtam Road.,27.25066667,88.53144444,Rock,Slide,"July 2019, 12 May 2022"
+26796,,Sikkim,Gyalshing,Sardong slide,Sardong,27.26352778,88.19047222,Debris,Slide,March 2022
+26797,SK/ES/78 A07/Sherwani 02,Sikkim,East Sikkim,Sherwani 02,Singtam-Sherwani road,27.24297222,88.47055556,Debris,Slide,15 June 2022
+26798,SKM/Geyzing/78A08/2022/01,Sikkim,Geyzing,Sikkip,Jorethang-Legship Road,27.19950556,88.32696111,Debris,Slide,"October 2020, 20 August 2022"
+26799,SK/ES/78 A07/Singtam,Sikkim,East Sikkim,Singtam,Singtam-Mangkha road,27.238515,88.48812389,Debris,Slide,May 2022.
+26800,SKM/ Soreng /78 A08/2022/01,Sikkim,Soreng,01/JR/Sisney Temple,Jorethang-Legship Road,27.13689,88.276598,Rock,Slide,2nd week of August 2022
+26801,SKM/Namchi/78A08/2022/01,Sikkim,Namchi,Sumbuk,Melli-Jorethang Road,27.09725,88.3825,Debris,Slide,August 2022
+26802,SKM/Pakyong/78A12/2023,Sikkim,Pakyong,Rangpo Check Post,Gangtok-Siliguri Road,27.17748333,88.52165833,Debris,Slide,"July 2020, 4 October 2023"
+26803,SKM/ND/78A08/2023/ Kitam,Sikkim,Namchi,Kitam Landslide,"Kitam Village, Namchi District,
+Sikkim",27.10570556,88.35308056,Debris,Slide,"2018, 1st week of October 2024"
+26804,SKM/GD/78 A011/2023/ Luing,Sikkim,Gangtok District,Luing Landslide,"Luing Village, Gangtok",27.36552778,88.61596667,Debris,Slide,2nd Week of March 2023
+26805,SKM/MAN/78A10/10/2023,Sikkim,Mangan,Naga,Gangtok-Chungthang Road,27.54308333,88.62675,Debris,Slide,
+26806,SKM/MAN/78A11/11/2023,Sikkim,Mangan,South Dikchu,Dikchu-Makha Road,27.40251944,88.51868056,Debris,Slide,4 October 2023
+26807,"SKM/ND/78 A03/2023/Muyung-
+02",Sikkim,Namchi,Muyung-02 Landslide,"Muyung Village, Dentam-
+Namchi SH.",27.27872778,88.12502778,Debris,Flow,"2020, 23 September 2023"
+26808,SI/GAN/78A07/2024/48,Sikkim,Gangtok District,Dipudara landslide,"NHPC Teesta-V, Singtam-Dikchu
+road",27.2525,88.4606,Rock,Slide,21 August 2024
+26809,SI/GAN/78A08/2025/01,Sikkim,Gangtok District,Dochum,"Dochum, Singtam-Dickchu road",27.248882,88.476747,Debris,Slide,"2022, Jun 2024"
+26810,SI/MAN/78A11/2025/1,Sikkim,Mangan,Phensang Landslide,NH-310A,27.4432,88.6087,Debris,Slide,21 July 2024
+26811,SI/GYA/78A03/2025/01,Sikkim,Gyalshing,Rimbi,"Upper Rimbi, Rimbi-Tingbrum
+Gram Panchayat",27.327977,88.152281,Debris,Slide,11 September 2025
+26812,SI/GTK/78A11/2025/02,Sikkim,Gangtok District,Tintek Landslide,"SH, Tintek Village, Gangtok
+District, Sikkim",27.372611,88.541022,Debris,Slide,19 July 2025
+26813,SI/GTK/78A11/2025/03,Sikkim,Gangtok District,Upper Sichey Landslide,"Near Tamang Gumpa, Gangtok
+District, Sikkim",27.33787,88.609377,Debris,Slide,31 July 2025 at 18:30 hrs.
+26814,SK- 24/2011,Sikkim,West district,Tikjuk landslide,Gyalshim – Dantam Road,27.29166667,88.22,Debris cum rock,,24 June 2011 at 23:30 hrs.
+26815,SK- 25/2011,Sikkim,West district,Pelling landslide,Gyalshim – Dantam Road,27.28777778,88.23277778,Debris cum rock,,24 June 2011 at 23:00 hrs.
+26816,SKM-01/2012-13,Sikkim,East Sikkim,Saketang,Rongli-Rolep road,27.26063889,88.71438889,Debris,Slide,7 June 2012 at 4:50 hrs.
+26817,SKM-02/2012-13,Sikkim,East Sikkim,Chopse Slide,Rongli-Rolep road,27.26616667,88.72697222,Debris,Slide,7 June 2012 at 4:30 hrs.
+26818,SKM-03/2012-13,Sikkim,East Sikkim,Dharakham Slide,Rongli-Rolep road,27.26544444,88.72252778,Debris,Slide,7 June 2012 at 4:50 hrs.
+26819,SKM-04/2012-13,Sikkim,East Sikkim,Rockse Slide 1,Panthang to Dikchu road,27.37441667,88.54505556,Rock,,13 July 2012
+26820,SKM-05/2012-13,Sikkim,East Sikkim,Rockse Slide 2,Panthang to Dikchu road,27.36977778,88.54466667,Rock,,13 July 2012
+26821,SKM-06/2012-13,Sikkim,North Sikkim,Pegong Slide,Mangan-Chungthang road,27.59027778,88.65394444,Debris,Slide,26 June 2012
+26822,SKM-07/2012-13,Sikkim,North Sikkim,Theng Slide,On Mangan-Chungthang road,27.57502778,88.65402778,Debris,Slide,22 June 2012
+26823,SKM-08/2012-13,Sikkim,North Sikkim,Tung Slide,On Mangan-Chungthang road,27.56111111,88.65452778,Debris,Slide,22 June 2012
+26824,SKM-09/2012-13,Sikkim,North Sikkim,Rubom Slide,"On Mangan-Chungthang
+road",27.52838889,88.59972222,Debris,Slide,22 June 2012
+26825,SKM-10/2012-13,Sikkim,North Sikkim,Singik Slide,On Mangan-Chungthang road,27.56941667,88.65272222,Debris,Slide,22 June 2012
+26826,SKM-11/2012-13,Sikkim,North Sikkim,Deodara Slide,"On Mangan-Chungthang
+road",27.51491667,88.56313889,Debris,Slide,17 July 2012
+26827,SKM/78A11/2009,Sikkim,North Sikkim,,Chandera village/Singhik Village,27.51444444,88.56777778,Debris,Slide,9 May 2009 at 14.00 hrs.
+26828,7253,Sikkim,South Sikkim,NHPC TEESTA V POWER HOUSE,,27.25102,88.460004,Rock,slide,2024

@@ -63,6 +63,60 @@ environment tonight):**
   zone boundary — see below)
 - A true "alert fires live" rehearsal against real ingested data
 
+## ML data pipeline (`scripts/ml/`)
+
+**Scope, stated plainly:** this is a **road-corridor** susceptibility model,
+not full-state. The GSI Sikkim inventory is 96.1%-within-100m-of-a-mapped-road
+(measured against real OpenStreetMap geometry) — a field-survey artifact, not
+evidence that susceptibility itself is road-proximate. We lean into this
+intentionally: it matches the project's own road-connectivity framing
+(flagging at-risk road segments), not a limitation being hidden. Don't claim
+full-state coverage from this dataset.
+
+**Two-layer architecture preserved:** rainfall stays out of the static
+susceptibility dataset entirely. `scripts/ml/rainfall_threshold_case_study.py`
+is a *separate* validation exercise for the existing rainfall rule engine
+(`app/services/alert_engine.py`) against 68 precisely-dated historical
+events — its output lives in `data/case_study/`, never joined into
+`data/processed/training_dataset.csv`.
+
+**Pipeline** (`python -m scripts.ml.<name>`, run in this order):
+1. `fetch_dem.py` — downloads Copernicus GLO-30 (AWS Open Data, no key) for
+   the Sikkim tile, reprojects to UTM 45N (required for correct slope/aspect —
+   verified: without reprojection, slope comes out ~90° everywhere)
+2. `fetch_osm_roads.py` — Sikkim road network via Overpass API
+3. `extract_terrain_features.py` — elevation/slope/aspect/curvature
+   (`xarray-spatial`, Horn's method) + distance-to-drainage (`pysheds` D8
+   flow accumulation)
+4. `build_negative_samples.py` — road-corridor negative sampling (see below)
+5. `build_training_dataset.py` — joins everything, prints a review summary,
+   saves `data/processed/sampling_map.png`, writes
+   `data/processed/training_dataset.csv`. **Does not train anything.**
+6. `rainfall_threshold_case_study.py` — separate, see above
+
+**Negative sampling method:** road corridor (500m buffer) minus a 200m
+exclusion disc around every positive, further restricted per-district to
+that district's own positives (preserves district proportions without
+needing external admin boundaries) — buffer distances configurable in
+`scripts/ml/ml_config.py`, seeded (`random_seed=42`) for reproducibility.
+
+**Verified result** (this session): 777 positives / 777 negatives, exact
+district-proportion match, minimum inter-class distance 203.7m (≥ the 200m
+exclusion buffer). Positives show meaningfully higher mean slope (33.2° vs
+28.4°) and more concave curvature than negatives — real, non-trivial signal,
+not an artificially-easy split.
+
+**Environment note:** `pyogrio`/`fiona` (geopandas' file-IO backends) are
+blocked by this machine's Application Control policy (persistent, unlike an
+earlier one-off `rasterio` block that cleared on retry) — worked around by
+reading/writing GeoJSON directly via `json` + `shapely`, keeping GeoDataFrame
+usage in-memory only. `pysheds` also needed a one-line `numpy.in1d` →
+`numpy.isin` compatibility shim (numpy 2.x removed the old name) — not a
+custom algorithm, just un-renaming a numpy function.
+
+Tests: `tests/test_negative_sampling.py`, `tests/test_terrain_features.py` —
+synthetic geometry/DEMs, no network or real data files needed, run fast.
+
 ## Seeding a pilot zone
 `scripts/seed_zone.py` takes a GeoJSON Polygon file and a name — it does
 **not** invent coordinates. `config/pilot_zone.example.geojson` is a
