@@ -10,4 +10,7 @@ __pycache__/
 # for review.
 data/raw/dem/
 data/raw/sikkim_roads.geojson
+data/raw/landcover/
+data/raw/population/
+data/raw/osm_extras/buildings_centroids.geojson
 data/processed/dem_sikkim_utm45n.tif
