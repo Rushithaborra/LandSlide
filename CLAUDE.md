@@ -101,11 +101,20 @@ uniformly across Sikkim) avoids the model learning "distance to road" as a
 shortcut instead of real terrain signal, and this scope choice matches the
 project's own road-connectivity framing rather than hiding a limitation.
 See README.md "ML data pipeline" section for the full pipeline order,
-verified results (777/777 pos/neg, min inter-class distance 203.7m, real
-slope signal 33.2° vs 28.4°), and two environment workarounds worth knowing
-about before touching this code: a `pyogrio`/`fiona` DLL block (worked
-around via plain-JSON GeoJSON I/O) and a `pysheds`/numpy 2.x incompatibility
-(one-line `np.in1d = np.isin` shim).
+verified results (774/774 pos/neg after resolving 3 duplicate-coordinate
+positives, min inter-class distance 203.7m, real slope signal 33.2° vs
+28.4°), the land-cover bias audit (built-up carries signal beyond simple
+road proximity, but the mechanism — genuine anthropogenic destabilization
+vs. GSI's own documentation priority — can't be fully separated), and two
+environment workarounds worth knowing about before touching this code: a
+`pyogrio`/`fiona` DLL block (worked around via plain-JSON GeoJSON I/O) and
+a `pysheds`/numpy 2.x incompatibility (one-line `np.in1d = np.isin` shim).
+
+**Two candidate feature sets awaiting training approval** (not trained
+yet): Baseline (elevation, slope, curvature, distance_to_drainage) vs
+Extended (baseline + land_cover_class) — train both, compare on the same
+spatially-defensible holdout, per explicit instruction not to just trust
+the bigger feature set.
 
 **Two-layer separation applies here too**: `rainfall_threshold_case_study.py`
 validates the *existing* rainfall rule engine against 68 dated historical

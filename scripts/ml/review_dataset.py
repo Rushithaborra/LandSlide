@@ -135,7 +135,7 @@ def report_feature_rationale() -> None:
         print(f"- {feature}: {why}")
 
     print("\nDeliberately EXCLUDED as model inputs: latitude/longitude (memorization risk with only "
-          "1554 rows), distance-to-road (would let the model exploit the road-survey sampling bias "
+          "~1550 rows), distance-to-road (would let the model exploit the road-survey sampling bias "
           "instead of learning real terrain signal), rainfall (kept in the separate dynamic rule layer), "
           "aspect and SoilGrids properties (OPTIONAL, held out of this first dataset -- see below).")
 

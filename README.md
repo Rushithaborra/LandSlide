@@ -105,11 +105,25 @@ that district's own positives (preserves district proportions without
 needing external admin boundaries) — buffer distances configurable in
 `scripts/ml/ml_config.py`, seeded (`random_seed=42`) for reproducibility.
 
-**Verified result** (this session): 777 positives / 777 negatives, exact
-district-proportion match, minimum inter-class distance 203.7m (≥ the 200m
-exclusion buffer). Positives show meaningfully higher mean slope (33.2° vs
-28.4°) and more concave curvature than negatives — real, non-trivial signal,
-not an artificially-easy split.
+**Verified result**: 774 positives / 774 negatives (777 raw GSI records,
+3 duplicate-coordinate rows resolved — see `scripts/ml/resolve_duplicate_positives.py`),
+exact district-proportion match, minimum inter-class distance 203.7m (≥ the
+200m exclusion buffer). Positives show meaningfully higher mean slope
+(33.2° vs 28.4°) and more concave curvature than negatives — real,
+non-trivial signal, not an artificially-easy split.
+
+**Land-cover bias audit** (`scripts/ml/audit_landcover_bias.py`): the
+built-up land-cover signal (9.0% of positives vs 0.3% of negatives) was
+checked against the road-proximity survey bias before trusting it. Distance
+to road alone is a strong confound (point-biserial r=-0.545 with label) —
+exactly why it's excluded as a feature. But even holding road-distance
+constant (comparing only points within 20m of a road), positives are still
+built-up 10.6% of the time vs 0% for negatives (0/86) — a gap essentially
+impossible by chance if the true rates matched. Built-up land-cover carries
+signal beyond simple road proximity, though whether that reflects genuine
+anthropogenic slope destabilization or GSI's own documentation priority
+toward infrastructure-adjacent failures can't be fully separated from this
+data alone. See `docs/duplicate_and_bias_audit.md` for the full writeup.
 
 **Environment note:** `pyogrio`/`fiona` (geopandas' file-IO backends) are
 blocked by this machine's Application Control policy (persistent, unlike an

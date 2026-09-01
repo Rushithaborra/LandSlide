@@ -145,7 +145,9 @@ def build_negative_samples(
 
 
 def main(config: MlConfig = DEFAULT_CONFIG) -> None:
-    positives = pd.read_csv(config.paths.gsi_sikkim_csv)
+    from scripts.ml.resolve_duplicate_positives import deduplicate_positives
+
+    positives = deduplicate_positives(pd.read_csv(config.paths.gsi_sikkim_csv))
     negatives = build_negative_samples(positives, config)
     config.paths.negatives_csv.parent.mkdir(parents=True, exist_ok=True)
     negatives.to_csv(config.paths.negatives_csv, index=False)

@@ -23,6 +23,7 @@ from scripts.ml.extract_terrain_features import build_feature_stack, sample_at_p
 from scripts.ml.fetch_dem import download_tile, reproject_to_utm
 from scripts.ml.fetch_osm_roads import load_roads
 from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig
+from scripts.ml.resolve_duplicate_positives import deduplicate_positives
 
 # Approved USE feature set (feature-suitability report, 2026-09-01). `aspect`
 # is computed as part of the same DEM feature stack (no extra cost) but is
@@ -34,6 +35,12 @@ USE_TERRAIN_FEATURES = ["elevation", "slope", "curvature", "distance_to_drainage
 
 def load_positives(config: MlConfig) -> pd.DataFrame:
     df = pd.read_csv(config.paths.gsi_sikkim_csv)
+    # 3 duplicate-coordinate pairs resolved here -- see
+    # resolve_duplicate_positives.py for the full investigation (777 -> 774
+    # rows). Same physical location = identical DEM/land-cover feature
+    # values regardless of whether it's one event logged twice or two
+    # genuinely distinct events, so dedup is the conservative choice either way.
+    df = deduplicate_positives(df)
     df = df.rename(columns={"Latitude": "latitude", "Longitude": "longitude", "District": "district"})
     df["label"] = 1
     # Leakage columns dropped here -- never enter the feature set.
@@ -89,9 +96,12 @@ def plot_sampling(positives_df: pd.DataFrame, negatives_df: pd.DataFrame, roads_
 def build_dataset(config: MlConfig = DEFAULT_CONFIG) -> pd.DataFrame:
     positives_df = load_positives(config)
     roads_gdf = load_roads(config)
-    negatives_df = build_negative_samples(
-        pd.read_csv(config.paths.gsi_sikkim_csv), config, roads_gdf=roads_gdf
-    )
+    # Same deduplicated positives feed negative sampling too (original GSI
+    # column casing, since build_negative_samples expects that) -- otherwise
+    # the per-district ratio/proportions would be computed against the
+    # un-deduplicated 777 count instead of the real 774.
+    dedup_raw = deduplicate_positives(pd.read_csv(config.paths.gsi_sikkim_csv))
+    negatives_df = build_negative_samples(dedup_raw, config, roads_gdf=roads_gdf)
 
     print_summary(positives_df, negatives_df, config)
     plot_sampling(positives_df, negatives_df, roads_gdf, config)
