@@ -129,8 +129,12 @@ explicitly stopped for review before that step.
 ## Integration points to coordinate on
 - ML lead (B): writes susceptibility scores via `PUT /zones/{id}/susceptibility`
 - Frontend lead (D): reads `GET /zones`, `GET /rainfall/{zone_id}`, `GET /alerts`
-- Reporting lead (E): submits via `POST /reports` — this API takes a
-  `photo_url` string only, does not host the upload itself
+- Reporting lead (E): submits via `POST /reports`, multipart/form-data —
+  a `data` field (JSON string matching `CitizenReportIn`'s exact frontend
+  field casing via aliases: reportType/severity/coords/placeName/etc.)
+  plus an optional `photo` file, in one request. Backend now hosts the
+  upload itself (saves to `uploads/`, served at `/uploads/<file>`) —
+  matches what E's frontend already sends, reworked 2026-09-01.
 - PM/pitch lead (F): needs the real validation number (deck slide 5 still has
   the placeholder `[AUC / accuracy on held-out points]` — do not invent it)
   and current real-vs-simulated status (deck slide 9) kept accurate
