@@ -18,10 +18,18 @@ from scipy.spatial import cKDTree
 from shapely.geometry import LineString
 
 from scripts.ml.build_negative_samples import build_negative_samples, to_utm_points
+from scripts.ml.extract_landcover import one_hot_encode, sample_land_cover
 from scripts.ml.extract_terrain_features import build_feature_stack, sample_at_points
 from scripts.ml.fetch_dem import download_tile, reproject_to_utm
 from scripts.ml.fetch_osm_roads import load_roads
 from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig
+
+# Approved USE feature set (feature-suitability report, 2026-09-01). `aspect`
+# is computed as part of the same DEM feature stack (no extra cost) but is
+# OPTIONAL per that report, so it's dropped from the saved CSV rather than
+# included -- trivially recoverable later by re-running extract_terrain_features
+# since nothing about computing it is expensive or one-way.
+USE_TERRAIN_FEATURES = ["elevation", "slope", "curvature", "distance_to_drainage"]
 
 
 def load_positives(config: MlConfig) -> pd.DataFrame:
@@ -102,6 +110,27 @@ def build_dataset(config: MlConfig = DEFAULT_CONFIG) -> pd.DataFrame:
 
     dataset = pd.concat([combined, features], axis=1)
     dataset = dataset[dataset["in_bounds"]].drop(columns=["in_bounds"]).reset_index(drop=True)
+
+    # --- land cover (ESA WorldCover, EPSG:4326 -- same CRS as our points,
+    # verified in extract_landcover.py, no reprojection needed) ---
+    landcover = sample_land_cover(dataset["longitude"].values, dataset["latitude"].values, config)
+    n_nodata = landcover["land_cover_nodata"].sum()
+    if n_nodata:
+        print(f"WARNING: {n_nodata} points sampled WorldCover NoData -- dropping them.")
+        keep = ~landcover["land_cover_nodata"]
+        dataset = dataset[keep].reset_index(drop=True)
+        landcover = landcover[keep].reset_index(drop=True)
+    one_hot = one_hot_encode(landcover["land_cover_class"])
+    dataset = pd.concat([dataset, landcover[["land_cover_class"]], one_hot], axis=1)
+
+    # Final column set: approved USE terrain features + land cover +
+    # label/lat/lon/district (keys/metadata, not model inputs) -- aspect and
+    # soil properties deliberately excluded, see USE_TERRAIN_FEATURES above
+    # and the feature-suitability report for soil.
+    landcover_cols = [c for c in dataset.columns if c.startswith("landcover_")]
+    final_cols = (["latitude", "longitude", "district", "label"] + USE_TERRAIN_FEATURES
+                  + ["land_cover_class"] + landcover_cols)
+    dataset = dataset[final_cols]
 
     config.paths.training_dataset_csv.parent.mkdir(parents=True, exist_ok=True)
     dataset.to_csv(config.paths.training_dataset_csv, index=False)

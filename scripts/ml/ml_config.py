@@ -68,6 +68,7 @@ class PathsConfig:
     dem_raw_dir: pathlib.Path = DATA_RAW / "dem"
     dem_utm_path: pathlib.Path = DATA_PROCESSED / "dem_sikkim_utm45n.tif"
     roads_geojson: pathlib.Path = DATA_RAW / "sikkim_roads.geojson"
+    landcover_tif: pathlib.Path = DATA_RAW / "landcover" / "ESA_WorldCover_10m_2021_v200_N27E087_Map.tif"
     negatives_csv: pathlib.Path = DATA_PROCESSED / "negative_samples.csv"
     training_dataset_csv: pathlib.Path = DATA_PROCESSED / "training_dataset.csv"
     sampling_plot: pathlib.Path = DATA_PROCESSED / "sampling_map.png"
