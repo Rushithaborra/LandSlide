@@ -20,3 +20,7 @@ xarray==2026.7.0
 xarray-spatial==0.10.18
 pysheds==0.5
 matplotlib==3.11.1
+
+# docs -> PDF (scripts/md_to_pdf.py)
+Markdown==3.10.3
+xhtml2pdf==0.2.17
