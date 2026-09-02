@@ -133,8 +133,28 @@ usage in-memory only. `pysheds` also needed a one-line `numpy.in1d` →
 `numpy.isin` compatibility shim (numpy 2.x removed the old name) — not a
 custom algorithm, just un-renaming a numpy function.
 
-Tests: `tests/test_negative_sampling.py`, `tests/test_terrain_features.py` —
-synthetic geometry/DEMs, no network or real data files needed, run fast.
+Tests: `tests/test_negative_sampling.py`, `tests/test_terrain_features.py`,
+`tests/test_spatial_cv.py` — synthetic geometry/DEMs, no network or real
+data files needed, run fast.
+
+## Susceptibility model — trained 2026-09-02
+
+Best of 4 experiments (LR/RF × baseline/extended features), evaluated on
+5-fold spatially-buffered block CV (2km cells, 200m buffer — a naive random
+split was checked and rejected as too optimistic): **Random Forest +
+extended features (elevation, slope, curvature, distance_to_drainage,
+land_cover_class), ROC-AUC 0.735, PR-AUC 0.733**. Full methodology,
+diagnostics, and honest limitations in `docs/model_training_report.md`.
+
+```bash
+python -m scripts.ml.train_susceptibility_model   # trains all 4, saves the best
+python -m scripts.ml.predict_zone_susceptibility  # demo only -- no real zones exist yet
+```
+
+Artifacts: `data/models/susceptibility_model.joblib` (fitted pipeline),
+`data/models/validation_report.json`, ROC/PR + feature-importance plots.
+`PUT /zones/{id}/susceptibility` contract verified against a real (placeholder)
+zone — the model's output already matches the schema, no backend changes needed.
 
 ## Seeding a pilot zone
 `scripts/seed_zone.py` takes a GeoJSON Polygon file and a name — it does

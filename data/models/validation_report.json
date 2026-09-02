@@ -1,0 +1,94 @@
+{
+  "model_version": "random_forest-extended-v1-20260902",
+  "selected_experiment": "random_forest__extended",
+  "model_type": "random_forest",
+  "feature_set": "extended",
+  "feature_cols": [
+    "elevation",
+    "slope",
+    "curvature",
+    "distance_to_drainage",
+    "landcover_bare_sparse_vegetation",
+    "landcover_built_up",
+    "landcover_cropland",
+    "landcover_grassland",
+    "landcover_moss_lichen",
+    "landcover_tree_cover",
+    "landcover_water"
+  ],
+  "trained_at_utc": "2026-09-02T06:27:01.145238+00:00",
+  "n_training_rows": 1548,
+  "spatial_cv": {
+    "n_folds": 5,
+    "cell_size_m": 2000.0,
+    "buffer_m": 200.0,
+    "pooled_metrics": {
+      "roc_auc": 0.7346296630143755,
+      "pr_auc": 0.7329229289308754,
+      "precision": 0.6771752837326608,
+      "recall": 0.6937984496124031,
+      "f1": 0.6853860880663688,
+      "confusion_matrix": [
+        [
+          518,
+          256
+        ],
+        [
+          237,
+          537
+        ]
+      ],
+      "n": 1548
+    },
+    "stability": {
+      "roc_auc_mean": 0.7358269493754087,
+      "roc_auc_std": 0.020473101597358472
+    }
+  },
+  "naive_split_diagnostic_gap": 0.016627460686596596,
+  "risk_tier_thresholds": {
+    "low_max": 0.423300242032937,
+    "moderate_max": 0.5953338429453321
+  },
+  "all_experiments_summary": {
+    "logistic_regression__baseline": {
+      "roc_auc": 0.6744820356682624,
+      "pr_auc": 0.6182092571705194,
+      "precision": 0.6395806028833552,
+      "recall": 0.6304909560723514,
+      "f1": 0.6350032530904359,
+      "fold_auc_std": 0.019238990537113355
+    },
+    "logistic_regression__extended": {
+      "roc_auc": 0.7142232371184958,
+      "pr_auc": 0.7012433064724268,
+      "precision": 0.6609929078014184,
+      "recall": 0.6020671834625323,
+      "f1": 0.6301555104800541,
+      "fold_auc_std": 0.030541611738244528
+    },
+    "random_forest__baseline": {
+      "roc_auc": 0.6965960913139568,
+      "pr_auc": 0.6706962819844448,
+      "precision": 0.6304604486422668,
+      "recall": 0.689922480620155,
+      "f1": 0.6588525601480567,
+      "fold_auc_std": 0.018207068873261636
+    },
+    "random_forest__extended": {
+      "roc_auc": 0.7346296630143755,
+      "pr_auc": 0.7329229289308754,
+      "precision": 0.6771752837326608,
+      "recall": 0.6937984496124031,
+      "f1": 0.6853860880663688,
+      "fold_auc_std": 0.020473101597358472
+    }
+  },
+  "scope": "Road-corridor, zone-level landslide susceptibility for the Sikkim pilot. NOT event-time prediction.",
+  "known_limitations": [
+    "Random Forest's in-sample (train) AUC is notably higher than its spatial-CV AUC (0.866 vs 0.735 for the extended model) -- more overfitting than Logistic Regression shows (0.722 vs 0.714), though its held-out performance is still the best of the four.",
+    "land_cover_class's built_up signal could not be fully separated between genuine anthropogenic slope destabilization and GSI's own documentation priority toward infrastructure-adjacent failures -- see docs/duplicate_and_bias_audit.md.",
+    "Positive samples remain concentrated within ~100m of roads (a field-survey property of the source inventory); the model has not been evaluated on terrain far from roads.",
+    "ROC-AUC 0.67-0.74 range reflects a genuinely modest first-pass model on limited features and imperfect labels -- not state-of-the-art, but not overclaimed either."
+  ]
+}

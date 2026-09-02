@@ -110,11 +110,20 @@ environment workarounds worth knowing about before touching this code: a
 `pyogrio`/`fiona` DLL block (worked around via plain-JSON GeoJSON I/O) and
 a `pysheds`/numpy 2.x incompatibility (one-line `np.in1d = np.isin` shim).
 
-**Two candidate feature sets awaiting training approval** (not trained
-yet): Baseline (elevation, slope, curvature, distance_to_drainage) vs
-Extended (baseline + land_cover_class) — train both, compare on the same
-spatially-defensible holdout, per explicit instruction not to just trust
-the bigger feature set.
+**Model trained and selected** (2026-09-02): 4 experiments (Logistic
+Regression / Random Forest × baseline / extended features), evaluated on a
+5-fold spatially-buffered block CV (2km cells, 200m buffer — see
+`scripts/ml/spatial_cv.py`), never a naive random split. Best: Random
+Forest + extended features, ROC-AUC 0.735 (spatial CV, not the inflated
+naive-split number). Full methodology, diagnostics, and limitations in
+`docs/model_training_report.md`. Artifacts in `data/models/`: fitted
+pipeline (`susceptibility_model.joblib`), `validation_report.json`,
+ROC/PR + feature-importance plots. `PUT /zones/{id}/susceptibility`
+contract verified end-to-end against a real (placeholder) zone — no
+backend changes needed, the model's output already matches the schema.
+**No real Sikkim zone polygons exist yet**, so no real zone predictions
+exist either — `scripts/ml/predict_zone_susceptibility.py` is ready the
+moment Data/GIS lead's boundary does.
 
 **Two-layer separation applies here too**: `rainfall_threshold_case_study.py`
 validates the *existing* rainfall rule engine against 68 dated historical
