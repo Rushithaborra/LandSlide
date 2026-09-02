@@ -17,6 +17,12 @@ services:
         value: https://api.open-meteo.com/v1/forecast
       - key: DATABASE_URL
         sync: false  # set manually in the dashboard -- the Supabase connection string, not committed
+      - key: SUPABASE_URL
+        sync: false  # same Supabase project as DATABASE_URL, e.g. https://xxxx.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false  # Project Settings -> API -> service_role key (not anon/public)
+      - key: SUPABASE_STORAGE_BUCKET
+        value: citizen-reports
       - key: RAINFALL_THRESHOLD__REGION
         sync: false
       - key: RAINFALL_THRESHOLD__EQUATION_TYPE

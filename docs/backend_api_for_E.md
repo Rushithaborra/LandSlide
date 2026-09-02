@@ -70,13 +70,13 @@ curl -X POST https://michael-suit-trial-shaped.trycloudflare.com/reports \
   "description": "Crack on retaining wall",
   "reporter_name": "Test",
   "reporter_phone": "9876543210",
-  "photo_url": "/uploads/b1ad8331-1b61-4f44-8482-987b5063c739.jpg",
+  "photo_url": "https://xxxxxxxxxxxx.supabase.co/storage/v1/object/public/citizen-reports/b1ad8331-1b61-4f44-8482-987b5063c739.jpg",
   "captured_at": "2026-09-01T16:00:00+05:30",
   "submitted_at": "2026-09-01T19:31:11.133343+05:30",
   "verified_status": "unverified"
 }
 ```
-`photo_url` is a relative path — prefix it with the base URL to actually view/display the photo (e.g. `<base-url>/uploads/b1ad8331-....jpg`).
+`photo_url` is now a **full, directly-viewable URL** (Supabase Storage, updated 2026-09-02) — no base-URL prefixing needed, just use it as-is in an `<img src>`.
 
 **Failure — `422`**, structured error, not a generic message. Real examples, tested live:
 ```json

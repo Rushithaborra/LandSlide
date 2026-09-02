@@ -1,6 +1,7 @@
 import pathlib
 import uuid
 
+import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -14,6 +15,10 @@ router = APIRouter(prefix="/reports", tags=["citizen-reports"])
 
 
 def _save_photo(photo: UploadFile) -> str:
+    """Uploads to Supabase Storage (a plain REST call via httpx -- already
+    a dependency, no need for the full supabase-py SDK just for this) and
+    returns the public URL. Not local disk: a deployed host's filesystem
+    (e.g. Render's free tier) is ephemeral and wipes on every restart."""
     if photo.content_type not in settings.allowed_photo_content_types:
         raise HTTPException(
             status_code=422,
@@ -29,12 +34,33 @@ def _save_photo(photo: UploadFile) -> str:
                    f"max is {settings.max_photo_size_bytes} bytes",
         )
 
-    upload_dir = pathlib.Path(settings.upload_dir)
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    if not settings.supabase_url or not settings.supabase_service_role_key:
+        raise HTTPException(
+            status_code=500,
+            detail="photo upload is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing)",
+        )
+
     extension = pathlib.Path(photo.filename or "").suffix or ".jpg"
     filename = f"{uuid.uuid4()}{extension}"
-    (upload_dir / filename).write_bytes(contents)
-    return f"/uploads/{filename}"
+    upload_url = f"{settings.supabase_url}/storage/v1/object/{settings.supabase_storage_bucket}/{filename}"
+
+    response = httpx.post(
+        upload_url,
+        content=contents,
+        headers={
+            "Authorization": f"Bearer {settings.supabase_service_role_key}",
+            "apikey": settings.supabase_service_role_key,
+            "Content-Type": photo.content_type,
+        },
+        timeout=30.0,
+    )
+    if response.status_code not in (200, 201):
+        raise HTTPException(
+            status_code=502,
+            detail=f"Supabase Storage upload failed: {response.status_code} {response.text[:200]}",
+        )
+
+    return f"{settings.supabase_url}/storage/v1/object/public/{settings.supabase_storage_bucket}/{filename}"
 
 
 @router.post("", response_model=CitizenReportOut)

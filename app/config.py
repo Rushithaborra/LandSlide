@@ -31,8 +31,16 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/landslide_ews"
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
 
-    # Citizen report photo upload (app/routers/reports.py)
-    upload_dir: str = "uploads"
+    # Citizen report photo upload (app/routers/reports.py) -- stored in
+    # Supabase Storage, not local disk (a deployed host's filesystem is
+    # ephemeral; Supabase Storage is the same free project already used for
+    # the database, so no extra service to set up). Optional at the Settings
+    # level so importing app.config doesn't require these to be set unless a
+    # photo is actually uploaded -- _save_photo() checks and raises a clear
+    # error at that point instead.
+    supabase_url: str | None = None
+    supabase_service_role_key: str | None = None
+    supabase_storage_bucket: str = "citizen-reports"
     max_photo_size_bytes: int = 10 * 1024 * 1024  # 10MB
     allowed_photo_content_types: list[str] = [
         "image/jpeg", "image/png", "image/heic", "image/heif",
