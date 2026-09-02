@@ -162,9 +162,11 @@ explicitly stopped for review before that step.
 - Reporting lead (E): submits via `POST /reports`, multipart/form-data —
   a `data` field (JSON string matching `CitizenReportIn`'s exact frontend
   field casing via aliases: reportType/severity/coords/placeName/etc.)
-  plus an optional `photo` file, in one request. Backend now hosts the
-  upload itself (saves to `uploads/`, served at `/uploads/<file>`) —
-  matches what E's frontend already sends, reworked 2026-09-01.
+  plus an optional `photo` file, in one request. Matches what E's frontend
+  already sends, reworked 2026-09-01. Photo storage moved to **Supabase
+  Storage** (2026-09-02, see Deployment note below) — `photo_url` in the
+  response is now a full, directly-viewable URL, no base-URL prefixing
+  needed. Full contract: `docs/backend_api_for_E.md`.
 - PM/pitch lead (F): needs the real validation number (deck slide 5 still has
   the placeholder `[AUC / accuracy on held-out points]` — do not invent it)
   and current real-vs-simulated status (deck slide 9) kept accurate
@@ -196,12 +198,31 @@ migration applied for real, `/reports` tested end-to-end (real insert, real
 photo saved to disk, real retrieval), not just import-checked.
 
 `scripts/run_public_dev_server.ps1` starts Postgres + the backend + a
-Cloudflare quick tunnel (`bin/cloudflared.exe`, no account needed) so a
-teammate on another device/network can hit a real public URL — used to
-unblock E (reporting frontend) on 2026-09-01. **The tunnel URL is ephemeral
-and changes on every restart** — see `docs/backend_api_for_E.md` for the
-current URL and full API contract. `scripts/stop_public_dev_server.ps1`
-stops everything.
+Cloudflare quick tunnel (`bin/cloudflared.exe`, no account needed) — used
+to unblock E (reporting frontend) on 2026-09-01 with a temporary URL.
+**Superseded by permanent hosting (2026-09-02, see below)** — kept around
+as a local-dev fallback only, not the URL E should be pointed at anymore.
+`scripts/stop_public_dev_server.ps1` stops everything.
+
+### Deployment — permanent hosting (2026-09-02)
+Moving off this laptop onto **Supabase** (Postgres+PostGIS database, plus
+**Supabase Storage** for citizen-report photos — a deployed host's own
+filesystem is ephemeral, so photos can't live on local disk anymore) +
+**Render** (the FastAPI app itself, via `render.yaml` Blueprint). Both
+free-tier, no credit card, verified via live search this session. Full
+step-by-step (clearly split into "user does this" account/dashboard steps
+vs. "Claude does this" steps): `docs/deployment_guide.md`. Slim
+deploy-only dependency list: `requirements-backend.txt` (verified against
+every `app/**/*.py` import, install+import tested in a fresh venv).
+`app.config.settings` gained `supabase_url` / `supabase_service_role_key`
+/ `supabase_storage_bucket` (all `Optional`, so nothing breaks without
+them set — `_save_photo()` in `app/routers/reports.py` raises a clear 500
+only if a photo is actually uploaded without them configured). The old
+local `/uploads` static mount is removed from `app/main.py`.
+**Not yet live**: waiting on the user to create the Supabase project +
+`citizen-reports` public bucket and a GitHub repo, at which point Claude
+pushes and runs the migration against the real database — see
+`docs/deployment_guide.md` Parts 1-4 for exact status.
 
 `scripts/seed_zone.py` deliberately does not invent pilot-zone coordinates —
 it takes a GeoJSON Polygon file. `config/pilot_zone.example.geojson` is an

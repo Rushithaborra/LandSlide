@@ -2,7 +2,7 @@
 
 Moves the backend + database off this laptop onto free, permanent, publicly-reachable hosting: **Supabase** (Postgres + PostGIS database) + **Render** (the FastAPI app itself). Both confirmed free-tier, no credit card, as of this session (verified via live search, not assumed from memory).
 
-**Important limitation to know before starting**: `POST /reports` currently saves citizen-report photos to local disk (`uploads/`). Render's free tier filesystem is **ephemeral** — anything written to disk is wiped on every restart/redeploy. Photos will work fine during a live session but won't survive a redeploy. Flagging this now rather than let it surprise anyone during a demo. Fix (Supabase Storage, small change, not yet done) is optional follow-up — say if you want it.
+**Photo storage**: `POST /reports` now uploads citizen-report photos to **Supabase Storage** (not local disk — a deployed host's filesystem is ephemeral and would wipe them on every restart). Same Supabase project as the database, so no extra service to set up — just one more bucket. `photo_url` in API responses is now a full, directly-viewable Supabase URL (previously a relative `/uploads/...` path needing the base URL prefixed — that's gone, this is simpler for E's frontend now).
 
 ## Part 1 — Database: Supabase (you do this)
 
@@ -14,8 +14,10 @@ Moves the backend + database off this laptop onto free, permanent, publicly-reac
    postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxxxxxxxx.supabase.co:5432/postgres
    ```
    Replace `[YOUR-PASSWORD]` with the real password from step 2.
+5. Go to **Storage** (left sidebar), click **New bucket**, name it `citizen-reports`, toggle **Public bucket** on (so `photo_url` values are directly viewable, matching how the local version worked)
+6. Go to **Project Settings → API**, copy the **Project URL** (e.g. `https://xxxxxxxxxxxx.supabase.co`) and the **`service_role` secret key** (not the `anon`/`public` one — service_role is needed to write to storage from the backend)
 
-**Give me that connection string when ready** (it's fine to share here — it's not a login credential for an account, it's a database connection string for a project only you control; I'll use it to run our migration and won't send it anywhere else).
+**Give me the connection string, the Project URL, and the service_role key when ready.** These are project-scoped secrets for a project only you control (not a login/account credential), which is why I can use them directly — same category as the database URL. I won't send them anywhere beyond configuring this app.
 
 ## Part 2 — Push this repo to GitHub (you create it, I push)
 
@@ -33,6 +35,8 @@ Moves the backend + database off this laptop onto free, permanent, publicly-reac
 3. Connect the `landslide-ews-backend` repo you just pushed — Render will detect `render.yaml` (already in this repo) and pre-fill the web service config
 4. It'll ask you to fill in the values marked `sync: false` in `render.yaml` — these are the ones I can't safely commit to the repo:
    - `DATABASE_URL` → the Supabase connection string from Part 1
+   - `SUPABASE_URL` → the Project URL from Part 1
+   - `SUPABASE_SERVICE_ROLE_KEY` → the service_role key from Part 1
    - `RAINFALL_THRESHOLD__REGION` → `Sikkim (regional)`
    - `RAINFALL_THRESHOLD__COEFFICIENT` → `43.26`
    - `RAINFALL_THRESHOLD__EXPONENT` → `-0.78`
@@ -58,5 +62,5 @@ Since E's form is static HTML/JS with no server of its own: **Firebase Hosting**
 ## Known limitations of this setup
 
 - Render free tier **spins down after 15 minutes of inactivity** — the next request after that takes ~30-60s to wake up. Fine for a hackathon demo, not for a always-instant production feel. (Upgrading to a paid Render plan removes this — a decision for you, not something I can pay for.)
-- Photo uploads are **not persistent** on Render's free tier (see the note at the top) — flag clearly if this matters before the actual demo.
-- Supabase free tier: 500MB database, more than enough for this project's current size.
+- Supabase free tier: 500MB database + 1GB file storage, more than enough for this project's current size.
+- The `citizen-reports` bucket is **public** (anyone with a photo's URL can view it, matching how the old local `/uploads/` endpoint worked — no auth either way). Fine for a hackathon demo; revisit before any real deployment with actual citizen data.
