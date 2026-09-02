@@ -1,0 +1,39 @@
+# Render Blueprint -- lets Render auto-configure the web service from this
+# file (New > Blueprint in the Render dashboard) instead of filling in every
+# field by hand. Database is NOT defined here -- using Supabase (already
+# has PostGIS support on the free tier) rather than Render's free Postgres,
+# which expires after 30 days. DATABASE_URL and the RAINFALL_THRESHOLD__*
+# values are set as real secrets in the Render dashboard, not here.
+services:
+  - type: web
+    name: landslide-ews-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements-backend.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: OPEN_METEO_BASE_URL
+        value: https://api.open-meteo.com/v1/forecast
+      - key: DATABASE_URL
+        sync: false  # set manually in the dashboard -- the Supabase connection string, not committed
+      - key: RAINFALL_THRESHOLD__REGION
+        sync: false
+      - key: RAINFALL_THRESHOLD__EQUATION_TYPE
+        value: power_law_intensity_duration
+      - key: RAINFALL_THRESHOLD__COEFFICIENT
+        sync: false
+      - key: RAINFALL_THRESHOLD__EXPONENT
+        sync: false
+      - key: RAINFALL_THRESHOLD__DURATION_UNIT
+        value: days
+      - key: RAINFALL_THRESHOLD__INTENSITY_UNIT
+        value: mm/day
+      - key: RAINFALL_THRESHOLD__DURATIONS_DAYS
+        value: "[1,3,5,7,10,15,20]"
+      - key: RAINFALL_THRESHOLD__SOURCE
+        sync: false
+      - key: RAINFALL_THRESHOLD__SOURCE_DOI
+        sync: false
+      - key: RAINFALL_THRESHOLD__VERIFIED_AGAINST_PRIMARY_TEXT
+        value: "false"
