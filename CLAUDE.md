@@ -121,9 +121,21 @@ pipeline (`susceptibility_model.joblib`), `validation_report.json`,
 ROC/PR + feature-importance plots. `PUT /zones/{id}/susceptibility`
 contract verified end-to-end against a real (placeholder) zone — no
 backend changes needed, the model's output already matches the schema.
-**No real Sikkim zone polygons exist yet**, so no real zone predictions
-exist either — `scripts/ml/predict_zone_susceptibility.py` is ready the
-moment Data/GIS lead's boundary does.
+**Operationalized as a real road-corridor GIS layer** (2026-09-02):
+`scripts/generate_zone_predictions.py` builds real prediction units from
+actual OSM road geometry (768 filtered ways -> 3921 ~500m corridor
+segments, 500m buffer reusing the existing negative-sampling constant),
+extracts the same 5 features via zonal statistics (median for continuous,
+dominant class for land cover), and predicts with the existing model --
+no retraining. Output: `outputs/gis/sikkim_road_susceptibility.geojson`
+(+ .csv). GeoPackage was attempted and is genuinely blocked here (pyogrio
+Application Control policy, re-verified) -- documented, not worked around
+with hand-rolled binary format code. `scripts/integrate_zone_predictions.py`
+pushed all 3921 predictions into the live backend via the unmodified
+`PUT /zones/{id}/susceptibility` -- caught and fixed a real bug in the
+process (zone-name collisions from using a shared highway `ref` as the
+match key silently overwrote ~52% of zones; fixed by embedding
+`segment_id`). Full report: `docs/gis_prediction_layer.md`.
 
 **Two-layer separation applies here too**: `rainfall_threshold_case_study.py`
 validates the *existing* rainfall rule engine against 68 dated historical

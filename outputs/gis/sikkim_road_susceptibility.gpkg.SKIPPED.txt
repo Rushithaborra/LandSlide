@@ -1,0 +1,9 @@
+GeoPackage output was NOT generated. pyogrio (geopandas' GDAL-backed write engine) is
+blocked by an Application Control policy on this machine -- verified genuine and persistent
+(re-checked at the start of this task: `import pyogrio` fails with 'An Application Control policy has blocked this file', not a PATH issue -- adding rasterio's
+own bundled GDAL directory to the DLL search path did not fix it).
+
+Use sikkim_road_susceptibility.geojson instead -- same data, same geometry, no GDAL dependency
+(written directly via json+shapely, the same pattern already used by scripts/ml/fetch_osm_roads.py).
+On a machine where pyogrio/fiona import cleanly, `geopandas.GeoDataFrame.to_file(..., driver='GPKG')`
+on the GeoJSON above will produce the GeoPackage with no other code changes needed.

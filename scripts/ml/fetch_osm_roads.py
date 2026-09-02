@@ -16,6 +16,7 @@ import pathlib
 
 import geopandas as gpd
 import httpx
+import pandas as pd
 from shapely.geometry import LineString, mapping, shape
 
 from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig
@@ -32,15 +33,20 @@ def fetch_roads_geojson(config: MlConfig = DEFAULT_CONFIG) -> pathlib.Path:
     response.raise_for_status()
     data = response.json()
 
-    lines = [
-        LineString([(pt["lon"], pt["lat"]) for pt in el["geometry"]])
-        for el in data["elements"]
-        if el["type"] == "way" and "geometry" in el and len(el["geometry"]) >= 2
-    ]
-    feature_collection = {
-        "type": "FeatureCollection",
-        "features": [{"type": "Feature", "properties": {}, "geometry": mapping(line)} for line in lines],
-    }
+    features = []
+    for el in data["elements"]:
+        if el["type"] != "way" or "geometry" not in el or len(el["geometry"]) < 2:
+            continue
+        line = LineString([(pt["lon"], pt["lat"]) for pt in el["geometry"]])
+        tags = el.get("tags", {})
+        properties = {
+            "osm_id": el["id"],
+            "highway": tags.get("highway"),
+            "name": tags.get("name"),
+            "ref": tags.get("ref"),  # e.g. "NH-10" -- often more identifying than name for highways
+        }
+        features.append({"type": "Feature", "properties": properties, "geometry": mapping(line)})
+    feature_collection = {"type": "FeatureCollection", "features": features}
 
     config.paths.roads_geojson.parent.mkdir(parents=True, exist_ok=True)
     with open(config.paths.roads_geojson, "w") as f:
@@ -53,7 +59,8 @@ def load_roads(config: MlConfig = DEFAULT_CONFIG) -> gpd.GeoDataFrame:
     with open(path) as f:
         feature_collection = json.load(f)
     lines = [shape(feat["geometry"]) for feat in feature_collection["features"]]
-    return gpd.GeoDataFrame(geometry=lines, crs="EPSG:4326")
+    props = pd.DataFrame([feat.get("properties", {}) for feat in feature_collection["features"]])
+    return gpd.GeoDataFrame(props, geometry=lines, crs="EPSG:4326")
 
 
 def main(config: MlConfig = DEFAULT_CONFIG) -> None:
