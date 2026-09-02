@@ -1,0 +1,257 @@
+{
+  "crs": "EPSG:4326",
+  "layers": [
+    {
+      "id": "elevation",
+      "title": "Elevation",
+      "file": "elevation.png",
+      "unit": "m",
+      "bounds_leaflet": [
+        [
+          27.06982308601953,
+          88.00358353297764
+        ],
+        [
+          28.138737686878898,
+          88.93902255673073
+        ]
+      ],
+      "legend": {
+        "colormap": "terrain",
+        "min": 651.877,
+        "max": 5987.632
+      },
+      "value_range": [
+        651.877,
+        5987.632
+      ]
+    },
+    {
+      "id": "slope",
+      "title": "Slope",
+      "file": "slope.png",
+      "unit": "deg",
+      "bounds_leaflet": [
+        [
+          27.06982308601953,
+          88.00358353297764
+        ],
+        [
+          28.138737686878898,
+          88.93902255673073
+        ]
+      ],
+      "legend": {
+        "colormap": "YlOrRd",
+        "min": 4.195,
+        "max": 54.047
+      },
+      "value_range": [
+        4.195,
+        54.047
+      ]
+    },
+    {
+      "id": "distance_to_stream",
+      "title": "Distance to Stream",
+      "file": "distance_to_stream.png",
+      "unit": "m",
+      "bounds_leaflet": [
+        [
+          27.06982308601953,
+          88.00358353297764
+        ],
+        [
+          28.138737686878898,
+          88.93902255673073
+        ]
+      ],
+      "legend": {
+        "colormap": "Blues_r",
+        "min": 13.723,
+        "max": 971.992
+      },
+      "value_range": [
+        13.723,
+        971.992
+      ]
+    },
+    {
+      "id": "landcover",
+      "title": "Land Cover",
+      "file": "landcover.png",
+      "unit": "class",
+      "bounds_leaflet": [
+        [
+          27.06995507512775,
+          88.00380655807193
+        ],
+        [
+          28.138621403570667,
+          88.93852538145411
+        ]
+      ],
+      "legend": [
+        {
+          "code": 10,
+          "color": "#006400",
+          "label": "Tree cover"
+        },
+        {
+          "code": 20,
+          "color": "#FFBB22",
+          "label": "Shrubland"
+        },
+        {
+          "code": 30,
+          "color": "#FFFF4C",
+          "label": "Grassland"
+        },
+        {
+          "code": 40,
+          "color": "#F096FF",
+          "label": "Cropland"
+        },
+        {
+          "code": 50,
+          "color": "#FA0000",
+          "label": "Built-up"
+        },
+        {
+          "code": 60,
+          "color": "#B4B4B4",
+          "label": "Bare/sparse vegetation"
+        },
+        {
+          "code": 70,
+          "color": "#F0F0F0",
+          "label": "Snow/ice"
+        },
+        {
+          "code": 80,
+          "color": "#0064C8",
+          "label": "Water bodies"
+        },
+        {
+          "code": 90,
+          "color": "#0096A0",
+          "label": "Wetland"
+        },
+        {
+          "code": 95,
+          "color": "#00CF75",
+          "label": "Mangroves"
+        },
+        {
+          "code": 100,
+          "color": "#FAE6A0",
+          "label": "Moss/lichen"
+        }
+      ],
+      "value_range": null
+    },
+    {
+      "id": "erosion_k_factor",
+      "title": "Soil Erodibility (K-factor)",
+      "file": "erosion_k_factor.png",
+      "unit": "unitless",
+      "bounds_leaflet": [
+        [
+          27.069122596767173,
+          88.00330768971457
+        ],
+        [
+          28.140094947990587,
+          88.9392443966533
+        ]
+      ],
+      "legend": {
+        "colormap": "OrRd",
+        "min": 0.0,
+        "max": 0.139
+      },
+      "value_range": [
+        0.0,
+        0.139
+      ]
+    },
+    {
+      "id": "erosion_soil_loss",
+      "title": "Annual Soil Loss Estimate (RUSLE)",
+      "file": "erosion_soil_loss.png",
+      "unit": "t/ha/yr",
+      "bounds_leaflet": [
+        [
+          27.06982308601953,
+          88.00358353297764
+        ],
+        [
+          28.138737686878898,
+          88.93902255673073
+        ]
+      ],
+      "legend": {
+        "colormap": "OrRd",
+        "min": 0.0,
+        "max": 1344.456
+      },
+      "value_range": [
+        0.0,
+        1344.456
+      ],
+      "caveat": "RUSLE was built for rainfall-driven erosion on soil-covered slopes, not the periglacial/bare-rock terrain above ~4000m (44% of Sikkim). Values in that zone run implausibly high (max 10,339 t/ha/yr at one pixel) and aren't physically meaningful -- caption this or mask above the snowline rather than presenting the raw map as-is. See data/PROVENANCE.md, Round 4."
+    },
+    {
+      "id": "population",
+      "title": "Population (2020 est., 1km)",
+      "file": "population.png",
+      "unit": "people/km\u00b2",
+      "bounds_leaflet": [
+        [
+          27.074583418028162,
+          88.00708298887596
+        ],
+        [
+          28.132916747128164,
+          88.92374965187597
+        ]
+      ],
+      "legend": {
+        "colormap": "viridis",
+        "min": 0.322,
+        "max": 628.931
+      },
+      "value_range": [
+        0.322,
+        628.931
+      ]
+    }
+  ],
+  "vector_layers": [
+    {
+      "id": "boundary",
+      "file": "../raw/sikkim_boundary.geojson",
+      "type": "polygon"
+    },
+    {
+      "id": "roads",
+      "file": "../raw/sikkim_roads.geojson",
+      "type": "line"
+    },
+    {
+      "id": "villages",
+      "file": "../raw/sikkim_villages.geojson",
+      "type": "point"
+    },
+    {
+      "id": "health_edu",
+      "file": "../raw/sikkim_health_edu.geojson",
+      "type": "point"
+    },
+    {
+      "id": "landslide_points",
+      "file": "../raw/gsi_sikkim_landslides_raw.geojson",
+      "type": "point"
+    }
+  ]
+}
