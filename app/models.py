@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 from geoalchemy2 import Geometry
+from geoalchemy2.shape import to_shape
 from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -31,6 +32,17 @@ class Zone(Base):
 
     rainfall_readings: Mapped[list["RainfallReading"]] = relationship(back_populates="zone")
     alerts: Mapped[list["Alert"]] = relationship(back_populates="zone")
+
+    # Computed, not stored: the dashboard's map needs a single point per zone
+    # to place a pin, but the stored geometry is a full polygon. Centroid is
+    # good enough for a pin location -- no new column needed.
+    @property
+    def centroid_lat(self) -> float:
+        return to_shape(self.geometry).centroid.y
+
+    @property
+    def centroid_lng(self) -> float:
+        return to_shape(self.geometry).centroid.x
 
 
 class RainfallReading(Base):

@@ -14,6 +14,9 @@ class ZoneOut(BaseModel):
     risk_tier: str | None
     model_version: str | None
     last_updated: datetime
+    # Centroid of the stored polygon -- for map pins, not the full geometry.
+    centroid_lat: float
+    centroid_lng: float
 
 
 class SusceptibilityUpdate(BaseModel):

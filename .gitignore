@@ -28,3 +28,6 @@ data/raw/landcover/
 data/raw/population/
 data/raw/osm_extras/buildings_centroids.geojson
 data/processed/dem_sikkim_utm45n.tif
+dashboard-app/node_modules/
+dashboard-app/dist/
+dashboard-app/.env
