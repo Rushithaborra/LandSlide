@@ -6,6 +6,11 @@ __pycache__/
 .pytest_cache/
 uploads/
 
+# Frontend (citizen-report-app/) build artifacts and deps
+citizen-report-app/node_modules/
+citizen-report-app/dist/
+citizen-report-app/.env
+
 # Local Postgres+PostGIS install and cloudflared binary for rehearsal
 # tunneling (scripts/run_public_dev_server.ps1) -- machine-specific,
 # 1.3GB+, not meant to be committed. Re-download per that script's
