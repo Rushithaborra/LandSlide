@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ZoneOut(BaseModel):
@@ -63,7 +63,11 @@ class CitizenReportIn(BaseModel):
 
     report_type: Literal["crack", "movement", "road", "other"] = Field(alias="reportType")
     severity: Literal["low", "moderate", "high", "critical"]
-    coords: Coords
+    # Optional: GPS is unreliable in the mountainous, poor-signal terrain this
+    # app targets, so the frontend lets a reporter submit a place name alone
+    # when GPS fails. See the model_validator below -- at least one of the
+    # two is still required.
+    coords: Coords | None = None
     place_name: str | None = Field(default=None, alias="placeName")
     description: str = Field(min_length=5)
     reporter_name: str | None = Field(default=None, alias="reporterName")
@@ -74,6 +78,12 @@ class CitizenReportIn(BaseModel):
     client_report_id: uuid.UUID | None = None
     zone_id: uuid.UUID | None = None
 
+    @model_validator(mode="after")
+    def require_coords_or_place_name(self) -> "CitizenReportIn":
+        if self.coords is None and not (self.place_name and self.place_name.strip()):
+            raise ValueError("either coords or placeName is required")
+        return self
+
 
 class CitizenReportOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -83,8 +93,8 @@ class CitizenReportOut(BaseModel):
     zone_id: uuid.UUID | None
     report_type: str
     severity: str
-    geo_lat: float
-    geo_lng: float
+    geo_lat: float | None
+    geo_lng: float | None
     geo_accuracy_m: float | None
     place_name: str | None
     description: str
