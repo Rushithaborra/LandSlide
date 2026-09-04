@@ -1,0 +1,32 @@
+{
+  "model_type": "RandomForestClassifier",
+  "trained_on_rows": 1531,
+  "positive_rows": 765,
+  "negative_rows": 766,
+  "numeric_features": [
+    "elevation",
+    "slope_deg",
+    "aspect_deg",
+    "drainage_density",
+    "mean_annual_rainfall_mm",
+    "curvature",
+    "distance_to_drainage",
+    "terrain_ruggedness"
+  ],
+  "categorical_features": [
+    "landuse"
+  ],
+  "excluded_features": {
+    "lithology": "GSI Bhukosh + NGDR both unreachable -- column is 100% empty, dropped rather than fabricated"
+  },
+  "held_out_validation": {
+    "note": "from notebooks/train_model.py's 75/25 split, NOT this file's full-data fit",
+    "logreg_auc": 0.774,
+    "random_forest_auc": 0.782,
+    "random_forest_recall_landslide_class": 0.82,
+    "logreg_recall_landslide_class": 0.7,
+    "chosen_model": "random_forest",
+    "why": "higher recall on the landslide class matters more than a small AUC edge for an early-warning use case -- missing a real danger zone is costlier than a false alarm"
+  },
+  "negative_sampling_method": "road-distance-matched (Person A), not naive buffer-only -- see data/build_negative_features.py"
+}
