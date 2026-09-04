@@ -2,17 +2,13 @@
 
 For E (citizen-reporting frontend). Generated 2026-09-01. Backend: FastAPI + PostgreSQL/PostGIS, verified live end-to-end (real DB, real photo upload, real public URL) before this doc was written.
 
-## Base URL (rehearsal — read this first)
+## Base URL (2026-09-04 update)
 
-```
-https://michael-suit-trial-shaped.trycloudflare.com
-```
+The old Cloudflare tunnel URL above is dead — do not use it. The backend is moving to permanent hosting (Supabase + Render); the database side is verified and live, Render deployment is the last step. Real permanent URL (something like `https://landslide-ews-backend.onrender.com`) lands here as soon as that's done.
 
-**This URL is temporary.** It's a free Cloudflare "quick tunnel" pointed at Sushanth's machine — it only works while his backend is running, and **a new URL is generated every time the tunnel restarts.** If this URL stops responding, ask Sushanth to re-run `scripts\run_public_dev_server.ps1` and send you the new one (printed at the end of that script, also in `bin\tunnel.log`).
-
-Health check to confirm connectivity right now:
+Health check once you have it:
 ```
-GET https://michael-suit-trial-shaped.trycloudflare.com/health
+GET <base-url>/health
 -> {"status": "ok"}
 ```
 
