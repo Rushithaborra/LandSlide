@@ -29,7 +29,7 @@ def fetch_daily_rainfall(lat: float, lng: float, past_days: int = 20, forecast_d
             "forecast_days": forecast_days,
             "timezone": "UTC",
         },
-        timeout=10.0,
+        timeout=25.0,
     )
     response.raise_for_status()
     data = response.json()["daily"]
