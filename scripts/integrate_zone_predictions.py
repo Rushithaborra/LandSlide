@@ -8,11 +8,22 @@ round-trip via GET.
 
 Does not create a new backend architecture, does not touch the alert engine
 or dashboard.
+
+Performance note (added when scaling to the full 3921-segment run): the
+original version did one commit per zone and one sequential HTTP PUT per
+zone -- fine for a 5-row smoke test, but each round trip to the remote
+Supabase database/backend costs ~0.5-2.5s, so 3921 of them serially would
+take hours. Zone creation now bulk-inserts in chunks (UUIDs generated
+client-side so we know each zone's id without a round trip back); the PUT
+phase now fires requests concurrently (bounded by a semaphore) instead of
+one at a time. Same operations, same endpoint, just not one-at-a-time.
 """
+import asyncio
 import json
 import pathlib
 import sys
 import time
+import uuid
 
 import httpx
 
@@ -42,45 +53,80 @@ def zone_name_for(props: dict) -> str:
     return f"{label} ({props['segment_id']})"
 
 
-def create_or_get_zones(features: list[dict], limit: int | None = None) -> list[tuple[str, str]]:
+def create_or_get_zones(features: list[dict], limit: int | None = None, chunk_size: int = 300) -> list[tuple]:
     """Creates a Zone row for each corridor not already present (matched by
     name, since segment_id isn't stored on Zone -- the schema wasn't
-    changed for this task). Returns [(segment_id, zone_id), ...]."""
+    changed for this task). Returns [(segment_id, zone_id, score, tier, version), ...].
+
+    New zones are bulk-inserted in chunks (id generated client-side, so no
+    round trip is needed to learn each new row's id) instead of one INSERT
+    + commit per zone -- the only thing that changed is how many network
+    round trips this takes, not what ends up in the database.
+    """
     db = SessionLocal()
     mapping = []
     try:
-        existing_names = {z.name for z in db.query(Zone.name).all()}
-        for feat in features[:limit] if limit else features:
+        existing = {name: str(zid) for name, zid in db.query(Zone.name, Zone.id).all()}
+        selected = features[:limit] if limit else features
+
+        to_insert = []
+        for feat in selected:
             props = feat["properties"]
             name = zone_name_for(props)
-            polygon = shape(feat["geometry"])
+            if name not in existing:
+                new_id = str(uuid.uuid4())
+                polygon = shape(feat["geometry"])
+                to_insert.append({"id": new_id, "name": name, "geometry": from_shape(polygon, srid=4326)})
+                existing[name] = new_id
 
-            zone = db.query(Zone).filter(Zone.name == name).first()
-            if zone is None:
-                zone = Zone(name=name, geometry=from_shape(polygon, srid=4326))
-                db.add(zone)
-                db.commit()
-                db.refresh(zone)
-            mapping.append((props["segment_id"], str(zone.id), props["susceptibility_score"],
+        for i in range(0, len(to_insert), chunk_size):
+            chunk = to_insert[i:i + chunk_size]
+            db.execute(Zone.__table__.insert(), chunk)
+            db.commit()
+            print(f"  inserted zones {i + len(chunk)}/{len(to_insert)}")
+
+        for feat in selected:
+            props = feat["properties"]
+            name = zone_name_for(props)
+            mapping.append((props["segment_id"], existing[name], props["susceptibility_score"],
                              props["risk_tier"], props["model_version"]))
     finally:
         db.close()
     return mapping
 
 
-def push_susceptibility(mapping: list[tuple], base_url: str = BACKEND_BASE_URL) -> dict:
+async def push_susceptibility_async(mapping: list[tuple], base_url: str = BACKEND_BASE_URL, concurrency: int = 15) -> dict:
     ok, failed = 0, []
-    with httpx.Client(timeout=10.0) as client:
-        for segment_id, zone_id, score, tier, version in mapping:
-            resp = client.put(
-                f"{base_url}/zones/{zone_id}/susceptibility",
-                json={"susceptibility_score": score, "risk_tier": tier, "model_version": version},
-            )
-            if resp.status_code == 200:
-                ok += 1
-            else:
-                failed.append((segment_id, zone_id, resp.status_code, resp.text[:200]))
+    sem = asyncio.Semaphore(concurrency)
+
+    async def one(client, segment_id, zone_id, score, tier, version):
+        nonlocal ok
+        async with sem:
+            try:
+                resp = await client.put(
+                    f"{base_url}/zones/{zone_id}/susceptibility",
+                    json={"susceptibility_score": score, "risk_tier": tier, "model_version": version},
+                )
+                if resp.status_code == 200:
+                    ok += 1
+                else:
+                    failed.append((segment_id, zone_id, resp.status_code, resp.text[:200]))
+            except Exception as e:
+                failed.append((segment_id, zone_id, "exception", str(e)[:200]))
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        tasks = [one(client, *m) for m in mapping]
+        done = 0
+        for coro in asyncio.as_completed(tasks):
+            await coro
+            done += 1
+            if done % 200 == 0:
+                print(f"  susceptibility PUT: {done}/{len(mapping)}")
     return {"ok": ok, "failed": failed}
+
+
+def push_susceptibility(mapping: list[tuple], base_url: str = BACKEND_BASE_URL) -> dict:
+    return asyncio.run(push_susceptibility_async(mapping, base_url))
 
 
 def verify_readback(zone_id: str, base_url: str = BACKEND_BASE_URL) -> dict:
