@@ -96,13 +96,36 @@ async function fetchAndShapeAlerts() {
     });
 }
 
+// Not every zone has had live rainfall fetched yet (fetching is an explicit,
+// real Open-Meteo call per zone -- not something to do for all 3921 at
+// once). Picking a fixed zone (e.g. always zones[0]) risks landing on one
+// with no data purely by chance. This tries the highest-susceptibility
+// zones first (a real, defensible priority -- watch the most dangerous
+// corridors first) and returns the first one that actually has readings.
+async function findZoneWithRainfall(zones, tryCount = 15) {
+  const candidates = zones
+    .slice()
+    .sort((a, b) => (b.susceptibility_score ?? 0) - (a.susceptibility_score ?? 0))
+    .slice(0, tryCount);
+  for (const zone of candidates) {
+    try {
+      const readings = await getJSON(`/rainfall/${zone.id}`);
+      if (readings.length > 0) return { zone, readings };
+    } catch {
+      // try the next candidate
+    }
+  }
+  return null;
+}
+
 /* ----------------------------------------------------------------------- *
  * LINK SPOT A — Overview summary cards.
  * No single backend endpoint returns this -- assembled client-side from
  * /zones and /alerts, plus a live /health check for system status.
  * Villages-affected and a 24h rainfall total aren't tracked concepts in the
  * current schema, so those two are honestly approximated (zones with an
- * active alert; latest reading from the first zone) rather than invented.
+ * active alert; latest reading from the highest-risk zone with data)
+ * rather than invented.
  * ----------------------------------------------------------------------- */
 export async function getSummaryStats() {
   const [zones, alerts] = await Promise.all([getJSON("/zones"), getJSON("/alerts")]);
@@ -111,16 +134,12 @@ export async function getSummaryStats() {
   const affectedZoneIds = new Set(activeAlerts.map((a) => a.zone_id));
 
   let rainfall24hLabel = "No data yet";
-  if (zones.length > 0) {
-    try {
-      const readings = await getJSON(`/rainfall/${zones[0].id}`);
-      if (readings.length > 0) {
-        const latest = readings[readings.length - 1];
-        rainfall24hLabel = `${latest.intensity_mm.toFixed(0)} mm`;
-      }
-    } catch {
-      // No rainfall fetched for this zone yet -- keep the "No data yet" label.
-    }
+  let rainfallZoneName = "No zone yet";
+  const found = await findZoneWithRainfall(zones);
+  if (found) {
+    const latest = found.readings[found.readings.length - 1];
+    rainfall24hLabel = `${latest.intensity_mm.toFixed(0)} mm`;
+    rainfallZoneName = found.zone.name;
   }
 
   let systemHealthy = false;
@@ -135,7 +154,7 @@ export async function getSummaryStats() {
     highRiskZones: { value: highRisk, deltaLabel: `${zones.length} zone(s) total`, trend: "flat" },
     activeAlerts: { value: activeAlerts.length, deltaLabel: `${affectedZoneIds.size} zone(s) affected`, trend: activeAlerts.length > 0 ? "up" : "flat" },
     affectedVillages: { value: affectedZoneIds.size, deltaLabel: "Zones with an active alert", trend: "flat" },
-    rainfall24h: { value: rainfall24hLabel, deltaLabel: zones.length > 0 ? zones[0].name : "No zone yet", trend: "flat" },
+    rainfall24h: { value: rainfall24hLabel, deltaLabel: rainfallZoneName, trend: "flat" },
     systemHealth: { value: systemHealthy ? "100%" : "Down", deltaLabel: systemHealthy ? "Backend responding" : "Backend unreachable", trend: systemHealthy ? "good" : "down" },
   };
 }
@@ -158,8 +177,9 @@ export async function getRecentAlerts() {
 export async function getRainfallTrend() {
   const zones = await getJSON("/zones");
   if (zones.length === 0) return [];
-  const readings = await getJSON(`/rainfall/${zones[0].id}`);
-  return readings.slice(-7).map((r) => ({
+  const found = await findZoneWithRainfall(zones);
+  if (!found) return [];
+  return found.readings.slice(-7).map((r) => ({
     day: new Date(r.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
     mm: Math.round(r.intensity_mm),
   }));
