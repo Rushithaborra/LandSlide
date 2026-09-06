@@ -31,3 +31,8 @@ data/processed/dem_sikkim_utm45n.tif
 dashboard-app/node_modules/
 dashboard-app/dist/
 dashboard-app/.env
+
+# Local scratch copy of Person B's model + rasters, pulled from the
+# ml-integration branch -- large binaries, reproducible per
+# scripts/ml_personB_integration/README.md, not meant for git.
+ml_personB/

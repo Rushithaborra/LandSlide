@@ -147,6 +147,31 @@ directly (not a duplicate copy) but its output never joins
 sourced), and no model has been trained — dataset construction was
 explicitly stopped for review before that step.
 
+## Person B's real model — connected 2026-09-06 (supersedes most of the above for 3411 zones)
+This directory's `scripts/ml/` pipeline above was groundwork built before
+the actual ML lead (Person B) had started — a stand-in, not their real
+deliverable. Person B's real, separate pipeline was discovered on the
+`ml-integration` branch of this same repo: real DEM, real GSI inventory
+(765 points), a RUSLE erosion model, real terrain rasters, trained into a
+Random Forest (held-out AUC 0.774-0.782, plain 75/25 split — not the
+spatially-buffered CV this directory's own model used, worth noting if
+compared side by side). Their own `ml/api/README.md` said explicitly
+"this is what Person C's backend calls" — that connection had never
+actually been made. Now done: `scripts/ml_personB_integration/` (see its
+own README) runs B's real model against every zone's centroid and pushes
+results through the existing, unmodified `PUT /zones/{id}/susceptibility`
+endpoint. **3411 of 3921 zones now carry B's real model** (`model_version:
+personB-random_forest-v1-20260902`); the remaining 510 (mostly one road,
+NH717A, extending past B's raster coverage) stayed on this directory's own
+groundwork model (`random_forest-extended-v1-20260902`) rather than being
+guessed. Both model versions are honestly distinguishable per-zone via
+`GET /zones`.
+
+Two other collaborator branches exist on this repo (`frontend-integration`,
+and the merged `main`) — not yet inspected. Worth checking before the
+internal round in case there's more real work sitting unconnected the same
+way B's model was.
+
 ## Testing
 - `tests/test_alert_engine.py` — 12 passing unit tests against the pure
   decision core (`intensity_duration_threshold`, `evaluate_daily_rainfall`),
