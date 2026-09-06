@@ -74,26 +74,23 @@ function timeAgo(isoString) {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
-// The real alerts table has no "title"/"location"/"severity" fields -- those
-// come from the zone it's linked to, plus the threshold_crossed text the
-// backend already writes a human-readable description into.
+// AlertOut now carries zone_name/risk_tier directly (the backend joins them
+// server-side), so this no longer needs a separate full /zones fetch just to
+// label each alert -- that used to mean pulling all 3921 zones for a handful
+// of alerts.
 async function fetchAndShapeAlerts() {
-  const [alerts, zones] = await Promise.all([getJSON("/alerts"), getJSON("/zones")]);
-  const zoneById = Object.fromEntries(zones.map((z) => [z.id, z]));
+  const alerts = await getJSON("/alerts");
   return alerts
     .slice()
     .sort((a, b) => new Date(b.triggered_at) - new Date(a.triggered_at))
-    .map((a) => {
-      const zone = zoneById[a.zone_id];
-      return {
-        id: a.id,
-        title: a.threshold_crossed,
-        location: zone?.name || "Unknown zone",
-        severity: capitalizeTier(zone?.risk_tier),
-        timeAgo: timeAgo(a.triggered_at),
-        status: a.status,
-      };
-    });
+    .map((a) => ({
+      id: a.id,
+      title: a.threshold_crossed,
+      location: a.zone_name || "Unknown zone",
+      severity: capitalizeTier(a.risk_tier),
+      timeAgo: timeAgo(a.triggered_at),
+      status: a.status,
+    }));
 }
 
 // Not every zone has had live rainfall fetched yet (fetching is an explicit,

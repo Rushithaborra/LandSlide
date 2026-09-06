@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models import Alert
@@ -12,7 +12,9 @@ router = APIRouter(prefix="/alerts", tags=["alerts"])
 
 @router.get("", response_model=list[AlertOut])
 def list_alerts(status: str | None = None, db: Session = Depends(get_db)):
-    query = db.query(Alert)
+    # joinedload avoids an N+1 query -- AlertOut reads zone_name/risk_tier
+    # through the zone relationship for every row.
+    query = db.query(Alert).options(joinedload(Alert.zone))
     if status:
         query = query.filter(Alert.status == status)
     return query.order_by(Alert.triggered_at.desc()).all()

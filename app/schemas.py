@@ -44,6 +44,8 @@ class AlertOut(BaseModel):
 
     id: uuid.UUID
     zone_id: uuid.UUID
+    zone_name: str
+    risk_tier: str | None
     triggered_at: datetime
     threshold_crossed: str
     status: str
