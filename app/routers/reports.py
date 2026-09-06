@@ -112,3 +112,18 @@ def submit_report(
 @router.get("", response_model=list[CitizenReportOut])
 def list_reports(db: Session = Depends(get_db)):
     return db.query(CitizenReport).order_by(CitizenReport.submitted_at.desc()).all()
+
+
+@router.post("/{report_id}/verify", response_model=CitizenReportOut)
+def verify_report(report_id: uuid.UUID, db: Session = Depends(get_db)):
+    """An officer confirming a citizen report is genuine, from the dashboard's
+    report detail view. No auth yet (matches the rest of this API) -- so
+    "who verified it" isn't recorded, only that it was. Does not un-verify or
+    reject; that's a separate future action, not this endpoint's job."""
+    report = db.get(CitizenReport, report_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    report.verified_status = "verified"
+    db.commit()
+    db.refresh(report)
+    return report
