@@ -77,6 +77,18 @@ class Alert(Base):
 
     zone: Mapped[Zone] = relationship(back_populates="alerts")
 
+    # Convenience read-through so AlertOut can expose these without the API
+    # consumer having to separately fetch /zones and join by zone_id -- an
+    # alert should say which zone and how landslide-susceptible it is on its
+    # own, not just the rainfall number that triggered it.
+    @property
+    def zone_name(self) -> str:
+        return self.zone.name
+
+    @property
+    def risk_tier(self) -> str | None:
+        return self.zone.risk_tier
+
 
 class CitizenReport(Base):
     __tablename__ = "citizen_reports"

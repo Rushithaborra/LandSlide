@@ -127,8 +127,9 @@ def check_and_trigger(db: Session, zone_id) -> Alert | None:
     alert = Alert(
         zone_id=zone_id,
         threshold_crossed=(
-            f"{crossing.duration_days}d mean {crossing.observed_mean_intensity_mm_per_day:.1f}mm/day"
-            f" >= {crossing.risk_tier} threshold {crossing.threshold_mm_per_day:.1f}mm/day"
+            f"{crossing.risk_tier.capitalize()} landslide-risk zone — {crossing.duration_days}d rainfall averaged"
+            f" {crossing.observed_mean_intensity_mm_per_day:.1f}mm/day, exceeding the"
+            f" {crossing.threshold_mm_per_day:.1f}mm/day danger threshold for this susceptibility level"
         ),
         status="active",
         delivery_method="log_only",
