@@ -21,6 +21,10 @@
  * ============================================================================
  */
 export default {
+  // "class" strategy: dark mode turns on when <html> carries class="dark".
+  // That class is added/removed by src/context/ThemeContext.jsx.
+  // Light mode = every existing class, completely untouched.
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
@@ -31,6 +35,14 @@ export default {
           900: "#26332e",
           800: "#33433c",
           700: "#45584f",
+        },
+        // Dark-mode surfaces ONLY. Nothing in light mode uses these, so the
+        // light theme is byte-for-byte the same as before.
+        night: {
+          950: "#141a17", // page background
+          900: "#1c2420", // cards, top bar
+          800: "#26302b", // hover / raised surfaces
+          700: "#35413a", // borders
         },
         // Warm neutral scale — backgrounds, cards, borders, secondary text
         paper: {
@@ -60,6 +72,10 @@ export default {
           highSoft: "#f8ebe6",
           moderateSoft: "#faf0dd",
           lowSoft: "#ecf2e8",
+          // Lighter versions of the same pigments, for text on dark surfaces
+          highOn: "#e39177",
+          moderateOn: "#e8b862",
+          lowOn: "#9cc78e",
         },
       },
       fontFamily: {

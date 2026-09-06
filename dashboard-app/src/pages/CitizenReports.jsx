@@ -1,98 +1,113 @@
 import { useEffect, useState } from "react";
-import { Camera } from "lucide-react";
+import { Camera, ChevronRight } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
-import { getCitizenReports, submitCitizenReport } from "../services/api";
+import CitizenReportModal from "../components/CitizenReportModal";
+import { getCitizenReports } from "../services/api";
 
 /**
  * LINK SPOT F (Client Delivery: Citizen Reporting Form / PWA).
- * Owner: mobile/PWA team. The form below currently calls the mock
- * `submitCitizenReport` in src/services/api.js — swap that for a real
- * POST with photo upload + offline sync once the PWA backend is ready.
+ * Owner: mobile/PWA team.
+ *
+ * DRAFT 3 CHANGES:
+ *  - the "Submit a report" form was removed (citizens submit from the PWA,
+ *    not from the admin dashboard), so the submissions list is now centred
+ *    and fills the page instead of leaving an empty column.
+ *  - clicking a submission opens CitizenReportModal with the full detail and
+ *    a "Verify report" button. Verifying updates the badge in THIS list.
  */
 export default function CitizenReports() {
   const [reports, setReports] = useState([]);
-  const [note, setNote] = useState("");
-  const [location, setLocation] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     getCitizenReports().then(setReports);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!note || !location) return;
-    setSubmitting(true);
-    await submitCitizenReport({ location, note });
-    setReports((prev) => [
-      { id: `CR-${Math.floor(Math.random() * 900)}`, reporter: "You", location, note, status: "Pending verification", photoPlaceholder: true, submittedAt: "Just now" },
-      ...prev,
-    ]);
-    setNote("");
-    setLocation("");
-    setSubmitting(false);
-  };
+  // Flip one report to "Verified" in the list behind the modal.
+  const handleVerified = (id) =>
+    setReports((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: "Verified" } : r))
+    );
+
+  const selected = reports.find((r) => r.id === selectedId) || null;
 
   return (
-    <DashboardLayout title="Citizen Reports" subtitle="Ground reports submitted by residents">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-paper-200 p-4 space-y-3 h-fit">
-          <h2 className="font-serif font-semibold text-ink-900 text-[15px]">Submit a report</h2>
-          <input
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Location (village, district)"
-            className="w-full rounded-lg border border-paper-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600/30"
-          />
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="What did you observe?"
-            rows={3}
-            className="w-full rounded-lg border border-paper-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600/30"
-          />
-          <button
-            type="button"
-            className="w-full flex items-center justify-center gap-2 rounded-lg border border-dashed border-paper-300 text-paper-500 text-sm py-2"
-          >
-            <Camera size={16} /> Attach photo (mock)
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-ink-900 text-white text-sm font-medium rounded-lg py-2 hover:bg-ink-800 disabled:opacity-50"
-          >
-            {submitting ? "Submitting…" : "Submit report"}
-          </button>
-        </form>
+    <DashboardLayout
+      title="Citizen Reports"
+      subtitle="Ground reports submitted by residents"
+    >
+      {/* Centred column — takes the space the submit form used to occupy */}
+      <div className="mx-auto w-full max-w-4xl">
+        <div className="rounded-xl border border-paper-200 bg-white p-5 dark:border-night-700 dark:bg-night-900">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">
+              Recent submissions
+            </h2>
+            <span className="text-xs text-paper-500">
+              {reports.length} report{reports.length === 1 ? "" : "s"} · click any
+              report for full details
+            </span>
+          </div>
 
-        <div className="lg:col-span-2 bg-white rounded-xl border border-paper-200 p-4">
-          <h2 className="font-serif font-semibold text-ink-900 text-[15px] mb-3">Recent submissions</h2>
-          <div className="space-y-3">
+          <div className="divide-y divide-paper-200 dark:divide-night-700">
             {reports.map((r) => (
-              <div key={r.id} className="flex gap-3 border-b border-paper-200 pb-3 last:border-0">
-                <div className="w-12 h-12 rounded-lg bg-paper-100 flex items-center justify-center shrink-0 text-paper-400">
-                  <Camera size={18} />
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setSelectedId(r.id)}
+                aria-label={`Open full details for report ${r.id}`}
+                className="flex w-full items-start gap-4 py-4 text-left first:pt-0 last:pb-0 hover:bg-paper-50 dark:hover:bg-night-800"
+              >
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-paper-100 text-paper-400 dark:bg-night-800">
+                  {r.photoUrl ? (
+                    <img
+                      src={r.photoUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Camera size={18} />
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
+
+                <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-ink-800">{r.location}</p>
-                    <span className="text-[11px] text-paper-500 whitespace-nowrap">{r.submittedAt}</span>
+                    <p className="text-sm font-medium text-ink-800 dark:text-paper-200">
+                      {r.location}
+                    </p>
+                    <span className="whitespace-nowrap text-[11px] text-paper-500">
+                      {r.submittedAt}
+                    </span>
                   </div>
-                  <p className="text-xs text-paper-600 mt-0.5">{r.note}</p>
+                  <p className="mt-0.5 text-xs text-paper-600 dark:text-paper-400">
+                    {r.note}
+                  </p>
                   <span
-                    className={`inline-block mt-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                      r.status === "Verified" ? "bg-risk-lowSoft text-risk-low" : "bg-risk-moderateSoft text-risk-moderate"
+                    className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                      r.status === "Verified"
+                        ? "bg-risk-lowSoft text-risk-low dark:bg-risk-low/20 dark:text-risk-lowOn"
+                        : "bg-risk-moderateSoft text-risk-moderate dark:bg-risk-moderate/20 dark:text-risk-moderateOn"
                     }`}
                   >
                     {r.status}
                   </span>
                 </div>
-              </div>
+
+                <ChevronRight
+                  size={16}
+                  className="mt-1 shrink-0 text-paper-400"
+                />
+              </button>
             ))}
           </div>
         </div>
       </div>
+
+      <CitizenReportModal
+        report={selected}
+        onClose={() => setSelectedId(null)}
+        onVerified={handleVerified}
+      />
     </DashboardLayout>
   );
 }

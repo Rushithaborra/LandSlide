@@ -1,5 +1,6 @@
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { useTheme } from "../context/ThemeContext";
 
 /**
  * RiskMap
@@ -22,18 +23,27 @@ const levelColor = {
 };
 
 export default function RiskMap({ center, zones, height = 420 }) {
+  // Light theme keeps the original free OpenStreetMap tiles. Dark theme uses
+  // CARTO's free "dark_all" basemap so the map is not a glaring white block
+  // on a dark page. Neither provider needs an API key.
+  const { theme } = useTheme();
+  const dark = theme === "dark";
+  const tileUrl = dark
+    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const tileAttribution = dark
+    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
   return (
-    <div style={{ height }} className="rounded-xl overflow-hidden border border-paper-200">
+    <div style={{ height }} className="rounded-xl overflow-hidden border border-paper-200 dark:border-night-700">
       <MapContainer
         center={[center.lat, center.lng]}
         zoom={9}
         scrollWheelZoom={false}
         style={{ height: "100%", width: "100%" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <TileLayer key={theme} attribution={tileAttribution} url={tileUrl} />
         {zones.map((zone) => (
           <CircleMarker
             key={zone.id}

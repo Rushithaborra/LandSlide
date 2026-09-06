@@ -28,9 +28,9 @@ import { Megaphone, Pause, Play } from "lucide-react";
  */
 
 const severityTone = {
-  High: "text-risk-high",
-  Moderate: "text-risk-moderate",
-  Low: "text-risk-low",
+  High: "text-risk-high dark:text-risk-highOn",
+  Moderate: "text-risk-moderate dark:text-risk-moderateOn",
+  Low: "text-risk-low dark:text-risk-lowOn",
 };
 
 function BulletinRun({ bulletins, ariaHidden }) {
@@ -41,16 +41,16 @@ function BulletinRun({ bulletins, ariaHidden }) {
     >
       {bulletins.map((b, i) => (
         <span key={`${b.id}-${i}`} className="flex items-center whitespace-nowrap">
-          <span className="px-6 text-[13px] italic leading-none text-ink-900">
+          <span className="px-6 text-[13px] italic leading-none text-ink-900 dark:text-paper-100">
             <span className={`mr-1.5 font-semibold not-italic ${severityTone[b.severity] || "text-ink-800"}`}>
               ({b.severity} risk)
             </span>
             {b.text}
             {b.issuedAt && (
-              <span className="ml-2 not-italic text-paper-600">— {b.issuedAt}</span>
+              <span className="ml-2 not-italic text-paper-600 dark:text-paper-400">— {b.issuedAt}</span>
             )}
           </span>
-          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-paper-300" />
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-paper-300 dark:bg-night-700" />
         </span>
       ))}
     </div>
@@ -70,7 +70,7 @@ export default function AlertTicker({ bulletins = [] }) {
   if (!bulletins.length) return null;
 
   return (
-    <div className="flex items-stretch border-b border-paper-200 bg-risk-moderateSoft">
+    <div className="flex items-stretch border-b border-paper-200 dark:border-night-700 bg-risk-moderateSoft dark:bg-[#3a3119]">
       {/* Fixed label on the left, like IMD's red "Warnings" block */}
       <div className="flex shrink-0 items-center gap-2 bg-risk-high px-4 py-2 text-white">
         <Megaphone size={14} strokeWidth={2.4} />
@@ -95,14 +95,14 @@ export default function AlertTicker({ bulletins = [] }) {
         </div>
 
         {/* Soft fade at the right edge so text doesn't get chopped off hard */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-risk-moderateSoft to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-risk-moderateSoft dark:from-[#383018] to-transparent" />
       </div>
 
       <button
         type="button"
         onClick={() => setPaused((p) => !p)}
         aria-label={paused ? "Resume scrolling warnings" : "Pause scrolling warnings"}
-        className="flex shrink-0 items-center gap-1.5 border-l border-paper-300/70 px-3 text-[11px] font-medium text-ink-800 hover:bg-paper-200"
+        className="flex shrink-0 items-center gap-1.5 border-l border-paper-300/70 dark:border-night-700 px-3 text-[11px] font-medium text-ink-800 dark:text-paper-200 hover:bg-paper-200 dark:hover:bg-night-800"
       >
         {paused ? <Play size={12} /> : <Pause size={12} />}
         <span className="hidden sm:inline">{paused ? "Play" : "Pause"}</span>

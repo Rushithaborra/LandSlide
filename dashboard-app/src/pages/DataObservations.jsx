@@ -16,11 +16,11 @@ export default function DataObservations() {
 
   return (
     <DashboardLayout title="Data & Observations" subtitle="Upstream data source health and sync status">
-      <div className="bg-white rounded-xl border border-paper-200 p-4 divide-y divide-paper-200">
+      <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4 divide-y divide-paper-200 dark:divide-night-700">
         {sources.map((s) => (
           <div key={s.name} className="flex items-center justify-between py-3">
             <div>
-              <p className="text-sm font-medium text-ink-800">{s.name}</p>
+              <p className="text-sm font-medium text-ink-800 dark:text-paper-200">{s.name}</p>
               <p className="text-xs text-paper-500">Last sync: {s.lastSync}</p>
             </div>
             <span

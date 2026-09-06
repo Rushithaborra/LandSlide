@@ -5,12 +5,10 @@ import StatCard from "../components/StatCard";
 import RiskMap from "../components/RiskMap";
 import RiskLegend from "../components/RiskLegend";
 import AlertsPanel from "../components/AlertsPanel";
-import RecentAlertsTable from "../components/RecentAlertsTable";
 import RainfallChart from "../components/RainfallChart";
 import {
   getSummaryStats,
   getActiveAlerts,
-  getRecentAlerts,
   getRainfallTrend,
   getRiskZones,
 } from "../services/api";
@@ -22,14 +20,12 @@ export default function Overview() {
   // LINKING_GUIDE.md for the full hookup list.
   const [stats, setStats] = useState(null);
   const [alerts, setAlerts] = useState([]);
-  const [recent, setRecent] = useState([]);
   const [rainfall, setRainfall] = useState([]);
   const [zones, setZones] = useState([]);
 
   useEffect(() => {
     getSummaryStats().then(setStats);
     getActiveAlerts().then(setAlerts);
-    getRecentAlerts().then(setRecent);
     getRainfallTrend().then(setRainfall);
     getRiskZones().then(setZones);
   }, []);
@@ -94,12 +90,12 @@ export default function Overview() {
 
           {/* Map + Active alerts */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2 bg-white rounded-xl border border-paper-200 p-4">
+            <div className="xl:col-span-2 bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-serif font-semibold text-ink-900 text-[15px]">Landslide Risk Map</h2>
+                <h2 className="font-serif font-semibold text-ink-900 dark:text-paper-100 text-[15px]">Landslide Risk Map</h2>
                 <span className="text-xs text-paper-500">Sikkim</span>
               </div>
-              <div className="relative">
+              <div className="relative z-0">
                 <RiskMap center={mapCenter} zones={zones} />
                 <div className="absolute left-3 bottom-3 z-[400]">
                   <RiskLegend />
@@ -110,22 +106,19 @@ export default function Overview() {
             <AlertsPanel alerts={alerts} />
           </div>
 
-          {/* Recent alerts + rainfall trend */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-paper-200 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-serif font-semibold text-ink-900 text-[15px]">Recent Alerts</h2>
-                <span className="text-xs font-medium text-teal-600">View all</span>
-              </div>
-              <RecentAlertsTable alerts={recent} />
+          {/* Rainfall trend — full width.
+              DRAFT 3: the "Recent Alerts" card that used to sit beside this
+              was removed, so the chart now takes the whole row. */}
+          <div className="bg-white rounded-xl border border-paper-200 p-5 dark:bg-night-900 dark:border-night-700">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-serif font-semibold text-ink-900 text-[15px] dark:text-paper-100">
+                Rainfall Trend (Last 7 Days)
+              </h2>
+              <span className="text-xs text-paper-500">
+                Danger threshold {rainfallThresholdMm} mm
+              </span>
             </div>
-
-            <div className="bg-white rounded-xl border border-paper-200 p-4">
-              <div className="flex items-center justify-between mb-1">
-                <h2 className="font-serif font-semibold text-ink-900 text-[15px]">Rainfall Trend (Last 7 Days)</h2>
-              </div>
-              <RainfallChart data={rainfall} thresholdMm={rainfallThresholdMm} />
-            </div>
+            <RainfallChart data={rainfall} thresholdMm={rainfallThresholdMm} height={340} />
           </div>
         </div>
       )}

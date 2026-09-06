@@ -20,12 +20,54 @@ body {
   min-height: 100vh;
 }
 
+/* --------------------------------------------------------------------------
+   DARK THEME (added in draft 3)
+   These few rules cover the things Tailwind classes cannot reach: the <body>
+   itself, the Leaflet map backdrop and the scrollbar. Everything else is
+   handled by `dark:` utility classes on the components.
+   The light values above are untouched.
+   -------------------------------------------------------------------------- */
+html.dark body {
+  background: #141a17;
+  color: #f5f2ea;
+}
+
+html.dark .leaflet-container {
+  background: #1c2420;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #35413a;
+}
+
+/* Leaflet's zoom buttons and attribution strip are its own CSS, so they need
+   an explicit dark override. */
+html.dark .leaflet-bar a,
+html.dark .leaflet-control-attribution {
+  background: #1c2420;
+  color: #b3ab99;
+}
+html.dark .leaflet-bar a:hover {
+  background: #26302b;
+}
+html.dark .leaflet-control-attribution a {
+  color: #7ea6ac;
+}
+
 /* Leaflet map container needs an explicit height or it renders collapsed */
 .leaflet-container {
   width: 100%;
   height: 100%;
   border-radius: 12px;
   background: #efeadd;
+  /* Leaflet gives its internal panes z-index values from 200 up to 700. Those
+     numbers are only safe if they stay inside their own stacking context —
+     otherwise the map tiles paint OVER the sticky top bar while scrolling.
+     `position: relative; z-index: 0; isolation: isolate` pins the whole map
+     into one layer that sits below the header. */
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
 }
 
 ::-webkit-scrollbar {
