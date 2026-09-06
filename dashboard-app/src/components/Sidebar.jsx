@@ -1,13 +1,10 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
-  Map,
   Bell,
-  FileText,
   AlertTriangle,
   Database,
   Users,
-  Settings,
   HelpCircle,
   Mountain,
   CheckCircle2,
@@ -15,14 +12,11 @@ import {
 
 const navItems = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/live-map", label: "Live Map", icon: Map },
   { to: "/alerts", label: "Alerts", icon: Bell },
-  { to: "/reports", label: "Reports", icon: FileText },
   { to: "/incidents", label: "Incidents", icon: AlertTriangle },
   { to: "/data-observations", label: "Data & Observations", icon: Database },
   { to: "/citizen-reports", label: "Citizen Reports", icon: Users },
-  { to: "/settings", label: "Settings", icon: Settings },
-  { to: "/help", label: "Help & Docs", icon: HelpCircle },
+  { to: "/help", label: "Help", icon: HelpCircle },
 ];
 
 export default function Sidebar() {

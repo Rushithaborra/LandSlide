@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7d8a93"/><stop offset="100%" stop-color="#b8c0bc"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#s)"/>
+  <path d="M0 300 L140 190 L260 250 L380 150 L520 240 L640 180 L800 260 L800 500 L0 500 Z" fill="#43503c"/>
+  <path d="M0 360 L120 300 L300 355 L470 305 L640 350 L800 315 L800 500 L0 500 Z" fill="#3f4a3c" opacity="0.55"/>
+  <path d="M120 205 L200 200 L245 310 L280 430 L120 430 L96 310 Z" fill="#8a6a4a" opacity="0.92"/>
+  <path d="M120 205 L200 200 L245 310 L280 430 L120 430 L96 310 Z" fill="none" stroke="#5d4630" stroke-width="3"/>
+  <rect x="0" y="440" width="800" height="60" fill="#1d2723" opacity="0.82"/>
+  <text x="24" y="470" font-family="Helvetica,Arial,sans-serif" font-size="20" fill="#f5f2ea">CR-202  Chungthang, North Sikkim</text>
+  <text x="24" y="492" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#b3ab99">Sample photo placeholder - debris on NH-10 shoulder - 18 May 2026, 07:55 IST</text>
+</svg>

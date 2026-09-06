@@ -86,6 +86,10 @@ export const riskZones = [
 export const mapCenter = { lat: 27.33, lng: 88.42 };
 
 // ---- F. Citizen reports (Citizen Reporting Form / PWA output) ----
+// EXTENDED IN DRAFT 3: the same two reports, now carrying the full detail the
+// admin sees in the report modal (photo, reporter identity, area, coordinates).
+// The original fields (id, reporter, location, note, status, submittedAt) are
+// all still here and unchanged.
 export const citizenReports = [
   {
     id: "CR-204",
@@ -95,6 +99,16 @@ export const citizenReports = [
     status: "Pending verification",
     photoPlaceholder: true,
     submittedAt: "20 May, 08:12 AM",
+    // --- added in draft 3 ---
+    area: "East Sikkim",
+    photoUrl: "/photos/cr-204.svg",
+    lat: 27.2887,
+    lng: 88.5614,
+    reporterName: "Pemba Sherpa",
+    reporterPhone: "+91 98xxx 41207",
+    reporterType: "Resident",
+    landmark: "Below the Rumtek monastery approach road, km marker 4",
+    weatherAtReport: "Light rain, 19 degrees C, 62 mm in the previous 24 hours",
   },
   {
     id: "CR-203",
@@ -104,13 +118,96 @@ export const citizenReports = [
     status: "Verified",
     photoPlaceholder: true,
     submittedAt: "19 May, 06:40 PM",
+    // --- added in draft 3 ---
+    area: "North Sikkim",
+    photoUrl: "/photos/cr-203.svg",
+    lat: 27.5522,
+    lng: 88.4917,
+    reporterName: "Tashi Lepcha",
+    reporterPhone: "+91 97xxx 88431",
+    reporterType: "Panchayat member",
+    landmark: "Slope directly above the community water tank, Upper Dzongu",
+    weatherAtReport: "Overcast, 17 degrees C, 108 mm in the previous 24 hours",
+  },
+  {
+    id: "CR-202",
+    reporter: "Anonymous",
+    location: "Chungthang, North Sikkim",
+    note: "Debris and mud on the highway shoulder near the bridge approach.",
+    status: "Pending verification",
+    photoPlaceholder: true,
+    submittedAt: "18 May, 07:55 AM",
+    // --- added in draft 3 ---
+    area: "North Sikkim",
+    photoUrl: "/photos/cr-202.svg",
+    lat: 27.6011,
+    lng: 88.6425,
+    reporterName: "Norbu Bhutia",
+    reporterPhone: "+91 96xxx 12094",
+    reporterType: "Resident",
+    landmark: "NH-10 shoulder, 200 m before the Teesta bridge approach",
+    weatherAtReport: "Heavy rain, 16 degrees C, 131 mm in the previous 24 hours",
   },
 ];
 
 // ---- G. Incidents log (post-event records) ----
+// EXTENDED IN DRAFT 3: each incident now also carries the material that goes
+// into its downloadable PDF report (weather, rainfall trend, area history).
+// The original fields (id, location, date, severity, status) are unchanged.
 export const incidents = [
-  { id: "IN-88", location: "Chungthang, North Sikkim", date: "12 May 2026", severity: "High", status: "Resolved" },
-  { id: "IN-87", location: "Legship, West Sikkim", date: "3 May 2026", severity: "Moderate", status: "Monitoring" },
+  {
+    id: "IN-88",
+    location: "Chungthang, North Sikkim",
+    date: "12 May 2026",
+    severity: "High",
+    status: "Resolved",
+    // --- added in draft 3 (feeds the PDF report) ---
+    area: "North Sikkim",
+    weatherReport:
+      "Continuous rainfall for 38 hours preceding the event. Peak hourly intensity 21 mm/hr recorded at the Chungthang gauge. Cumulative 48-hour total 214 mm against a 100 mm trigger threshold.",
+    rainfallTrend: [
+      { day: "08 May", mm: 34 },
+      { day: "09 May", mm: 61 },
+      { day: "10 May", mm: 96 },
+      { day: "11 May", mm: 118 },
+      { day: "12 May", mm: 142 },
+    ],
+    areaHistory: [
+      "2019 — Slope failure on the same NH-10 stretch, road closed 4 days.",
+      "2021 — Two debris flows recorded 2 km upstream after a cloudburst.",
+      "2023 — GSI field survey flagged the slope as highly susceptible (0.84).",
+    ],
+    casualties: "Nil",
+    infrastructureImpact: "NH-10 blocked for 26 hours; one culvert damaged.",
+    responseSummary:
+      "Alert issued 6 hours before failure. 3 households evacuated pre-emptively by the district team. Road cleared by BRO on 13 May.",
+  },
+  {
+    id: "IN-87",
+    location: "Legship, West Sikkim",
+    date: "3 May 2026",
+    severity: "Moderate",
+    status: "Monitoring",
+    // --- added in draft 3 (feeds the PDF report) ---
+    area: "West Sikkim",
+    weatherReport:
+      "Intermittent moderate rain over 3 days. Peak hourly intensity 11 mm/hr. Cumulative 48-hour total 88 mm, just below the 100 mm trigger threshold.",
+    rainfallTrend: [
+      { day: "29 Apr", mm: 12 },
+      { day: "30 Apr", mm: 28 },
+      { day: "01 May", mm: 44 },
+      { day: "02 May", mm: 51 },
+      { day: "03 May", mm: 37 },
+    ],
+    areaHistory: [
+      "2020 — Minor slip near the Legship bridge, cleared within a day.",
+      "2022 — Retaining wall constructed on the river-facing slope.",
+    ],
+    casualties: "Nil",
+    infrastructureImpact: "Partial shoulder collapse on the approach road.",
+    responseSummary:
+      "Zone kept under active monitoring. Piezometer readings requested from the state PWD.",
+  },
 ];
 
 // ---- H. System / data-source status (Settings → Data Sources page) ----
@@ -150,5 +247,107 @@ export const tickerBulletins = [
     severity: "Low",
     text: "Subdued rainfall activity likely to continue over the eastern districts during the next 24 hours.",
     issuedAt: "issued 03 Sep, 06:00 IST",
+  },
+];
+
+// ---- J. Admin profile (NEW IN DRAFT 3) -----------------------------------
+// Shown and edited in the side drawer that opens from the avatar in the top
+// bar. Replace with the real signed-in user once authentication exists.
+export const adminProfile = {
+  initials: "AD",
+  fullName: "A. Doma Bhutia",
+  designation: "District Disaster Management Officer",
+  department: "Sikkim State Disaster Management Authority (SSDMA)",
+  employeeId: "SSDMA-DDMO-0142",
+  email: "ddmo.gangtok@ssdma.gov.in",
+  phone: "+91 94xxx 30188",
+  district: "Gangtok",
+  region: "Sikkim",
+  alertChannel: "SMS + Email",
+  lastLogin: "04 Sep 2026, 07:41 IST",
+};
+
+// ---- K. Search index (NEW IN DRAFT 5) -------------------------------------
+// One flat, searchable list built from the data already declared above, so
+// nothing is duplicated and nothing can drift out of sync.
+//
+// Shape of every entry — this is the CONTRACT the backend must return from
+// GET /api/search?q=... (see LINK SPOT M in src/services/api.js):
+//   { id, type, title, subtitle, to }
+//     type     "Zone" | "Alert" | "Incident" | "Citizen report"
+//     title    the main line shown in the dropdown
+//     subtitle the grey second line
+//     to       the page to open when the result is clicked
+export const searchIndex = [
+  ...riskZones.map((z) => ({
+    id: `s-${z.id}`,
+    type: "Zone",
+    title: z.name,
+    subtitle: `${z.level} risk · susceptibility ${(z.susceptibility * 100).toFixed(0)}%`,
+    to: "/",
+  })),
+  ...recentAlerts.map((a) => ({
+    id: `s-${a.id}`,
+    type: "Alert",
+    title: `${a.id} — ${a.title}`,
+    subtitle: `${a.location} · ${a.timeAgo}`,
+    to: "/alerts",
+  })),
+  ...incidents.map((i) => ({
+    id: `s-${i.id}`,
+    type: "Incident",
+    title: `${i.id} — ${i.location}`,
+    subtitle: `${i.date} · ${i.severity} · ${i.status}`,
+    to: "/incidents",
+  })),
+  ...citizenReports.map((r) => ({
+    id: `s-${r.id}`,
+    type: "Citizen report",
+    title: `${r.id} — ${r.location}`,
+    subtitle: `${r.reporterName} · ${r.status}`,
+    to: "/citizen-reports",
+  })),
+];
+
+// ---- L. Notifications (NEW IN DRAFT 5) ------------------------------------
+// Feeds the bell in the top bar. `read` is per-officer in the real system, so
+// this becomes properly personal only once login exists — until then every
+// visitor sees the same three unread items.
+export const notifications = [
+  {
+    id: "NT-9",
+    title: "High risk raised for Mangan, North Sikkim",
+    detail: "Susceptibility 0.86 with 128 mm in the last 24 hours.",
+    severity: "High",
+    timeAgo: "2 min ago",
+    read: false,
+    to: "/alerts",
+  },
+  {
+    id: "NT-8",
+    title: "High risk raised for Geyzing, West Sikkim",
+    detail: "48-hour rainfall crossed the 100 mm trigger threshold.",
+    severity: "High",
+    timeAgo: "15 min ago",
+    read: false,
+    to: "/alerts",
+  },
+  {
+    id: "NT-7",
+    title: "New citizen report awaiting verification",
+    detail: "CR-202 — debris on the NH-10 shoulder, Chungthang.",
+    severity: "Moderate",
+    timeAgo: "40 min ago",
+    read: false,
+    to: "/citizen-reports",
+  },
+  {
+    id: "NT-6",
+    title: "Sentinel-2 imagery feed is not connected",
+    detail: "Last successful sync could not be determined.",
+    severity: "Low",
+    timeAgo: "3 hr ago",
+    read: true,
+    to: "/data-observations",
   },
 ];

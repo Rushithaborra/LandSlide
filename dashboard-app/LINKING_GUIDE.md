@@ -9,7 +9,7 @@ Only **one file** needs to change for almost every hookup:
 `src/services/api.js`. All mock data lives in `src/data/mockData.js`.
 
 ```
-SIH_draft_2/
+SIH_draft_6/
 └── src/
     ├── data/mockData.js     ← fake sample data (safe to delete once live)
     ├── services/api.js      ← EVERY backend hookup point (edit this file)
@@ -127,3 +127,93 @@ npm run dev
 `severity` must be exactly `"High" | "Moderate" | "Low"`. `text` should be one
 plain sentence with no HTML. The frontend refreshes this every 5 minutes
 (`TICKER_REFRESH_MS` in `src/layouts/DashboardLayout.jsx`).
+
+---
+
+## LINK SPOT J — Admin profile (added in draft 3)
+**Owner:** Backend team, once authentication exists
+**Frontend hookup:** `src/components/AdminDrawer.jsx` → `getAdminProfile()` / `updateAdminProfile()` in `src/services/api.js`
+**Suggested endpoints:** `GET {BASE_URL}/api/me` and `PATCH {BASE_URL}/api/me`
+**What to send back:** the object shaped like `adminProfile` in `src/data/mockData.js`
+(fullName, designation, department, employeeId, email, phone, district, region,
+alertChannel, lastLogin, initials).
+
+## LINK SPOT K — Verify a citizen report (added in draft 3)
+**Owner:** Backend team
+**Frontend hookup:** `src/components/CitizenReportModal.jsx` → `verifyCitizenReport(id)`
+**Suggested endpoint:** `POST {BASE_URL}/api/citizen-reports/{id}/verify`
+**What it should do:** set that report's status to `"Verified"`, and record which
+officer verified it and when. Return `{ ok: true, id, status: "Verified" }`.
+
+## LINK SPOT L — Incident report PDF (added in draft 3)
+**Owner:** nobody yet — the frontend already does this on its own
+**Frontend hookup:** `src/pages/Incidents.jsx` → `generateIncidentReport()` in `src/services/incidentReport.js`
+The PDF is built in the browser with jsPDF from the incident record plus the
+citizen reports for the same `area`. Nothing server-side is required.
+
+If a signed / letterheaded / archived PDF is wanted later, add
+`GET {BASE_URL}/api/incidents/{id}/report.pdf`, have the Download button fetch
+that blob instead, and delete `incidentReport.js`. The button itself would not
+change.
+
+**Note on the incident record:** the PDF needs these extra fields on each
+incident, on top of the original id/location/date/severity/status —
+`area`, `weatherReport`, `rainfallTrend` (array of `{ day, mm }`), `areaHistory`
+(array of strings), `casualties`, `infrastructureImpact`, `responseSummary`.
+See the `incidents` mock in `src/data/mockData.js` for the exact shape.
+
+---
+
+## LINK SPOT M — Global search (added in draft 5)
+**Owner:** Backend team
+**Frontend hookup:** `src/components/SearchBox.jsx` → `searchAll(query)` in `src/services/api.js`
+**Suggested endpoint:** `GET {BASE_URL}/api/search?q=mangan&limit=12`
+**What to send back:** ONE merged array covering zones, alerts, incidents and
+citizen reports:
+
+```json
+[
+  {
+    "id": "s-z1",
+    "type": "Zone",
+    "title": "Mangan, North Sikkim",
+    "subtitle": "High risk · susceptibility 86%",
+    "to": "/"
+  }
+]
+```
+
+`type` must be exactly `"Zone" | "Alert" | "Incident" | "Citizen report"` —
+that decides which group the result appears under and what colour its tag is.
+`to` is the frontend route to open when the result is clicked.
+The search box, dropdown, grouping and keyboard navigation are already
+finished; only this one function changes.
+
+## LINK SPOT N — Notifications (added in draft 5)
+**Owner:** Backend team + notifications team
+**Frontend hookup:** `src/components/NotificationsPanel.jsx` →
+`getNotifications()` and `markNotificationsRead()` in `src/services/api.js`
+**Suggested endpoints:**
+- `GET {BASE_URL}/api/notifications` → the signed-in officer's list
+- `POST {BASE_URL}/api/notifications/read` → mark them all read
+
+**What to send back:**
+
+```json
+[
+  {
+    "id": "NT-9",
+    "title": "High risk raised for Mangan, North Sikkim",
+    "detail": "Susceptibility 0.86 with 128 mm in the last 24 hours.",
+    "severity": "High",
+    "timeAgo": "2 min ago",
+    "read": false,
+    "to": "/alerts"
+  }
+]
+```
+
+**Depends on authentication.** `read` is per-officer, so this endpoint only
+becomes meaningful once login exists. Until then the frontend shows the same
+mock list to everyone, which is intentional and is stated in the panel and on
+the Help page.

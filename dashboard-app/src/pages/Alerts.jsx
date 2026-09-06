@@ -17,7 +17,7 @@ export default function Alerts() {
 
   return (
     <DashboardLayout title="Alerts" subtitle="All landslide risk alerts across regions">
-      <div className="bg-white rounded-xl border border-paper-200 p-4">
+      <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4">
         <RecentAlertsTable alerts={alerts} />
       </div>
     </DashboardLayout>

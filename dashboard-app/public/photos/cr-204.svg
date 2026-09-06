@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9fb0b8"/><stop offset="100%" stop-color="#cfd6d2"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#s)"/>
+  <path d="M0 300 L140 190 L260 250 L380 150 L520 240 L640 180 L800 260 L800 500 L0 500 Z" fill="#4c5a45"/>
+  <path d="M0 360 L120 300 L300 355 L470 305 L640 350 L800 315 L800 500 L0 500 Z" fill="#3f4a3c" opacity="0.55"/>
+  <path d="M330 160 L385 165 L420 300 L470 430 L360 430 L318 300 Z" fill="#8a6a4a" opacity="0.92"/>
+  <path d="M330 160 L385 165 L420 300 L470 430 L360 430 L318 300 Z" fill="none" stroke="#5d4630" stroke-width="3"/>
+  <rect x="0" y="440" width="800" height="60" fill="#1d2723" opacity="0.82"/>
+  <text x="24" y="470" font-family="Helvetica,Arial,sans-serif" font-size="20" fill="#f5f2ea">CR-204  Rumtek, East Sikkim</text>
+  <text x="24" y="492" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#b3ab99">Sample photo placeholder - roadside soil slip - 20 May 2026, 08:12 IST</text>
+</svg>

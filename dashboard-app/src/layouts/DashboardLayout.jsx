@@ -31,7 +31,7 @@ export default function DashboardLayout({ title, subtitle, children }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-paper-100">
+    <div className="flex min-h-screen bg-paper-100 dark:bg-night-950">
       <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
         <Topbar title={title} subtitle={subtitle} />
@@ -42,7 +42,7 @@ export default function DashboardLayout({ title, subtitle, children }) {
 
         <main className="flex-1 p-6">{children}</main>
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-paper-200 bg-paper-50 px-6 py-3 text-xs text-paper-600">
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-paper-200 dark:border-night-700 bg-paper-50 dark:bg-night-900 px-6 py-3 text-xs text-paper-600 dark:text-paper-400">
           <span>© 2026 Landslide Early Warning System</span>
           <span>Data sources: IMD, GSI, ISRO, Open-Meteo</span>
         </footer>

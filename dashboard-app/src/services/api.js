@@ -2,12 +2,12 @@
  * ============================================================================
  *  API SERVICE LAYER — wired to the real backend
  * ============================================================================
- * Real backend: FastAPI + PostgreSQL/PostGIS. See ../../docs (in the main
- * repo) for the full endpoint contract. Two of the original LINK SPOTs
- * (G: incidents, H: data sources) plus the ticker (I) have no backend
- * equivalent -- they're out of this round's 2-feature scope (susceptibility
- * model + GIS heatmap, real-time alerts + citizen reporting) and stay on
- * mock data on purpose, not as an oversight.
+ * Real backend: FastAPI + PostgreSQL/PostGIS. LINK SPOTS A-F and K call it
+ * for real. G, H, I, J, L, N stay on mock data on purpose -- either out of
+ * this round's 2-feature scope (incidents, data sources, ticker), require a
+ * login system this project doesn't have yet (admin profile, notifications
+ * -- matches this frontend's own documented design), or are already
+ * client-side only by design (the incident PDF).
  *
  * Set VITE_API_BASE_URL in a .env file (see .env.example) once the backend
  * is deployed. Falls back to localhost for local dev against a locally
@@ -19,6 +19,9 @@ import {
   incidents,
   dataSources,
   tickerBulletins,
+  adminProfile,
+  citizenReports as mockCitizenReports,
+  notifications,
 } from "../data/mockData";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -30,10 +33,10 @@ const fakeDelay = (data, ms = 200) =>
 // Shared helpers
 // ---------------------------------------------------------------------------
 
-// Several functions below need the same endpoint (e.g. both /zones and
-// /alerts are read by 3-4 different functions on the Overview page alone).
-// With thousands of real zones now loaded, /zones is a multi-second call --
-// firing it 4 times concurrently on one page load quadruples load on an
+// Several functions need the same endpoint (e.g. both /zones and /alerts are
+// read by 3-4 different functions on the Overview page alone). With
+// thousands of real zones loaded, /zones is a multi-second call -- firing it
+// several times concurrently on one page load multiplies load on an
 // already-slow free-tier backend for no reason. This coalesces near-
 // simultaneous calls to the same path into a single network request.
 const inFlight = new Map();
@@ -71,9 +74,9 @@ function timeAgo(isoString) {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
-// The real alerts table has no "title"/"location"/"severity" fields --
-// those come from the zone it's linked to, plus the threshold_crossed
-// text the backend already writes a human-readable description into.
+// The real alerts table has no "title"/"location"/"severity" fields -- those
+// come from the zone it's linked to, plus the threshold_crossed text the
+// backend already writes a human-readable description into.
 async function fetchAndShapeAlerts() {
   const [alerts, zones] = await Promise.all([getJSON("/alerts"), getJSON("/zones")]);
   const zoneById = Object.fromEntries(zones.map((z) => [z.id, z]));
@@ -94,13 +97,12 @@ async function fetchAndShapeAlerts() {
 }
 
 /* ----------------------------------------------------------------------- *
- * Overview summary cards.
- * No single backend endpoint returns this -- it's assembled client-side
- * from /zones and /alerts, plus a live /health check for system status.
- * Villages-affected and a 24h rainfall total aren't tracked concepts in
- * the current schema, so those two are honestly approximated (zones with
- * an active alert; latest reading from the first zone) rather than
- * invented outright.
+ * LINK SPOT A — Overview summary cards.
+ * No single backend endpoint returns this -- assembled client-side from
+ * /zones and /alerts, plus a live /health check for system status.
+ * Villages-affected and a 24h rainfall total aren't tracked concepts in the
+ * current schema, so those two are honestly approximated (zones with an
+ * active alert; latest reading from the first zone) rather than invented.
  * ----------------------------------------------------------------------- */
 export async function getSummaryStats() {
   const [zones, alerts] = await Promise.all([getJSON("/zones"), getJSON("/alerts")]);
@@ -138,6 +140,7 @@ export async function getSummaryStats() {
   };
 }
 
+/* LINK SPOT B / C — alerts */
 export async function getActiveAlerts() {
   const shaped = await fetchAndShapeAlerts();
   return shaped.filter((a) => a.status === "active");
@@ -148,9 +151,9 @@ export async function getRecentAlerts() {
 }
 
 /* ----------------------------------------------------------------------- *
- * Rainfall trend chart. There's no region-wide trend endpoint (rainfall is
- * stored per zone), so this shows the first zone's last 7 readings -- a
- * reasonable stand-in until there's more than one seeded zone.
+ * LINK SPOT D — Rainfall trend chart. No region-wide trend endpoint exists
+ * (rainfall is stored per zone), so this shows the first zone's last 7
+ * readings -- a reasonable stand-in until there's more than one seeded zone.
  * ----------------------------------------------------------------------- */
 export async function getRainfallTrend() {
   const zones = await getJSON("/zones");
@@ -163,9 +166,9 @@ export async function getRainfallTrend() {
 }
 
 /* ----------------------------------------------------------------------- *
- * Risk zones for the map. centroid_lat/centroid_lng are computed
- * server-side (see app/models.py Zone.centroid_lat/lng) from the stored
- * polygon, since the map needs one point per zone, not the full shape.
+ * LINK SPOT E — Risk zones for the map. centroid_lat/centroid_lng are
+ * computed server-side (see app/models.py Zone.centroid_lat/lng) from the
+ * stored polygon, since the map needs one point per zone, not the full shape.
  * ----------------------------------------------------------------------- */
 export async function getRiskZones() {
   const zones = await getJSON("/zones");
@@ -180,15 +183,14 @@ export async function getRiskZones() {
 }
 
 /* ----------------------------------------------------------------------- *
- * Citizen reports.
+ * LINK SPOT F — Citizen reports.
  * ----------------------------------------------------------------------- */
 function verifiedStatusLabel(status) {
   return { unverified: "Pending verification", verified: "Verified", rejected: "Rejected" }[status] || status;
 }
 
-export async function getCitizenReports() {
-  const reports = await getJSON("/reports");
-  return reports.map((r) => ({
+function shapeReport(r) {
+  return {
     id: r.id,
     reporter: r.reporter_name || "Anonymous",
     location: r.place_name || (r.geo_lat != null ? "GPS location" : "Unknown location"),
@@ -197,7 +199,12 @@ export async function getCitizenReports() {
     photoPlaceholder: !r.photo_url,
     photoUrl: r.photo_url,
     submittedAt: new Date(r.submitted_at).toLocaleString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
-  }));
+  };
+}
+
+export async function getCitizenReports() {
+  const reports = await getJSON("/reports");
+  return reports.map(shapeReport);
 }
 
 // The dashboard's own quick-add form only collects a location + note (no
@@ -219,8 +226,9 @@ export async function submitCitizenReport(payload) {
 }
 
 /* ----------------------------------------------------------------------- *
- * Out of scope for this round -- no backend endpoint exists (see the file
- * header). Left on mock data on purpose, not connected.
+ * Out of scope for this round -- no backend endpoint exists (incidents,
+ * data-source health, the warning ticker). Left on mock data on purpose,
+ * not connected.
  * ----------------------------------------------------------------------- */
 export async function getIncidents() {
   return fakeDelay(incidents);
@@ -232,4 +240,96 @@ export async function getDataSources() {
 
 export async function getTickerBulletins() {
   return fakeDelay(tickerBulletins);
+}
+
+/* ----------------------------------------------------------------------- *
+ * LINK SPOT J — Admin profile. Genuinely depends on a login system this
+ * project doesn't have yet (matches this frontend's own documented design
+ * -- "Owner: Backend team, once authentication is added"). Stays mocked
+ * honestly rather than wired to a fake single-user backend record.
+ * ----------------------------------------------------------------------- */
+export async function getAdminProfile() {
+  return fakeDelay(adminProfile, 150);
+}
+
+export async function updateAdminProfile(profile) {
+  return fakeDelay({ ok: true, profile }, 200);
+}
+
+/* ----------------------------------------------------------------------- *
+ * LINK SPOT K — Verify a citizen report. Real: flips verified_status to
+ * "verified" via the backend's new POST /reports/{id}/verify.
+ * ----------------------------------------------------------------------- */
+export async function verifyCitizenReport(reportId) {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/verify`, { method: "POST" });
+  if (!res.ok) throw new Error(`verify report failed: ${res.status}`);
+  return res.json();
+}
+
+/* ----------------------------------------------------------------------- *
+ * LINK SPOT L — Incident report download. Already client-side only by
+ * design (jsPDF, no backend needed) -- incidents themselves are mock (out
+ * of scope), so the citizen reports bundled into the PDF stay mock too for
+ * internal consistency (a real citizen report has no "area" field to match
+ * a mock incident's area against).
+ * ----------------------------------------------------------------------- */
+export async function getIncidentReportBundle(incidentId) {
+  const incident = incidents.find((i) => i.id === incidentId);
+  const related = mockCitizenReports.filter((r) => r.area === incident?.area);
+  return fakeDelay({ incident, citizenReports: related }, 150);
+}
+
+/* ----------------------------------------------------------------------- *
+ * LINK SPOT M — Global search. Real: searches actual zones, alerts, and
+ * citizen reports. Incidents stay mock (out of scope), included anyway so
+ * the search doesn't silently drop a whole category the UI advertises --
+ * each result routes to a page that's itself honest about being mock.
+ * ----------------------------------------------------------------------- */
+export async function searchAll(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+
+  const [zones, alerts, reports] = await Promise.all([
+    getJSON("/zones"),
+    fetchAndShapeAlerts(),
+    getCitizenReports(),
+  ]);
+
+  const results = [];
+
+  for (const z of zones) {
+    if (z.name.toLowerCase().includes(q)) {
+      results.push({ id: z.id, type: "Zone", title: z.name, subtitle: `${capitalizeTier(z.risk_tier)} risk`, to: "/" });
+    }
+  }
+  for (const a of alerts) {
+    if (a.title.toLowerCase().includes(q) || a.location.toLowerCase().includes(q)) {
+      results.push({ id: a.id, type: "Alert", title: a.location, subtitle: a.title, to: "/alerts" });
+    }
+  }
+  for (const r of reports) {
+    if (r.note.toLowerCase().includes(q) || r.location.toLowerCase().includes(q)) {
+      results.push({ id: r.id, type: "Citizen report", title: r.location, subtitle: r.note, to: "/citizen-reports" });
+    }
+  }
+  for (const inc of incidents) {
+    if (inc.location.toLowerCase().includes(q) || inc.area?.toLowerCase().includes(q)) {
+      results.push({ id: inc.id, type: "Incident", title: inc.location, subtitle: inc.status, to: "/incidents" });
+    }
+  }
+
+  return results.slice(0, 12);
+}
+
+/* ----------------------------------------------------------------------- *
+ * LINK SPOT N — Notifications. Genuinely depends on login ("unread" means
+ * unread BY A PARTICULAR OFFICER) -- matches this frontend's own documented
+ * design. Stays mocked honestly rather than faked as personal.
+ * ----------------------------------------------------------------------- */
+export async function getNotifications() {
+  return fakeDelay(notifications, 200);
+}
+
+export async function markNotificationsRead() {
+  return fakeDelay({ ok: true }, 150);
 }
