@@ -190,10 +190,14 @@ function verifiedStatusLabel(status) {
 }
 
 function shapeReport(r) {
+  const hasCoords = r.geo_lat != null && r.geo_lng != null;
   return {
     id: r.id,
     reporter: r.reporter_name || "Anonymous",
-    location: r.place_name || (r.geo_lat != null ? "GPS location" : "Unknown location"),
+    location: r.place_name || (hasCoords ? `${r.geo_lat.toFixed(5)}, ${r.geo_lng.toFixed(5)}` : "Unknown location"),
+    lat: hasCoords ? r.geo_lat.toFixed(5) : "",
+    lng: hasCoords ? r.geo_lng.toFixed(5) : "",
+    landmark: r.place_name || "",
     note: r.description,
     status: verifiedStatusLabel(r.verified_status),
     photoPlaceholder: !r.photo_url,
