@@ -22,20 +22,58 @@ export default function Overview() {
   const [alerts, setAlerts] = useState([]);
   const [rainfall, setRainfall] = useState([]);
   const [zones, setZones] = useState([]);
+  const [loadError, setLoadError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    getSummaryStats().then(setStats);
-    getActiveAlerts().then(setAlerts);
-    getRainfallTrend().then(setRainfall);
-    getRiskZones().then(setZones);
-  }, []);
+    // Previously each call was a bare .then(setX) with no .catch() -- if any
+    // one of these rejected (a transient network blip, the backend briefly
+    // restarting mid-deploy), `stats` stayed null forever and the page sat
+    // on "Loading overview..." permanently with no error and no way to
+    // retry short of a manual refresh. Promise.allSettled + an explicit
+    // error state fixes both: a partial failure still unblocks the page,
+    // and a full failure shows a real retry button.
+    let cancelled = false;
+    setLoadError(null);
+
+    Promise.allSettled([
+      getSummaryStats(),
+      getActiveAlerts(),
+      getRainfallTrend(),
+      getRiskZones(),
+    ]).then(([statsR, alertsR, rainfallR, zonesR]) => {
+      if (cancelled) return;
+      if (statsR.status === "fulfilled") setStats(statsR.value);
+      if (alertsR.status === "fulfilled") setAlerts(alertsR.value);
+      if (rainfallR.status === "fulfilled") setRainfall(rainfallR.value);
+      if (zonesR.status === "fulfilled") setZones(zonesR.value);
+      if (statsR.status === "rejected") {
+        setLoadError(statsR.reason?.message || "Could not reach the backend");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [retryCount]);
 
   return (
     <DashboardLayout
       title="Overview"
       subtitle="Live summary of landslide risk and system status"
     >
-      {!stats ? (
+      {!stats && loadError ? (
+        <div className="rounded-xl border border-risk-high/30 bg-risk-highSoft dark:bg-risk-high/10 p-5">
+          <p className="text-sm font-medium text-risk-high">Couldn't load the overview</p>
+          <p className="text-sm text-paper-500 mt-1">{loadError}</p>
+          <button
+            onClick={() => setRetryCount((n) => n + 1)}
+            className="mt-3 text-sm font-medium px-3 py-1.5 rounded-lg bg-risk-high text-white hover:opacity-90"
+          >
+            Retry
+          </button>
+        </div>
+      ) : !stats ? (
         <p className="text-sm text-paper-500">Loading overview…</p>
       ) : (
         <div className="space-y-6">
