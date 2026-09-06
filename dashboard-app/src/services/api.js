@@ -30,10 +30,26 @@ const fakeDelay = (data, ms = 200) =>
 // Shared helpers
 // ---------------------------------------------------------------------------
 
+// Several functions below need the same endpoint (e.g. both /zones and
+// /alerts are read by 3-4 different functions on the Overview page alone).
+// With thousands of real zones now loaded, /zones is a multi-second call --
+// firing it 4 times concurrently on one page load quadruples load on an
+// already-slow free-tier backend for no reason. This coalesces near-
+// simultaneous calls to the same path into a single network request.
+const inFlight = new Map();
+
 async function getJSON(path) {
-  const res = await fetch(`${BASE_URL}${path}`);
-  if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
-  return res.json();
+  if (inFlight.has(path)) return inFlight.get(path);
+  const promise = fetch(`${BASE_URL}${path}`)
+    .then((res) => {
+      if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
+      return res.json();
+    })
+    .finally(() => {
+      setTimeout(() => inFlight.delete(path), 3000);
+    });
+  inFlight.set(path, promise);
+  return promise;
 }
 
 // Real risk_tier values are lowercase ("low"/"moderate"/"high") in the
