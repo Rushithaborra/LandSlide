@@ -41,16 +41,26 @@ const fakeDelay = (data, ms = 200) =>
 // simultaneous calls to the same path into a single network request.
 const inFlight = new Map();
 
+// /zones is 3,921 static rows (~1.1MB, ~7s from Render's free tier) and the
+// model scores behind it don't change between page views, so its result is
+// kept for 10 minutes -- Overview, the map, and search all reuse one fetch
+// instead of each paying 7s. Alerts and reports can change during a live
+// demo (a report submitted from a phone must show up), so they stay near-
+// live at 3s.
+const CACHE_TTL_MS = { "/zones": 10 * 60 * 1000 };
+
 async function getJSON(path) {
   if (inFlight.has(path)) return inFlight.get(path);
-  const promise = fetch(`${BASE_URL}${path}`)
-    .then((res) => {
-      if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
-      return res.json();
-    })
-    .finally(() => {
-      setTimeout(() => inFlight.delete(path), 3000);
-    });
+  const promise = fetch(`${BASE_URL}${path}`).then((res) => {
+    if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
+    return res.json();
+  });
+  promise.then(
+    () => setTimeout(() => inFlight.delete(path), CACHE_TTL_MS[path] ?? 3000),
+    // Never hold on to a failure: a Retry click must hit the network again,
+    // not get handed back the same rejected promise.
+    () => inFlight.delete(path),
+  );
   inFlight.set(path, promise);
   return promise;
 }
