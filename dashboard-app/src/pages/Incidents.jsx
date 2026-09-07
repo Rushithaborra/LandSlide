@@ -28,7 +28,10 @@ export default function Incidents() {
 
   useEffect(() => {
     getIncidents().then(setIncidents);
-    getCitizenReports().then(setReports);
+    // getCitizenReports is a real backend call (unlike getIncidents, which is
+    // mocked and can't fail) -- if it rejects, related reports just stay
+    // empty for the PDF download rather than crashing the page.
+    getCitizenReports().then(setReports).catch(() => {});
   }, []);
 
   const handleDownload = (incident) => {

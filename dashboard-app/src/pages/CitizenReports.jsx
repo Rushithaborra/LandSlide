@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Camera, ChevronRight } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import CitizenReportModal from "../components/CitizenReportModal";
+import LoadError from "../components/LoadError";
+import { useAsyncData } from "../hooks/useAsyncData";
 import { getCitizenReports } from "../services/api";
 
 /**
@@ -16,12 +18,16 @@ import { getCitizenReports } from "../services/api";
  *    a "Verify report" button. Verifying updates the badge in THIS list.
  */
 export default function CitizenReports() {
+  const { data, error, retry } = useAsyncData(getCitizenReports);
   const [reports, setReports] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
 
+  // Mirrored into local state (rather than read straight from the hook) so
+  // handleVerified below can optimistically flip one report's badge without
+  // waiting on a re-fetch.
   useEffect(() => {
-    getCitizenReports().then(setReports);
-  }, []);
+    if (data) setReports(data);
+  }, [data]);
 
   // Flip one report to "Verified" in the list behind the modal.
   const handleVerified = (id) =>
@@ -36,6 +42,10 @@ export default function CitizenReports() {
       title="Citizen Reports"
       subtitle="Ground reports submitted by residents"
     >
+      {error && !data ? (
+        <LoadError message={error} onRetry={retry} />
+      ) : (
+      <>
       {/* Centred column — takes the space the submit form used to occupy */}
       <div className="mx-auto w-full max-w-4xl">
         <div className="rounded-xl border border-paper-200 bg-white p-5 dark:border-night-700 dark:bg-night-900">
@@ -108,6 +118,8 @@ export default function CitizenReports() {
         onClose={() => setSelectedId(null)}
         onVerified={handleVerified}
       />
+      </>
+      )}
     </DashboardLayout>
   );
 }
