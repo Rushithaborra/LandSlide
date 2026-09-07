@@ -79,11 +79,13 @@ export default function SearchBox() {
   useEffect(() => {
     if (!query.trim()) return undefined;
     const timer = setTimeout(() => {
-      searchAll(query).then((hits) => {
-        setResults(hits);
-        setActive(0);
-        setLoading(false);
-      });
+      searchAll(query)
+        .then((hits) => {
+          setResults(hits);
+          setActive(0);
+        })
+        .catch(() => setResults([]))
+        .finally(() => setLoading(false));
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query]);

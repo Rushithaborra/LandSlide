@@ -211,12 +211,15 @@ export const incidents = [
 ];
 
 // ---- H. System / data-source status (Settings → Data Sources page) ----
+// Statuses here must stay truthful (CLAUDE.md honesty rule): IMD access was
+// never obtained this round -- Open-Meteo is the live rainfall source.
 export const dataSources = [
-  { name: "IMD Rainfall API", status: "Connected", lastSync: "2 min ago" },
-  { name: "Open-Meteo API", status: "Connected", lastSync: "2 min ago" },
-  { name: "GSI Landslide Inventory", status: "Connected", lastSync: "1 day ago" },
+  { name: "Open-Meteo API (live rainfall)", status: "Connected", lastSync: "fetched per zone on demand" },
+  { name: "GSI Landslide Inventory (3,921 zones scored)", status: "Connected", lastSync: "1 day ago" },
+  { name: "Copernicus GLO-30 DEM + OpenStreetMap roads", status: "Connected", lastSync: "used offline for model training" },
+  { name: "IMD Rainfall API", status: "Not connected", lastSync: "— roadmap, needs institutional access" },
   { name: "Sentinel-2 Imagery", status: "Not connected", lastSync: "—" },
-  { name: "Twilio / MSG91 SMS Gateway", status: "Not connected", lastSync: "—" },
+  { name: "Twilio / MSG91 SMS Gateway", status: "Not connected", lastSync: "— alerts are logged only this round" },
 ];
 
 // ---- I. Scrolling warning ticker (NEW IN DRAFT 2) -------------------------
