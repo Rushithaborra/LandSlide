@@ -22,6 +22,7 @@ import {
   adminProfile,
   citizenReports as mockCitizenReports,
   notifications,
+  emergencyContacts,
 } from "../data/mockData";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -210,6 +211,24 @@ export async function getRiskZones() {
 }
 
 /* ----------------------------------------------------------------------- *
+ * LINK SPOT N — Highway corridors. Real: GET /corridors groups the same
+ * 3,921 real zones by the highway/road code already embedded in each zone's
+ * name (e.g. "NH310A" from "NH310A (1224920841_00_000)") -- no new data
+ * source, just a different aggregation of what /zones already serves.
+ * ----------------------------------------------------------------------- */
+export async function getCorridors() {
+  const corridors = await getJSON("/corridors");
+  return corridors.map((c) => ({
+    code: c.code,
+    zoneCount: c.zone_count,
+    activeAlertCount: c.active_alert_count,
+    worstTier: capitalizeTier(c.worst_risk_tier),
+    worstZoneName: c.worst_zone_name,
+    worstScore: c.worst_susceptibility_score,
+  }));
+}
+
+/* ----------------------------------------------------------------------- *
  * LINK SPOT F — Citizen reports.
  * ----------------------------------------------------------------------- */
 function verifiedStatusLabel(status) {
@@ -269,6 +288,17 @@ export async function getDataSources() {
   return fakeDelay(dataSources);
 }
 
+/* ----------------------------------------------------------------------- *
+ * LINK SPOT P — Emergency contacts. Real public helpline numbers, but a
+ * static directory (not synced live against any government system) -- same
+ * honesty as Data & Observations above, just phone numbers instead of feed
+ * status. This genuinely cannot fail (no network call), so it skips
+ * useAsyncData the same way getDataSources does.
+ * ----------------------------------------------------------------------- */
+export async function getEmergencyContacts() {
+  return fakeDelay(emergencyContacts);
+}
+
 export async function getTickerBulletins() {
   return fakeDelay(tickerBulletins);
 }
@@ -294,6 +324,22 @@ export async function updateAdminProfile(profile) {
 export async function verifyCitizenReport(reportId) {
   const res = await fetch(`${BASE_URL}/reports/${reportId}/verify`, { method: "POST" });
   if (!res.ok) throw new Error(`verify report failed: ${res.status}`);
+  return res.json();
+}
+
+/* ----------------------------------------------------------------------- *
+ * LINK SPOT O — Alert broadcast. Real: POST /alerts/{id}/broadcast writes a
+ * real row (headline, message, channels, timestamp). status always comes
+ * back "simulated" -- no SMS/CAP/siren gateway is wired up yet, same
+ * honesty as delivery_method="log_only" on the alert itself.
+ * ----------------------------------------------------------------------- */
+export async function broadcastAlert(alertId, { headline, severity, message, channels }) {
+  const res = await fetch(`${BASE_URL}/alerts/${alertId}/broadcast`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ headline, severity, message, channels }),
+  });
+  if (!res.ok) throw new Error(`broadcast failed: ${res.status}`);
   return res.json();
 }
 
