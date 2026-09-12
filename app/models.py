@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from geoalchemy2 import Geometry
 from geoalchemy2.shape import to_shape
 from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -88,6 +88,24 @@ class Alert(Base):
     @property
     def risk_tier(self) -> str | None:
         return self.zone.risk_tier
+
+
+class AlertBroadcast(Base):
+    __tablename__ = "alert_broadcasts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    alert_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("alerts.id", ondelete="CASCADE"))
+    headline: Mapped[str] = mapped_column(String, nullable=False)
+    severity: Mapped[str] = mapped_column(String, nullable=False)
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    channels: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
+    status: Mapped[str] = mapped_column(String, default="simulated")
+    dispatched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    __table_args__ = (
+        CheckConstraint("severity IN ('moderate','high','critical')"),
+        CheckConstraint("status IN ('simulated','sent')"),
+    )
 
 
 class CitizenReport(Base):

@@ -222,6 +222,22 @@ export const dataSources = [
   { name: "Twilio / MSG91 SMS Gateway", status: "Not connected", lastSync: "— alerts are logged only this round" },
 ];
 
+// ---- H2. Emergency contacts directory --------------------------------
+// 112 and 108 are real, nationwide, unambiguous numbers -- safe to state
+// with full confidence. The state/BRO/NDRF rows are a placeholder directory
+// structure, honestly flagged: getting a disaster-response number wrong is
+// a real-world harm, not just an inaccuracy, so those are marked
+// unconfirmed rather than presented as verified (same honesty pattern as
+// dataSources above and RAINFALL_THRESHOLD__VERIFIED_AGAINST_PRIMARY_TEXT
+// in app/config.py -- don't claim confirmation that hasn't happened).
+export const emergencyContacts = [
+  { name: "National Emergency Number", jurisdiction: "All India — Police / Fire / Ambulance", phone: "112", verified: true },
+  { name: "Emergency Medical & Ambulance", jurisdiction: "All India", phone: "108", verified: true },
+  { name: "Sikkim State Emergency Operations Centre", jurisdiction: "Sikkim SDMA control room", phone: "1070", verified: false },
+  { name: "NDRF — nearest response unit", jurisdiction: "North Eastern Region", phone: "Confirm with NDRF HQ before use", verified: false },
+  { name: "BRO — NH10 maintenance (Project Swastik)", jurisdiction: "Sikkim highway clearance", phone: "Confirm with BRO before use", verified: false },
+];
+
 // ---- I. Scrolling warning ticker (NEW IN DRAFT 2) -------------------------
 // Short bulletin lines for the running strip at the top of every page,
 // styled after the warning marquee on mausam.imd.gov.in.

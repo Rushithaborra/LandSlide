@@ -19,6 +19,18 @@ class ZoneOut(BaseModel):
     centroid_lng: float
 
 
+class CorridorOut(BaseModel):
+    """Zones grouped by their real highway/road code (GET /corridors) --
+    not a stored table, computed from existing zones + alerts."""
+
+    code: str
+    zone_count: int
+    active_alert_count: int
+    worst_risk_tier: str | None
+    worst_zone_name: str
+    worst_susceptibility_score: float | None
+
+
 class SusceptibilityUpdate(BaseModel):
     """ML -> backend contract for PUT /zones/{id}/susceptibility. Written by
     the ML lead's pipeline; backend only stores/serves these values, never
@@ -50,6 +62,26 @@ class AlertOut(BaseModel):
     threshold_crossed: str
     status: str
     delivery_method: str
+
+
+class BroadcastIn(BaseModel):
+    headline: str = Field(min_length=1)
+    severity: Literal["moderate", "high", "critical"]
+    message: str = Field(min_length=1)
+    channels: list[Literal["sms", "push", "siren", "cap_gateway"]] = Field(min_length=1)
+
+
+class BroadcastOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    alert_id: uuid.UUID
+    headline: str
+    severity: str
+    message: str
+    channels: list[str]
+    status: str
+    dispatched_at: datetime
 
 
 class Coords(BaseModel):

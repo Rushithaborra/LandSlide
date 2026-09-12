@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PhoneCall } from "lucide-react";
 import SearchBox from "./SearchBox";
 import NotificationsPanel from "./NotificationsPanel";
 import ThemeToggle from "./ThemeToggle";
@@ -24,6 +25,17 @@ export default function Topbar({ title, subtitle }) {
       <div className="flex items-center gap-4">
         {/* Global search — LINK SPOT M */}
         <SearchBox />
+
+        {/* One-touch SOS — real tel: link to India's national emergency
+            number, always visible, no page navigation needed to reach it. */}
+        <a
+          href="tel:112"
+          aria-label="Call the national emergency number, 112"
+          className="flex items-center gap-1.5 rounded-lg bg-risk-high px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+        >
+          <PhoneCall size={14} />
+          SOS 112
+        </a>
 
         {/* Notification bell — LINK SPOT N */}
         <NotificationsPanel />

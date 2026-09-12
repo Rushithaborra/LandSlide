@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import alerts, rainfall, reports, zones
+from app.routers import alerts, corridors, rainfall, reports, zones
 
 app = FastAPI(title="Landslide Early Warning System — Backend")
 
@@ -16,6 +16,7 @@ app.include_router(zones.router)
 app.include_router(rainfall.router)
 app.include_router(alerts.router)
 app.include_router(reports.router)
+app.include_router(corridors.router)
 # Citizen-report photos are stored in Supabase Storage (app/routers/reports.py),
 # not served from this app -- no local /uploads mount needed.
 
