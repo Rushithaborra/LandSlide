@@ -1,6 +1,7 @@
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Tooltip } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
+import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
@@ -61,6 +62,7 @@ export default function RiskMap({ center, zones, height = 420 }) {
   // its free-tier policy since this was first wired up. Esri's tile service
   // is still genuinely free/keyless for this kind of use.
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const dark = theme === "dark";
   const tileUrl = dark
     ? "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
@@ -90,11 +92,14 @@ export default function RiskMap({ center, zones, height = 420 }) {
               position={[zone.lat, zone.lng]}
               riskLevel={zone.level}
               icon={riskDivIcon(levelColor[zone.level] || "#8b8474", 8 + zone.susceptibility * 10)}
+              eventHandlers={{ click: () => navigate(`/zones/${zone.id}`) }}
             >
               <Tooltip direction="top" offset={[0, -4]}>
                 <strong>{zone.name}</strong>
                 <br />
                 Risk: {zone.level} · Susceptibility: {(zone.susceptibility * 100).toFixed(0)}%
+                <br />
+                <em>Click for details</em>
               </Tooltip>
             </Marker>
           ))}

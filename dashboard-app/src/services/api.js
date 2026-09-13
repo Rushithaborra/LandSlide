@@ -322,6 +322,54 @@ export async function submitCitizenReport(payload) {
 }
 
 /* ----------------------------------------------------------------------- *
+ * Zone Detail — drill-down from clicking a marker on the risk map. Reuses
+ * the same real endpoints already used elsewhere (GET /zones/{id},
+ * GET /rainfall/{id}, GET /alerts filtered client-side by zone_id since
+ * there's no ?zone_id= filter on /alerts yet) rather than adding new
+ * backend surface for a page that's just a different view of existing data.
+ * ----------------------------------------------------------------------- */
+export async function getZoneById(zoneId) {
+  const res = await fetch(`${BASE_URL}/zones/${zoneId}`);
+  if (!res.ok) throw new Error(`load zone failed: ${res.status}`);
+  const z = await res.json();
+  return {
+    id: z.id, name: z.name, state: z.state,
+    lat: z.centroid_lat, lng: z.centroid_lng,
+    level: capitalizeTier(z.risk_tier),
+    susceptibility: z.susceptibility_score,
+    modelVersion: z.model_version,
+    lastUpdated: z.last_updated,
+  };
+}
+
+export async function getRainfallForZone(zoneId) {
+  const readings = await getJSON(`/rainfall/${zoneId}`);
+  // Same ordering caveat as getRainfallTrend -- newest-first from the
+  // backend isn't a guaranteed contract, sort explicitly rather than trust it.
+  const ascending = readings.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  return ascending.map((r) => ({
+    day: new Date(r.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+    mm: Math.round(r.intensity_mm),
+  }));
+}
+
+export async function getAlertsForZone(zoneId) {
+  const alerts = await getJSON("/alerts");
+  return alerts
+    .filter((a) => a.zone_id === zoneId)
+    .slice()
+    .sort((a, b) => new Date(b.triggered_at) - new Date(a.triggered_at))
+    .map((a) => ({
+      id: a.id,
+      title: a.threshold_crossed,
+      location: a.zone_name || "Unknown zone",
+      severity: capitalizeTier(a.risk_tier),
+      timeAgo: timeAgo(a.triggered_at),
+      status: a.status,
+    }));
+}
+
+/* ----------------------------------------------------------------------- *
  * Authority Contacts — the real call-list app.services.sms_alerts.
  * escalate_critical_alert reads on a "critical" broadcast. Previously only
  * addable via a direct DB insert; this is what makes that feature usable by
