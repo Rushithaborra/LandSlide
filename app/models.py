@@ -113,6 +113,38 @@ class AlertBroadcast(Base):
     )
 
 
+class SmsAlertLog(Base):
+    """Tracks every real SMS/call alert send, so app.services.sms_alerts can
+    enforce a per-zone cooldown and avoid spamming the same people every time
+    the rainfall check reruns. 'sms' (citizens) and 'call' (authorities) are
+    tracked as separate channels with independent cooldowns."""
+
+    __tablename__ = "sms_alert_log"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    zone_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("zones.id", ondelete="CASCADE"))
+    severity: Mapped[str] = mapped_column(String, nullable=False)
+    recipient_count: Mapped[int] = mapped_column(nullable=False)
+    channel: Mapped[str] = mapped_column(String, default="sms")
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    __table_args__ = (CheckConstraint("channel IN ('sms', 'call')"),)
+
+
+class AuthorityContact(Base):
+    """Hand-registered officials who get a real phone call on critical
+    broadcasts. Deliberately separate from citizen_reports.reporter_phone --
+    officials need to be properly added, not scraped from reports."""
+
+    __tablename__ = "authority_contacts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[str | None] = mapped_column(String, nullable=True)
+    phone_number: Mapped[str] = mapped_column(String, nullable=False)
+    added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
 class CitizenReport(Base):
     __tablename__ = "citizen_reports"
 

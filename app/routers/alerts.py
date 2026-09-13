@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models import Alert, AlertBroadcast
 from app.schemas import AlertOut, BroadcastIn, BroadcastOut
+from app.services.sms_alerts import escalate_critical_alert, twilio_configured
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
 
@@ -33,21 +34,39 @@ def resolve_alert(alert_id: uuid.UUID, db: Session = Depends(get_db)):
 
 @router.post("/{alert_id}/broadcast", response_model=BroadcastOut)
 def broadcast_alert(alert_id: uuid.UUID, payload: BroadcastIn, db: Session = Depends(get_db)):
-    """An officer's decision to push an alert out, recorded for real -- but
-    status stays 'simulated': no SMS/CAP/siren gateway is wired up yet, same
-    honesty as alerts.delivery_method='log_only'. One alert can have several
-    broadcast rows (a correction, a re-send), so this never overwrites the
-    alert itself."""
+    """An officer's decision to push an alert out. Real SMS (and, for
+    severity='critical', a real phone call to every registered authority) go
+    out via app.services.sms_alerts when Twilio is configured and "sms" is
+    one of the chosen channels -- status becomes 'sent' only then. Push/
+    siren/CAP-gateway remain simulated (no such gateway is wired up) --
+    'sent' never overclaims delivery on channels that aren't actually real.
+    One alert can have several broadcast rows (a correction, a re-send), so
+    this never overwrites the alert itself."""
     alert = db.get(Alert, alert_id)
     if alert is None:
         raise HTTPException(status_code=404, detail="Alert not found")
+
+    status = "simulated"
+    if twilio_configured() and ("sms" in payload.channels or payload.severity == "critical"):
+        try:
+            result = escalate_critical_alert(
+                db, alert.zone_id, alert.zone.name, payload.severity,
+                message=payload.message, send_sms="sms" in payload.channels,
+            )
+            sms_sent = not result["sms"].get("skipped") and result["sms"].get("sent", 0) > 0
+            calls_made = not result["calls"].get("skipped") and result["calls"].get("called", 0) > 0
+            if sms_sent or calls_made:
+                status = "sent"
+        except Exception as e:
+            print(f"[BROADCAST] alert={alert_id} real send failed, staying simulated: {e}")
+
     broadcast = AlertBroadcast(
         alert_id=alert_id,
         headline=payload.headline,
         severity=payload.severity,
         message=payload.message,
         channels=payload.channels,
-        status="simulated",
+        status=status,
     )
     db.add(broadcast)
     db.commit()

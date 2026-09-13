@@ -23,13 +23,14 @@ import pandas as pd
 from scripts.ml.extract_landcover import one_hot_encode, sample_land_cover
 from scripts.ml.extract_terrain_features import build_feature_stack, sample_at_points
 from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig
-from scripts.ml.train_susceptibility_model import ARTIFACT_DIR, score_to_tier
+from scripts.ml.train_susceptibility_model import artifact_dir, score_to_tier
 
 
-def load_model_bundle(path=None):
-    path = path or (ARTIFACT_DIR / "susceptibility_model.joblib")
+def load_model_bundle(path=None, config: MlConfig = DEFAULT_CONFIG):
+    out_dir = artifact_dir(config)
+    path = path or (out_dir / "susceptibility_model.joblib")
     bundle = joblib.load(path)
-    report = pd.read_json(ARTIFACT_DIR / "validation_report.json", typ="series")
+    report = pd.read_json(out_dir / "validation_report.json", typ="series")
     bundle["low_cut"] = report["risk_tier_thresholds"]["low_max"]
     bundle["high_cut"] = report["risk_tier_thresholds"]["moderate_max"]
     return bundle
@@ -63,13 +64,13 @@ def predict_at_points(lons: np.ndarray, lats: np.ndarray, bundle: dict, config: 
 
 
 def demonstrate_on_training_points(config: MlConfig = DEFAULT_CONFIG) -> pd.DataFrame:
-    bundle = load_model_bundle()
+    bundle = load_model_bundle(config=config)
     df = pd.read_csv(config.paths.training_dataset_csv)
     preds = predict_at_points(df["longitude"].values, df["latitude"].values, bundle, config)
     preds["true_label"] = df["label"].values
     preds["district"] = df["district"].values
 
-    out_path = ARTIFACT_DIR / "demo_point_predictions.csv"
+    out_path = artifact_dir(config) / "demo_point_predictions.csv"
     preds.to_csv(out_path, index=False)
     print(f"NOT real zone predictions -- demonstration on the {len(preds)} training-data points, "
           f"showing the prediction pipeline works end-to-end. Saved -> {out_path}")
