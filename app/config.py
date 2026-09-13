@@ -70,6 +70,12 @@ class Settings(BaseSettings):
     twilio_auth_token: str | None = None
     twilio_from_number: str | None = None
 
+    # AI-generated triage summary (app/services/triage_summary.py) -- condenses
+    # a citizen report's free-text description into a one-line priority
+    # summary via Claude. Optional, same pattern as everything else above:
+    # POST /reports still works without it, just leaves triage_summary null.
+    anthropic_api_key: str | None = None
+
 
 settings = Settings()
 

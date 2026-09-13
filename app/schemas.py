@@ -155,6 +155,7 @@ class CitizenReportOut(BaseModel):
     reporter_name: str | None
     reporter_phone: str | None
     photo_url: str | None
+    triage_summary: str | None
     captured_at: datetime
     submitted_at: datetime
     verified_status: str

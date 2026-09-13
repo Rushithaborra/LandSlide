@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Camera, ChevronRight } from "lucide-react";
+import { Camera, ChevronRight, Sparkles } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import CitizenReportModal from "../components/CitizenReportModal";
 import LoadError from "../components/LoadError";
@@ -89,6 +89,12 @@ export default function CitizenReports() {
                       {r.submittedAt}
                     </span>
                   </div>
+                  {r.triageSummary && (
+                    <p className="mt-0.5 flex items-start gap-1 text-xs font-medium text-teal-700 dark:text-teal-400">
+                      <Sparkles size={12} className="mt-0.5 shrink-0" />
+                      <span>{r.triageSummary}</span>
+                    </p>
+                  )}
                   <p className="mt-0.5 text-xs text-paper-600 dark:text-paper-400">
                     {r.note}
                   </p>
