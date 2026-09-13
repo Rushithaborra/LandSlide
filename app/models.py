@@ -163,6 +163,10 @@ class CitizenReport(Base):
     reporter_name: Mapped[str | None] = mapped_column(String, nullable=True)
     reporter_phone: Mapped[str | None] = mapped_column(String, nullable=True)
     photo_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    # AI-generated, one-line triage priority (see app/services/triage_summary.py)
+    # -- condenses the free-text `description` above for a fast dashboard scan.
+    # Null until generated (best-effort at submission time; never blocks it).
+    triage_summary: Mapped[str | None] = mapped_column(String, nullable=True)
     captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     verified_status: Mapped[str] = mapped_column(String, default="unverified")

@@ -10,6 +10,7 @@ from app.config import settings
 from app.database import get_db
 from app.models import CitizenReport
 from app.schemas import CitizenReportIn, CitizenReportOut
+from app.services.triage_summary import anthropic_configured, generate_triage_summary
 
 router = APIRouter(prefix="/reports", tags=["citizen-reports"])
 
@@ -106,6 +107,22 @@ def submit_report(
     db.add(report)
     db.commit()
     db.refresh(report)
+
+    # Best-effort AI triage summary (app/services/triage_summary.py) -- never
+    # blocks report submission. Skipped entirely (not attempted) when no key
+    # is configured, matching sms_alerts' twilio_configured() guard.
+    if anthropic_configured():
+        try:
+            summary = generate_triage_summary(
+                report.report_type, report.severity, report.description, report.place_name,
+            )
+            if summary:
+                report.triage_summary = summary
+                db.commit()
+                db.refresh(report)
+        except Exception as e:
+            print(f"[REPORTS] triage summary generation failed for {report.id}: {e}")
+
     return report
 
 

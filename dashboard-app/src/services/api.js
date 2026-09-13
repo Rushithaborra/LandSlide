@@ -301,6 +301,7 @@ function shapeReport(r) {
     lng: hasCoords ? r.geo_lng.toFixed(5) : "",
     landmark: r.place_name || "",
     note: r.description,
+    triageSummary: r.triage_summary || null,
     status: verifiedStatusLabel(r.verified_status),
     photoPlaceholder: !r.photo_url,
     photoUrl: r.photo_url,
