@@ -47,6 +47,10 @@ const SECTIONS = [
         q: "Can I leave this open on a wall display all day?",
         a: "Yes. The Overview page is designed for it. Keep in mind it does not refresh on its own except for the warning strip, so someone should refresh the browser at the start of each shift.",
       },
+      {
+        q: "Where do I find public helpline numbers to give someone?",
+        a: "The Emergency Contacts page in the side menu — a click-to-call directory of public helplines. Numbers already confirmed real are click-to-call directly; anything not yet independently confirmed is clearly marked 'Unconfirmed — verify before real-world use' rather than presented as reliable.",
+      },
     ],
   },
   {
@@ -75,6 +79,14 @@ const SECTIONS = [
       {
         q: "Can I zoom in to street level?",
         a: "You can zoom the map with the + and − buttons or the scroll wheel. The risk zones stay at the same scale they were assessed at, so zooming in shows you more roads and rivers, not finer risk detail.",
+      },
+      {
+        q: "I clicked a circle on the map and it opened a new page. What is that?",
+        a: "That is Zone Detail — that zone's own page, showing its exact susceptibility score, which model version scored it, its full rainfall history, and every alert that has ever fired for it. Click any circle on the map to open it, or use Back to return.",
+      },
+      {
+        q: "What does the Highway Corridors page show that the map doesn't?",
+        a: "The same real zones, grouped by highway or road code (e.g. NH310A, SH12) instead of listed individually — so you can see at a glance which whole corridor has the worst risk, how many active alerts sit on it, and its single highest-risk segment. Useful for a corridor-level call, like a road closure, rather than one zone at a time.",
       },
     ],
   },
@@ -108,6 +120,18 @@ const SECTIONS = [
       {
         q: "What is the difference between the Alerts page and the notification bell?",
         a: "The Alerts page is the full log of everything that has been raised. The bell is your personal unread list — the things raised since you last looked.",
+      },
+      {
+        q: "What does the 'Broadcast' button on an alert row do?",
+        a: "It lets you personally push out a warning for that alert — write your own headline and message, choose a severity (Moderate, High, or Critical), and pick channels (SMS, app push, community sirens, the government CAP gateway). Use it when you want to say something specific beyond the automatic system message.",
+      },
+      {
+        q: "What does marking a broadcast 'Critical' do differently?",
+        a: "A Critical broadcast also places a real phone call to every official on the Authority Contacts page, reading your message aloud twice. Reserve Critical for situations that genuinely need someone's phone to ring — if every alert rang a phone, officials would start ignoring calls the same way people ignore notification spam.",
+      },
+      {
+        q: "How do I add someone to the Authority Contacts list?",
+        a: "Open Authority Contacts in the side menu and use the 'Add an official' form — name, role, and phone number. Anyone on that list is called automatically the next time a Critical broadcast goes out. Remove someone with the trash icon next to their name.",
       },
     ],
   },
