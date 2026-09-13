@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Radio, CheckCircle2, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { broadcastAlert, generateBulletin } from "../services/api";
 
 /**
@@ -16,10 +17,10 @@ import { broadcastAlert, generateBulletin } from "../services/api";
  */
 
 const CHANNELS = [
-  { id: "sms", label: "Cellular SMS" },
-  { id: "push", label: "Mobile app push" },
-  { id: "siren", label: "Community sirens" },
-  { id: "cap_gateway", label: "Govt CAP XML gateway" },
+  { id: "sms", labelKey: "channelSms" },
+  { id: "push", labelKey: "channelPush" },
+  { id: "siren", labelKey: "channelSiren" },
+  { id: "cap_gateway", labelKey: "channelCap" },
 ];
 
 // This modal's severity options ("moderate"/"high"/"critical") are narrower
@@ -31,6 +32,7 @@ function defaultSeverity(alertSeverity) {
 }
 
 export default function BroadcastComposerModal({ alert, onClose }) {
+  const { t } = useTranslation();
   const [headline, setHeadline] = useState("");
   const [severity, setSeverity] = useState("moderate");
   const [message, setMessage] = useState("");
@@ -100,7 +102,7 @@ export default function BroadcastComposerModal({ alert, onClose }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Issue alert broadcast"
+        aria-label={t("broadcastModal.ariaLabel")}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-lg rounded-xl border border-paper-200 bg-white shadow-2xl dark:border-night-700 dark:bg-night-900"
       >
@@ -108,13 +110,13 @@ export default function BroadcastComposerModal({ alert, onClose }) {
           <div className="flex items-center gap-2">
             <Radio size={17} className="text-risk-high" />
             <h2 className="font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">
-              Issue public warning broadcast
+              {t("broadcastModal.title")}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close broadcast composer"
+            aria-label={t("broadcastModal.closeAriaLabel")}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-paper-600 hover:bg-paper-100 dark:text-paper-400 dark:hover:bg-night-800"
           >
             <X size={17} />
@@ -127,11 +129,10 @@ export default function BroadcastComposerModal({ alert, onClose }) {
               <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-risk-low" />
               <div>
                 <p className="text-sm font-medium text-ink-800 dark:text-paper-200">
-                  Broadcast logged for {result.channels.join(", ")}
+                  {t("broadcastModal.broadcastLogged", { channels: result.channels.join(", ") })}
                 </p>
                 <p className="mt-1 text-xs text-paper-600 dark:text-paper-400">
-                  Simulated, not a real dispatch — no SMS/CAP/siren gateway is wired up yet. This
-                  record is real (saved to the database); the actual send is not.
+                  {t("broadcastModal.simulatedNote")}
                 </p>
               </div>
             </div>
@@ -140,14 +141,14 @@ export default function BroadcastComposerModal({ alert, onClose }) {
               onClick={onClose}
               className="mt-4 w-full rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white hover:bg-ink-800 dark:bg-teal-600 dark:hover:bg-teal-500"
             >
-              Done
+              {t("common.done")}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
             <div>
               <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">
-                Alert headline
+                {t("broadcastModal.alertHeadline")}
               </label>
               <input
                 value={headline}
@@ -159,16 +160,16 @@ export default function BroadcastComposerModal({ alert, onClose }) {
 
             <div>
               <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">
-                Severity
+                {t("table.severity")}
               </label>
               <select
                 value={severity}
                 onChange={(e) => setSeverity(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-paper-200 bg-white px-3 py-2 text-sm text-ink-800 dark:border-night-700 dark:bg-night-800 dark:text-paper-200"
               >
-                <option value="moderate">Moderate</option>
-                <option value="high">High</option>
-                <option value="critical">Critical (Red Alert)</option>
+                <option value="moderate">{t("broadcastModal.severityModerate")}</option>
+                <option value="high">{t("broadcastModal.severityHigh")}</option>
+                <option value="critical">{t("broadcastModal.severityCritical")}</option>
               </select>
             </div>
 
@@ -180,17 +181,17 @@ export default function BroadcastComposerModal({ alert, onClose }) {
                 className="flex items-center gap-1.5 rounded-lg border border-teal-600/40 bg-teal-600/10 px-3 py-1.5 text-xs font-medium text-teal-700 hover:bg-teal-600/20 disabled:opacity-50 dark:text-teal-400"
               >
                 <Sparkles size={13} />
-                {generating ? "Drafting…" : "Draft with AI"}
+                {generating ? t("broadcastModal.drafting") : t("broadcastModal.draftWithAI")}
               </button>
               <p className="mt-1 text-[11px] text-paper-500">
-                Fills the headline and message below from this alert's real data — Gemini, review before sending.
+                {t("broadcastModal.draftHelp")}
               </p>
               {draftError && <p className="mt-1 text-xs text-risk-high">{draftError}</p>}
             </div>
 
             <div>
               <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">
-                Public safety guidance message
+                {t("broadcastModal.message")}
               </label>
               <textarea
                 value={message}
@@ -203,7 +204,7 @@ export default function BroadcastComposerModal({ alert, onClose }) {
 
             <div>
               <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">
-                Broadcast dispatch channels
+                {t("broadcastModal.channels")}
               </label>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {CHANNELS.map((c) => (
@@ -214,7 +215,7 @@ export default function BroadcastComposerModal({ alert, onClose }) {
                       onChange={() => toggleChannel(c.id)}
                       className="rounded border-paper-300"
                     />
-                    {c.label}
+                    {t(`broadcastModal.${c.labelKey}`)}
                   </label>
                 ))}
               </div>
@@ -228,7 +229,7 @@ export default function BroadcastComposerModal({ alert, onClose }) {
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-risk-high px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
             >
               <Radio size={16} />
-              {sending ? "Transmitting…" : "Transmit alert broadcast"}
+              {sending ? t("broadcastModal.transmitting") : t("broadcastModal.transmit")}
             </button>
           </form>
         )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { getIncidents, getCitizenReports } from "../services/api";
 import { generateIncidentReport } from "../services/incidentReport";
@@ -22,6 +23,7 @@ const severityStyle = {
  * src/services/api.js if this should become a server-rendered PDF later.
  */
 export default function Incidents() {
+  const { t } = useTranslation();
   const [incidents, setIncidents] = useState([]);
   const [reports, setReports] = useState([]);
   const [busyId, setBusyId] = useState(null);
@@ -43,17 +45,17 @@ export default function Incidents() {
   };
 
   return (
-    <DashboardLayout title="Incidents" subtitle="Verified landslide incidents log">
+    <DashboardLayout title={t("incidents.title")} subtitle={t("incidents.subtitle")}>
       <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-paper-500 text-xs">
-              <th className="font-medium pb-2">ID</th>
-              <th className="font-medium pb-2">Location</th>
-              <th className="font-medium pb-2">Date</th>
-              <th className="font-medium pb-2">Severity</th>
-              <th className="font-medium pb-2">Status</th>
-              <th className="font-medium pb-2">Report</th>
+              <th className="font-medium pb-2">{t("table.id")}</th>
+              <th className="font-medium pb-2">{t("table.location")}</th>
+              <th className="font-medium pb-2">{t("table.date")}</th>
+              <th className="font-medium pb-2">{t("table.severity")}</th>
+              <th className="font-medium pb-2">{t("table.status")}</th>
+              <th className="font-medium pb-2">{t("table.report")}</th>
             </tr>
           </thead>
           <tbody>
@@ -73,11 +75,11 @@ export default function Incidents() {
                     type="button"
                     onClick={() => handleDownload(i)}
                     disabled={busyId === i.id}
-                    aria-label={`Download the full PDF report for incident ${i.id}`}
+                    aria-label={t("incidents.downloadAriaLabel", { id: i.id })}
                     className="inline-flex flex-row items-center gap-1.5 whitespace-nowrap rounded-lg border border-paper-200 px-3 py-1.5 text-xs font-medium text-paper-700 hover:bg-paper-100 disabled:opacity-50 dark:border-night-700 dark:text-paper-300 dark:hover:bg-night-800"
                   >
                     <Download size={14} />
-                    Download
+                    {t("common.download")}
                   </button>
                 </td>
               </tr>
@@ -87,9 +89,7 @@ export default function Incidents() {
       </div>
 
       <p className="mt-3 text-xs text-paper-500">
-        Each report contains the incident details, the weather report, the
-        rainfall trend before the event, previous recorded activity in that
-        area, and every citizen report filed from the same area.
+        {t("incidents.footnote")}
       </p>
     </DashboardLayout>
   );

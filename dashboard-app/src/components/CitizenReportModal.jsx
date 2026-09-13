@@ -12,6 +12,7 @@ import {
   Sparkles,
   Languages,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { verifyCitizenReport } from "../services/api";
 
 // Only worth showing the translation when it actually says something
@@ -60,6 +61,7 @@ function Row({ icon: Icon, label, children }) {
 }
 
 export default function CitizenReportModal({ report, onClose, onVerified }) {
+  const { t } = useTranslation();
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
@@ -117,7 +119,7 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close report details"
+            aria-label={t("citizenReportModal.closeAriaLabel")}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-paper-600 hover:bg-paper-100 dark:text-paper-400 dark:hover:bg-night-800"
           >
             <X size={17} />
@@ -128,7 +130,7 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
         <div className="grid grid-cols-1 gap-5 px-5 py-5 md:grid-cols-2">
           <div>
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-paper-500">
-              Photo submitted by the citizen
+              {t("citizenReportModal.photoSubmitted")}
             </p>
             <img
               src={report.photoUrl}
@@ -138,28 +140,28 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
           </div>
 
           <div className="space-y-4">
-            <Row icon={Compass} label="Area">
+            <Row icon={Compass} label={t("citizenReportModal.area")}>
               {report.area}
             </Row>
-            <Row icon={MapPin} label="Location">
+            <Row icon={MapPin} label={t("table.location")}>
               {report.location}
               <span className="block text-xs text-paper-500">
                 {report.lat}, {report.lng} · {report.landmark}
               </span>
             </Row>
-            <Row icon={Clock} label="Uploaded at">
+            <Row icon={Clock} label={t("citizenReportModal.uploadedAt")}>
               {report.submittedAt}
             </Row>
-            <Row icon={User} label="Submitted by">
+            <Row icon={User} label={t("citizenReportModal.submittedBy")}>
               {report.reporterName}
               <span className="block text-xs text-paper-500">
-                {report.reporterType} · listed publicly as “{report.reporter}”
+                {t("citizenReportModal.listedPublicly", { reporterType: report.reporterType, reporter: report.reporter })}
               </span>
             </Row>
-            <Row icon={Phone} label="Contact">
+            <Row icon={Phone} label={t("citizenReportModal.contact")}>
               {report.reporterPhone}
             </Row>
-            <Row icon={CloudRain} label="Weather when reported">
+            <Row icon={CloudRain} label={t("citizenReportModal.weatherAtReport")}>
               {report.weatherAtReport}
             </Row>
           </div>
@@ -168,23 +170,21 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
         {/* Comment */}
         <div className="space-y-4 px-5 pb-5">
           {report.triageSummary && (
-            <Row icon={Sparkles} label="AI-generated triage summary">
+            <Row icon={Sparkles} label={t("citizenReportModal.triageSummaryLabel")}>
               {report.triageSummary}
               <span className="mt-1 block text-[11px] font-normal text-paper-500">
-                AI-generated from the citizen's own comment below — verify against it,
-                not in place of it.
+                {t("citizenReportModal.triageSummaryNote")}
               </span>
             </Row>
           )}
-          <Row icon={MessageSquare} label="Comment from the citizen">
+          <Row icon={MessageSquare} label={t("citizenReportModal.commentFromCitizen")}>
             {report.note}
           </Row>
           {textsDiffer(report.note, report.descriptionTranslated) && (
-            <Row icon={Languages} label="AI translation (English)">
+            <Row icon={Languages} label={t("citizenReportModal.translationLabel")}>
               {report.descriptionTranslated}
               <span className="mt-1 block text-[11px] font-normal text-paper-500">
-                The citizen's original wording above is unchanged — this is a translation for
-                reading, not a replacement.
+                {t("citizenReportModal.translationNote")}
               </span>
             </Row>
           )}
@@ -193,14 +193,13 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
         {/* Footer — Verify sits in the right corner */}
         <div className="flex items-center justify-between gap-3 border-t border-paper-200 px-5 py-4 dark:border-night-700">
           <p className="text-[11px] leading-snug text-paper-500">
-            Verify only after the area has been checked on the ground or against
-            the risk map.
+            {t("citizenReportModal.verifyNote")}
           </p>
 
           {isVerified ? (
             <span className="flex shrink-0 items-center gap-1.5 rounded-lg bg-risk-lowSoft px-3 py-2 text-sm font-medium text-risk-low dark:bg-risk-low/20 dark:text-risk-lowOn">
               <BadgeCheck size={16} />
-              Verified
+              {t("citizenReportModal.verified")}
             </span>
           ) : (
             <button
@@ -210,7 +209,7 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white hover:bg-ink-800 disabled:opacity-50 dark:bg-teal-600 dark:hover:bg-teal-500"
             >
               <BadgeCheck size={16} />
-              {verifying ? "Verifying…" : "Verify report"}
+              {verifying ? t("citizenReportModal.verifying") : t("citizenReportModal.verifyReport")}
             </button>
           )}
         </div>

@@ -110,14 +110,32 @@ action they attach to:
 **Multilingual dashboard UI added 2026-09-13** (`react-i18next` +
 `i18next`): a language switcher (English / Hindi / Nepali — Nepali is
 Sikkim's actual majority language) in the Topbar, persisted per-browser via
-`localStorage`. **Only the Sidebar, Topbar, and Overview page are
-translated so far** — every other page (Alerts, Incidents, Highway
-Corridors, Emergency/Authority Contacts, Data & Observations, Citizen
-Reports, Help) is still English-only regardless of the selected language.
+`localStorage`. **Extended to every page and shared modal same day**:
+Sidebar, Topbar, Overview, Alerts, Incidents, Highway Corridors, Emergency
+Contacts, Authority Contacts, Data & Observations, Citizen Reports, Zone
+Detail, plus the Broadcast composer and Citizen Report detail modals — all
+UI chrome (titles, table headers, labels, buttons, empty/error states) is
+translated. **Two things deliberately stay English-only**, flagged rather
+than silently left half-done:
+- The **Help page** (`HelpDocs.jsx`) — long-form documentation prose, not
+  short UI labels; a quick machine translation risked being sloppy for
+  something judges might read closely, so it's left as a clearly-scoped gap
+  rather than translated hastily.
+- **Data values from the API** (severity levels like "High"/"Moderate"/
+  "Low", statuses like "Verified"/"Connected", zone/location names) are
+  shown as the backend returns them, in English, regardless of the selected
+  language — translating live data consistently everywhere it's rendered is
+  a materially bigger feature (either backend-side localization of enums or
+  a uniform frontend mapping layer) than translating static JSX text, and
+  wasn't attempted here.
+- The **outgoing alert bulletin text itself** (the AI-drafted headline/
+  message in the Broadcast composer) also stays English-only on purpose —
+  CLAUDE.md explicitly scopes "full multilingual SMS" to a later phase, and
+  translating message *content* delivered to citizens is that feature, not
+  UI translation.
+
 Hindi/Nepali strings are machine-quality translations, not reviewed by a
-native speaker — say so if asked. Full-dashboard translation is future work,
-not attempted here on purpose (same "deep on the highest-traffic surfaces,
-not shallow everywhere" scoping as everything else in this project).
+native speaker — say so if asked.
 
 ## ML data pipeline (`scripts/ml/`)
 
