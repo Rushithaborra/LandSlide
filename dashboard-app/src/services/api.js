@@ -145,7 +145,12 @@ export async function getSummaryStats() {
   let rainfallZoneName = "No zone yet";
   const found = await findZoneWithRainfall(zones);
   if (found) {
-    const latest = found.readings[found.readings.length - 1];
+    // GET /rainfall/{id} returns newest-first, but that ordering isn't
+    // guaranteed by contract -- picking by an explicit timestamp comparison
+    // (rather than assuming index 0 or the last index) avoided a real bug
+    // here where this previously read readings[length-1], i.e. the OLDEST
+    // fetched day, and labeled it "Rainfall (24h)".
+    const latest = found.readings.reduce((a, b) => (new Date(a.timestamp) > new Date(b.timestamp) ? a : b));
     rainfall24hLabel = `${latest.intensity_mm.toFixed(0)} mm`;
     rainfallZoneName = found.zone.name;
   }
@@ -182,12 +187,45 @@ export async function getRecentAlerts() {
  * (rainfall is stored per zone), so this shows the first zone's last 7
  * readings -- a reasonable stand-in until there's more than one seeded zone.
  * ----------------------------------------------------------------------- */
+function isToday(isoTimestamp) {
+  const d = new Date(isoTimestamp);
+  const now = new Date();
+  return d.toDateString() === now.toDateString();
+}
+
 export async function getRainfallTrend() {
   const zones = await getJSON("/zones");
   if (zones.length === 0) return [];
   const found = await findZoneWithRainfall(zones);
   if (!found) return [];
-  return found.readings.slice(-7).map((r) => ({
+
+  let readings = found.readings;
+  const newest = readings.reduce((a, b) => (new Date(a.timestamp) > new Date(b.timestamp) ? a : b));
+
+  // The batch script that originally seeded rainfall only ran once -- without
+  // this, the chart would keep showing whatever week that one run happened to
+  // fetch, forever. Re-fetching live from Open-Meteo when the newest stored
+  // reading isn't from today keeps this genuinely current, not a frozen
+  // snapshot; at most once per zone per day, since every other page load that
+  // same day already finds a "today" reading and skips straight past this.
+  if (!isToday(newest.timestamp)) {
+    try {
+      const res = await fetch(`${BASE_URL}/rainfall/${found.zone.id}/fetch`, { method: "POST" });
+      if (res.ok) {
+        const fresh = await res.json();
+        if (fresh.length > 0) readings = fresh;
+      }
+    } catch {
+      // Open-Meteo/network hiccup -- fall back to the (possibly stale)
+      // readings already fetched above rather than fail the whole card.
+    }
+  }
+
+  // GET /rainfall/{id} returns newest-first, POST .../fetch returns
+  // whatever order Open-Meteo's response was in -- sort explicitly rather
+  // than trust either implicit order, then take the most recent 7 days.
+  const ascending = readings.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  return ascending.slice(-7).map((r) => ({
     day: new Date(r.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
     mm: Math.round(r.intensity_mm),
   }));
