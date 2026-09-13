@@ -131,14 +131,18 @@ export default function Overview() {
           </div>
 
           {/* Map + Active alerts */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2 bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
+            <div className="xl:col-span-2 flex flex-col bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-serif font-semibold text-ink-900 dark:text-paper-100 text-[15px]">{t("overview.riskMap")}</h2>
                 <span className="text-xs text-paper-500">{selectedState || t("overview.allStates")}</span>
               </div>
-              <div className="relative z-0">
-                <RiskMap center={mapCenter} zones={zones} />
+              {/* flex-1 + min-h so the map grows to match the Active Alerts
+                  panel's height instead of leaving blank space below a fixed
+                  420px map, but never shrinks below a usable size when the
+                  alerts panel happens to be short. */}
+              <div className="relative z-0 flex-1 min-h-[420px]">
+                <RiskMap center={mapCenter} zones={zones} height="100%" />
                 <div className="absolute left-3 bottom-3 z-[400]">
                   <RiskLegend />
                 </div>
