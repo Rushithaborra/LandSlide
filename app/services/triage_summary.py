@@ -4,21 +4,12 @@ an officer can scan in one line on a crowded reports list -- e.g.
 "Progressive shear failure precursor -- evacuate school and 12 households
 immediately" instead of a full paragraph.
 
-Uses Gemini (not Claude) specifically because it has a genuinely free tier
-(Google AI Studio, no card required) -- this is a student/hackathon project
-with no budget for Anthropic's prepaid API credits.
-
 Best-effort, same pattern as app/services/sms_alerts.py: called from
 POST /reports after the report is already committed, wrapped in a try/except
 by the caller so a missing API key or a transient API error never blocks a
 citizen's report from being accepted. triage_summary simply stays null.
 """
-from app.config import settings
-
-# Google's own "fastest, most cost-effective" flash-lite tier -- free-tier
-# friendly, appropriate for a short, simple one-line summarization task
-# (not the flagship gemini-3.8-flash, which is unnecessary for this).
-MODEL = "gemini-3.5-flash-lite"
+from app.services.ai_client import MODEL, get_client
 
 SYSTEM_PROMPT = (
     "You write one-line triage summaries for landslide-risk field reports, for a "
@@ -28,27 +19,6 @@ SYSTEM_PROMPT = (
     "what's at risk or needed. Do not add hedging, greetings, or explanation. "
     "Do not invent details not in the report. Output only the sentence, nothing else."
 )
-
-_client = None
-
-
-def get_client():
-    """Lazy singleton, same pattern as sms_alerts.get_twilio_client()."""
-    global _client
-    if _client is None:
-        if not settings.google_api_key:
-            raise RuntimeError(
-                "Google API key not configured -- set GOOGLE_API_KEY "
-                "before generating triage summaries."
-            )
-        from google import genai  # local import: optional dependency, only needed here
-
-        _client = genai.Client(api_key=settings.google_api_key)
-    return _client
-
-
-def gemini_configured() -> bool:
-    return bool(settings.google_api_key)
 
 
 def generate_triage_summary(report_type: str, severity: str, description: str,

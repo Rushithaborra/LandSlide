@@ -4,7 +4,7 @@ project's existing split between pure-logic tests and integration testing."""
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from app.services import triage_summary
+from app.services import ai_client, triage_summary
 
 
 def _fake_response(text: str):
@@ -34,10 +34,10 @@ def test_generate_triage_summary_returns_none_on_empty_response():
 
 
 def test_gemini_configured_false_without_key():
-    with patch.object(triage_summary.settings, "google_api_key", None):
-        assert triage_summary.gemini_configured() is False
+    with patch.object(ai_client.settings, "google_api_key", None):
+        assert ai_client.gemini_configured() is False
 
 
 def test_gemini_configured_true_with_key():
-    with patch.object(triage_summary.settings, "google_api_key", "test-key"):
-        assert triage_summary.gemini_configured() is True
+    with patch.object(ai_client.settings, "google_api_key", "test-key"):
+        assert ai_client.gemini_configured() is True

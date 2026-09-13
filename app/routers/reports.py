@@ -10,7 +10,8 @@ from app.config import settings
 from app.database import get_db
 from app.models import CitizenReport
 from app.schemas import CitizenReportIn, CitizenReportOut
-from app.services.triage_summary import gemini_configured, generate_triage_summary
+from app.services.ai_client import gemini_configured
+from app.services.triage_summary import generate_triage_summary
 
 router = APIRouter(prefix="/reports", tags=["citizen-reports"])
 
