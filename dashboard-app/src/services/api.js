@@ -96,6 +96,7 @@ async function fetchAndShapeAlerts() {
     .sort((a, b) => new Date(b.triggered_at) - new Date(a.triggered_at))
     .map((a) => ({
       id: a.id,
+      zoneId: a.zone_id,
       title: a.threshold_crossed,
       location: a.zone_name || "Unknown zone",
       severity: capitalizeTier(a.risk_tier),
@@ -178,10 +179,19 @@ export async function getSummaryStats(state) {
   };
 }
 
-/* LINK SPOT B / C — alerts */
-export async function getActiveAlerts() {
+/* LINK SPOT B / C — alerts. `state`, when given, scopes this to the
+ * currently selected NER state (Overview's AlertsPanel) -- Alert has no
+ * state field of its own, so this filters by membership in that state's
+ * zone set, same technique getSummaryStats already uses. getRecentAlerts
+ * (the standalone Alerts page) stays intentionally global across all
+ * regions, unaffected. */
+export async function getActiveAlerts(state) {
   const shaped = await fetchAndShapeAlerts();
-  return shaped.filter((a) => a.status === "active");
+  const active = shaped.filter((a) => a.status === "active");
+  if (!state) return active;
+  const zones = await getJSON("/zones");
+  const zoneIds = new Set(zones.filter((z) => z.state === state).map((z) => z.id));
+  return active.filter((a) => zoneIds.has(a.zoneId));
 }
 
 export async function getRecentAlerts() {

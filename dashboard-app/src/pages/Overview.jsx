@@ -40,7 +40,7 @@ export default function Overview() {
 
     Promise.allSettled([
       getSummaryStats(selectedState),
-      getActiveAlerts(),
+      getActiveAlerts(selectedState),
       getRainfallTrend(selectedState),
       getRiskZones(selectedState),
     ]).then(([statsR, alertsR, rainfallR, zonesR]) => {
