@@ -1,0 +1,41 @@
+{
+  "sidebar": {
+    "appNameLine1": "पहिरो",
+    "appNameLine2": "पूर्व चेतावनी",
+    "overview": "सारांश",
+    "alerts": "चेतावनी",
+    "incidents": "घटनाहरू",
+    "highwayCorridors": "राजमार्ग करिडोर",
+    "emergencyContacts": "आपतकालीन सम्पर्कहरू",
+    "authorityContacts": "प्राधिकरण सम्पर्कहरू",
+    "dataObservations": "डेटा र अवलोकनहरू",
+    "citizenReports": "नागरिक प्रतिवेदनहरू",
+    "help": "सहयोग",
+    "systemStatus": "प्रणाली स्थिति",
+    "operational": "सक्रिय",
+    "systemsNormal": "सबै प्रणालीहरू सामान्य रूपमा चलिरहेका छन्"
+  },
+  "topbar": {
+    "sos": "SOS 112",
+    "sosAriaLabel": "राष्ट्रिय आपतकालीन नम्बर, 112 मा फोन गर्नुहोस्",
+    "openAdminDetails": "प्रशासक विवरण खोल्नुहोस्",
+    "admin": "प्रशासक",
+    "changeLanguage": "भाषा परिवर्तन गर्नुहोस्"
+  },
+  "overview": {
+    "title": "सारांश",
+    "subtitle": "पहिरो जोखिम र प्रणाली स्थितिको प्रत्यक्ष सारांश",
+    "loading": "लोड हुँदैछ…",
+    "loadErrorTitle": "सारांश लोड गर्न सकिएन",
+    "retry": "फेरि प्रयास गर्नुहोस्",
+    "highRiskZones": "उच्च जोखिम क्षेत्रहरू",
+    "activeAlerts": "सक्रिय चेतावनीहरू",
+    "affectedVillages": "प्रभावित गाउँहरू",
+    "rainfall24h": "वर्षा (२४ घण्टा)",
+    "systemHealth": "प्रणाली स्वास्थ्य",
+    "riskMap": "पहिरो जोखिम नक्सा",
+    "allStates": "सबै राज्यहरू",
+    "rainfallTrend": "वर्षा प्रवृत्ति (गत ७ दिन)",
+    "dangerThreshold": "खतरा सीमा {{value}} मिमी"
+  }
+}

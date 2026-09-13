@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, Bell, Users, CloudRain, ShieldCheck } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import StatCard from "../components/StatCard";
@@ -16,6 +17,7 @@ import { mapCenter, rainfallThresholdMm } from "../data/mockData";
 import { useRegion } from "../context/RegionContext";
 
 export default function Overview() {
+  const { t } = useTranslation();
   // All of this state is populated through src/services/api.js, which today
   // returns mock data and later will call the real backend. See
   // LINKING_GUIDE.md for the full hookup list.
@@ -61,22 +63,22 @@ export default function Overview() {
 
   return (
     <DashboardLayout
-      title="Overview"
-      subtitle="Live summary of landslide risk and system status"
+      title={t("overview.title")}
+      subtitle={t("overview.subtitle")}
     >
       {!stats && loadError ? (
         <div className="rounded-xl border border-risk-high/30 bg-risk-highSoft dark:bg-risk-high/10 p-5">
-          <p className="text-sm font-medium text-risk-high">Couldn't load the overview</p>
+          <p className="text-sm font-medium text-risk-high">{t("overview.loadErrorTitle")}</p>
           <p className="text-sm text-paper-500 mt-1">{loadError}</p>
           <button
             onClick={() => setRetryCount((n) => n + 1)}
             className="mt-3 text-sm font-medium px-3 py-1.5 rounded-lg bg-risk-high text-white hover:opacity-90"
           >
-            Retry
+            {t("overview.retry")}
           </button>
         </div>
       ) : !stats ? (
-        <p className="text-sm text-paper-500">Loading overview…</p>
+        <p className="text-sm text-paper-500">{t("overview.loading")}</p>
       ) : (
         <div className="space-y-6">
           {/* Top stat cards */}
@@ -85,7 +87,7 @@ export default function Overview() {
               icon={AlertTriangle}
               iconBg="#f8ebe6"
               iconColor="#b4472f"
-              label="High Risk Zones"
+              label={t("overview.highRiskZones")}
               value={stats.highRiskZones.value}
               deltaLabel={stats.highRiskZones.deltaLabel}
               trend={stats.highRiskZones.trend}
@@ -94,7 +96,7 @@ export default function Overview() {
               icon={Bell}
               iconBg="#faf0dd"
               iconColor="#c8871d"
-              label="Active Alerts"
+              label={t("overview.activeAlerts")}
               value={stats.activeAlerts.value}
               deltaLabel={stats.activeAlerts.deltaLabel}
               trend={stats.activeAlerts.trend}
@@ -103,7 +105,7 @@ export default function Overview() {
               icon={Users}
               iconBg="#e7eef2"
               iconColor="#3a6b82"
-              label="Affected Villages"
+              label={t("overview.affectedVillages")}
               value={stats.affectedVillages.value}
               deltaLabel={stats.affectedVillages.deltaLabel}
               trend={stats.affectedVillages.trend}
@@ -112,7 +114,7 @@ export default function Overview() {
               icon={CloudRain}
               iconBg="#e9f2f2"
               iconColor="#15606b"
-              label="Rainfall (24h)"
+              label={t("overview.rainfall24h")}
               value={stats.rainfall24h.value}
               deltaLabel={stats.rainfall24h.deltaLabel}
               trend={stats.rainfall24h.trend}
@@ -121,7 +123,7 @@ export default function Overview() {
               icon={ShieldCheck}
               iconBg="#ecf2e8"
               iconColor="#5b8c4f"
-              label="System Health"
+              label={t("overview.systemHealth")}
               value={stats.systemHealth.value}
               deltaLabel={stats.systemHealth.deltaLabel}
               trend={stats.systemHealth.trend}
@@ -132,8 +134,8 @@ export default function Overview() {
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-serif font-semibold text-ink-900 dark:text-paper-100 text-[15px]">Landslide Risk Map</h2>
-                <span className="text-xs text-paper-500">{selectedState || "All States"}</span>
+                <h2 className="font-serif font-semibold text-ink-900 dark:text-paper-100 text-[15px]">{t("overview.riskMap")}</h2>
+                <span className="text-xs text-paper-500">{selectedState || t("overview.allStates")}</span>
               </div>
               <div className="relative z-0">
                 <RiskMap center={mapCenter} zones={zones} />
@@ -152,10 +154,10 @@ export default function Overview() {
           <div className="bg-white rounded-xl border border-paper-200 p-5 dark:bg-night-900 dark:border-night-700">
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-serif font-semibold text-ink-900 text-[15px] dark:text-paper-100">
-                Rainfall Trend (Last 7 Days)
+                {t("overview.rainfallTrend")}
               </h2>
               <span className="text-xs text-paper-500">
-                Danger threshold {rainfallThresholdMm} mm
+                {t("overview.dangerThreshold", { value: rainfallThresholdMm })}
               </span>
             </div>
             <RainfallChart data={rainfall} thresholdMm={rainfallThresholdMm} height={340} />

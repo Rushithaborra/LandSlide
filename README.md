@@ -81,6 +81,44 @@ re-exercised against this DB yet.
   from Data/GIS lead — schema/DB side is ready)
 - A true "alert fires live" rehearsal against real ingested data
 
+**AI features added 2026-09-13 (Google Gemini, `gemini-3.5-flash-lite` —
+free tier, no card required)**, all best-effort and never blocking the
+action they attach to:
+- Per-report triage summary (`app/services/triage_summary.py`): one-line
+  officer-facing summary of a citizen report, always forced to English even
+  when the report itself is in another language. Shown in the dashboard
+  labeled "AI-generated triage summary", never presented as the citizen's
+  own words.
+- Alert bulletin draft (`app/services/bulletin.py`): "Draft with AI" button
+  in the Broadcast composer proposes a headline/message for a zone crossing
+  its rainfall threshold; the operator reviews and can edit before sending —
+  never auto-sent.
+- Citizen-facing wording assist (`app/services/description_polish.py`,
+  citizen-report-app's "Clean up wording" button): cleans grammar/clarity in
+  the citizen's own description *before* submission, strictly forbidden from
+  adding new facts (`temperature=0.1`). The citizen explicitly chooses
+  "Use this" or "Keep my wording" — nothing is auto-applied. Deliberately
+  **not** "AI writes the report from a prompt" — that was considered and
+  rejected: an LLM could invent details attributed to a real citizen with no
+  way to tell afterward which parts were theirs.
+- Citizen-report translation (`app/services/translation.py`): every report's
+  description is translated to English for the dashboard, shown alongside
+  (not replacing) the citizen's original wording, labeled "AI translation".
+  Chosen over translating outgoing alerts into regional languages, which
+  remains undone.
+
+**Multilingual dashboard UI added 2026-09-13** (`react-i18next` +
+`i18next`): a language switcher (English / Hindi / Nepali — Nepali is
+Sikkim's actual majority language) in the Topbar, persisted per-browser via
+`localStorage`. **Only the Sidebar, Topbar, and Overview page are
+translated so far** — every other page (Alerts, Incidents, Highway
+Corridors, Emergency/Authority Contacts, Data & Observations, Citizen
+Reports, Help) is still English-only regardless of the selected language.
+Hindi/Nepali strings are machine-quality translations, not reviewed by a
+native speaker — say so if asked. Full-dashboard translation is future work,
+not attempted here on purpose (same "deep on the highest-traffic surfaces,
+not shallow everywhere" scoping as everything else in this project).
+
 ## ML data pipeline (`scripts/ml/`)
 
 **Scope, stated plainly:** this is a **road-corridor** susceptibility model,
