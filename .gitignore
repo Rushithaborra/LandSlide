@@ -28,6 +28,14 @@ data/raw/landcover/
 data/raw/population/
 data/raw/osm_extras/buildings_centroids.geojson
 data/processed/dem_sikkim_utm45n.tif
+# Same pattern, per-state, for the NER expansion (Assam/Mizoram/...): OSM
+# road pulls and mosaicked DEM/land-cover rasters are large (Assam's alone:
+# a 179MB roads.geojson, a 792MB DEM mosaic, a 2.5GB land-cover mosaic) and
+# fully reproducible by re-running the same fetch/mosaic scripts against
+# ml_config.STATE_CONFIGS -- never meant for git.
+data/raw/*_roads.geojson
+data/processed/dem_*_utm*.tif
+data/processed/landcover_*_mosaic.tif
 dashboard-app/node_modules/
 dashboard-app/dist/
 dashboard-app/.env

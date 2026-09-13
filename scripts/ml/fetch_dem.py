@@ -15,6 +15,7 @@ import pathlib
 
 import httpx
 import rasterio
+from rasterio.merge import merge as rasterio_merge
 from rasterio.warp import Resampling, calculate_default_transform, reproject
 
 from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig
@@ -38,32 +39,49 @@ def download_tile(tile_id: str, config: MlConfig = DEFAULT_CONFIG) -> pathlib.Pa
 
 def reproject_to_utm(tile_paths: list, config: MlConfig = DEFAULT_CONFIG) -> pathlib.Path:
     """Merges (if multiple tiles) and reprojects to config.dem.target_crs.
-    For this pilot there's exactly one tile, so this is a straight reproject."""
-    if len(tile_paths) != 1:
-        raise NotImplementedError(
-            "Multiple DEM tiles would need a mosaic step (rasterio.merge) before "
-            "reprojecting -- not needed for this pilot (single tile covers all "
-            "777 Sikkim points), so it's intentionally not implemented yet."
-        )
-
+    Sikkim's pilot used exactly one tile (a straight reproject); Assam's real
+    point spread crosses 10 tiles (see ml_config.ASSAM_CONFIG), so multi-tile
+    inputs are mosaicked with rasterio.merge -- the standard library tool for
+    this, not a hand-rolled tile-stitcher -- before the same reproject step."""
     config.paths.dem_utm_path.parent.mkdir(parents=True, exist_ok=True)
-    src_path = tile_paths[0]
-    with rasterio.open(src_path) as src:
+
+    if len(tile_paths) == 1:
+        srcs = [rasterio.open(tile_paths[0])]
+    else:
+        srcs = [rasterio.open(p) for p in tile_paths]
+
+    try:
+        if len(srcs) == 1:
+            src = srcs[0]
+            src_data, src_transform, src_crs = src.read(1), src.transform, src.crs
+            src_meta = src.meta.copy()
+        else:
+            mosaic, mosaic_transform = rasterio_merge(srcs)
+            src_data = mosaic[0]
+            src_transform = mosaic_transform
+            src_crs = srcs[0].crs
+            src_meta = srcs[0].meta.copy()
+            src_meta.update({"height": src_data.shape[0], "width": src_data.shape[1], "transform": mosaic_transform})
+
         transform, width, height = calculate_default_transform(
-            src.crs, config.dem.target_crs, src.width, src.height, *src.bounds
+            src_crs, config.dem.target_crs, src_meta["width"], src_meta["height"],
+            *rasterio.transform.array_bounds(src_meta["height"], src_meta["width"], src_transform),
         )
-        kwargs = src.meta.copy()
+        kwargs = src_meta.copy()
         kwargs.update({"crs": config.dem.target_crs, "transform": transform, "width": width, "height": height})
         with rasterio.open(config.paths.dem_utm_path, "w", **kwargs) as dst:
             reproject(
-                source=rasterio.band(src, 1),
+                source=src_data,
                 destination=rasterio.band(dst, 1),
-                src_transform=src.transform,
-                src_crs=src.crs,
+                src_transform=src_transform,
+                src_crs=src_crs,
                 dst_transform=transform,
                 dst_crs=config.dem.target_crs,
                 resampling=Resampling.bilinear,
             )
+    finally:
+        for s in srcs:
+            s.close()
     return config.paths.dem_utm_path
 
 

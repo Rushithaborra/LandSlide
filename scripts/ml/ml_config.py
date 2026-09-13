@@ -73,6 +73,17 @@ class PathsConfig:
     training_dataset_csv: pathlib.Path = DATA_PROCESSED / "training_dataset.csv"
     sampling_plot: pathlib.Path = DATA_PROCESSED / "sampling_map.png"
     case_study_csv: pathlib.Path = DATA_CASE_STUDY / "rainfall_threshold_case_study.csv"
+    # Only populated for states whose raw inventory isn't the Sikkim CSV above
+    # (see gsi_assam_csv on Assam's PathsConfig) -- kept optional rather than
+    # renaming gsi_sikkim_csv, since every existing script still defaults to
+    # DEFAULT_CONFIG (Sikkim) and imports that field by its Sikkim-specific
+    # name unchanged.
+    gsi_assam_csv: pathlib.Path | None = None
+    # Raw WorldCover source tiles to mosaic into landcover_tif above, only
+    # needed for a state whose point spread crosses more than one native
+    # WorldCover 3x3-degree tile (Sikkim fits inside one, so this is empty
+    # for DEFAULT_CONFIG and extract_landcover.py reads landcover_tif as-is).
+    landcover_source_tifs: tuple[pathlib.Path, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -104,6 +115,52 @@ DEFAULT_CONFIG = MlConfig()
 # docs/dataset_inventory.md and CLAUDE.md's ML pipeline section) -- correct
 # UTM zone depends on the state's longitude and must be re-derived, not
 # copied from Sikkim's 45N.
+ASSAM_CONFIG = MlConfig(
+    state="Assam",
+    dem=DemConfig(
+        # 10 Copernicus GLO-30 tiles -- derived directly from the real, audited
+        # GSI Assam inventory's lat/lon spread (24.27-26.97N, 90.30-94.37E),
+        # not guessed. Unlike Sikkim's single-tile pilot, Assam's 630 cleaned
+        # positives are scattered statewide (Kamrup/Guwahati in the west,
+        # Karbi Anglong/Nagaon centrally, Dima Hasao/Cachar in the east), so
+        # every tile actually containing a positive point is included.
+        tile_ids=(
+            "N24_00_E092_00", "N24_00_E093_00",
+            "N25_00_E091_00", "N25_00_E092_00", "N25_00_E093_00",
+            "N26_00_E090_00", "N26_00_E091_00", "N26_00_E092_00",
+            "N26_00_E093_00", "N26_00_E094_00",
+        ),
+        # UTM 46N (90-96E) -- unlike Sikkim's 45N, re-derived from Assam's own
+        # longitude range, not copied. All 630 cleaned points fall inside 90-96E.
+        target_crs="EPSG:32646",
+    ),
+    roads=RoadsConfig(
+        # Bounding box slightly larger than the real point spread (same
+        # margin philosophy as Sikkim's RoadsConfig) to avoid corridor edge
+        # effects: (south, west, north, east).
+        bbox=(24.1, 90.2, 27.1, 94.5),
+    ),
+    sampling=NegativeSamplingConfig(),  # same buffers/ratio/seed as Sikkim -- no evidence yet to change them
+    paths=PathsConfig(
+        gsi_assam_csv=DATA_RAW / "gsi_assam_landslides.csv",
+        dem_raw_dir=DATA_RAW / "dem",  # shared: tiles are named by tile_id, no collision risk
+        dem_utm_path=DATA_PROCESSED / "dem_assam_utm46n.tif",
+        roads_geojson=DATA_RAW / "assam_roads.geojson",
+        # ESA WorldCover ships in 3x3-degree native tiles -- Assam's point
+        # spread crosses several. Real tile IDs (grid aligned to multiples of
+        # 3 degrees), not guessed: covers 90-96E x 21-27N.
+        landcover_source_tifs=(
+            DATA_RAW / "landcover" / "ESA_WorldCover_10m_2021_v200_N24E090_Map.tif",
+            DATA_RAW / "landcover" / "ESA_WorldCover_10m_2021_v200_N24E093_Map.tif",
+        ),
+        landcover_tif=DATA_PROCESSED / "landcover_assam_mosaic.tif",
+        negatives_csv=DATA_PROCESSED / "assam_negative_samples.csv",
+        training_dataset_csv=DATA_PROCESSED / "assam_training_dataset.csv",
+        sampling_plot=DATA_PROCESSED / "assam_sampling_map.png",
+    ),
+)
+
 STATE_CONFIGS: dict[str, MlConfig] = {
     "sikkim": DEFAULT_CONFIG,
+    "assam": ASSAM_CONFIG,
 }
