@@ -85,6 +85,22 @@ class BroadcastOut(BaseModel):
     dispatched_at: datetime
 
 
+class AuthorityContactIn(BaseModel):
+    name: str = Field(min_length=1)
+    role: str | None = None
+    phone_number: str = Field(min_length=1)
+
+
+class AuthorityContactOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    name: str
+    role: str | None
+    phone_number: str
+    added_at: datetime
+
+
 class Coords(BaseModel):
     lat: float
     lng: float

@@ -6,6 +6,7 @@ import Alerts from "./pages/Alerts";
 import Incidents from "./pages/Incidents";
 import HighwayCorridors from "./pages/HighwayCorridors";
 import EmergencyContacts from "./pages/EmergencyContacts";
+import AuthorityContacts from "./pages/AuthorityContacts";
 import DataObservations from "./pages/DataObservations";
 import CitizenReports from "./pages/CitizenReports";
 import HelpDocs from "./pages/HelpDocs";
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/incidents" element={<Incidents />} />
             <Route path="/highway-corridors" element={<HighwayCorridors />} />
             <Route path="/emergency-contacts" element={<EmergencyContacts />} />
+            <Route path="/authority-contacts" element={<AuthorityContacts />} />
             <Route path="/data-observations" element={<DataObservations />} />
             <Route path="/citizen-reports" element={<CitizenReports />} />
             <Route path="/help" element={<HelpDocs />} />

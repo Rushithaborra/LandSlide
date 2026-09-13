@@ -322,6 +322,35 @@ export async function submitCitizenReport(payload) {
 }
 
 /* ----------------------------------------------------------------------- *
+ * Authority Contacts — the real call-list app.services.sms_alerts.
+ * escalate_critical_alert reads on a "critical" broadcast. Previously only
+ * addable via a direct DB insert; this is what makes that feature usable by
+ * an officer, not just a developer. Not cached via getJSON since this list
+ * is short and changes rarely but must always be fresh right after an add
+ * or delete.
+ * ----------------------------------------------------------------------- */
+export async function getAuthorityContacts() {
+  const res = await fetch(`${BASE_URL}/authority-contacts`);
+  if (!res.ok) throw new Error(`load authority contacts failed: ${res.status}`);
+  return res.json();
+}
+
+export async function addAuthorityContact({ name, role, phoneNumber }) {
+  const res = await fetch(`${BASE_URL}/authority-contacts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, role: role || null, phone_number: phoneNumber }),
+  });
+  if (!res.ok) throw new Error(`add authority contact failed: ${res.status}`);
+  return res.json();
+}
+
+export async function deleteAuthorityContact(contactId) {
+  const res = await fetch(`${BASE_URL}/authority-contacts/${contactId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`delete authority contact failed: ${res.status}`);
+}
+
+/* ----------------------------------------------------------------------- *
  * Out of scope for this round -- no backend endpoint exists (incidents,
  * data-source health, the warning ticker). Left on mock data on purpose,
  * not connected.
