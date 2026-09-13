@@ -1,4 +1,5 @@
 import { Radio } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const severityStyle = {
   High: "bg-risk-highSoft dark:bg-risk-high/20 text-risk-high dark:text-risk-highOn",
@@ -7,16 +8,17 @@ const severityStyle = {
 };
 
 export default function RecentAlertsTable({ alerts, onBroadcast }) {
+  const { t } = useTranslation();
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-paper-500 text-xs">
-            <th className="font-medium pb-2">Alert</th>
-            <th className="font-medium pb-2">Location</th>
-            <th className="font-medium pb-2">Severity</th>
-            <th className="font-medium pb-2">Time</th>
-            {onBroadcast && <th className="font-medium pb-2">Broadcast</th>}
+            <th className="font-medium pb-2">{t("table.alert")}</th>
+            <th className="font-medium pb-2">{t("table.location")}</th>
+            <th className="font-medium pb-2">{t("table.severity")}</th>
+            <th className="font-medium pb-2">{t("table.time")}</th>
+            {onBroadcast && <th className="font-medium pb-2">{t("table.broadcast")}</th>}
           </tr>
         </thead>
         <tbody>
@@ -39,7 +41,7 @@ export default function RecentAlertsTable({ alerts, onBroadcast }) {
                     className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-paper-200 px-3 py-1.5 text-xs font-medium text-paper-700 hover:bg-paper-100 dark:border-night-700 dark:text-paper-300 dark:hover:bg-night-800"
                   >
                     <Radio size={13} />
-                    Broadcast
+                    {t("table.broadcast")}
                   </button>
                 </td>
               )}

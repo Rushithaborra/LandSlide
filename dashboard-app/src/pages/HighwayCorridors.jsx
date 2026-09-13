@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import LoadError from "../components/LoadError";
 import { useAsyncData } from "../hooks/useAsyncData";
@@ -16,13 +17,14 @@ const severityStyle = {
  * instead of listed flat, so an officer can see "which road" at a glance.
  */
 export default function HighwayCorridors() {
+  const { t } = useTranslation();
   const { state: selectedState } = useRegion();
   const { data: corridors, error, retry } = useAsyncData(() => getCorridors(selectedState), [selectedState]);
 
   return (
     <DashboardLayout
-      title="Highway Corridors"
-      subtitle={`Real zones grouped by highway, worst risk first — ${selectedState || "All States"}`}
+      title={t("highwayCorridors.title")}
+      subtitle={t("highwayCorridors.subtitle", { state: selectedState || t("overview.allStates") })}
     >
       {error && !corridors ? (
         <LoadError message={error} onRetry={retry} />
@@ -31,11 +33,11 @@ export default function HighwayCorridors() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-paper-500 text-xs">
-                <th className="font-medium pb-2">Corridor</th>
-                <th className="font-medium pb-2">Zones</th>
-                <th className="font-medium pb-2">Worst risk</th>
-                <th className="font-medium pb-2">Highest-risk zone</th>
-                <th className="font-medium pb-2">Active alerts</th>
+                <th className="font-medium pb-2">{t("table.corridor")}</th>
+                <th className="font-medium pb-2">{t("table.zones")}</th>
+                <th className="font-medium pb-2">{t("table.worstRisk")}</th>
+                <th className="font-medium pb-2">{t("table.highestRiskZone")}</th>
+                <th className="font-medium pb-2">{t("table.activeAlerts")}</th>
               </tr>
             </thead>
             <tbody>
@@ -53,7 +55,7 @@ export default function HighwayCorridors() {
                     {c.activeAlertCount > 0 ? (
                       <span className="font-medium text-risk-high">{c.activeAlertCount} active</span>
                     ) : (
-                      "None"
+                      t("common.none")
                     )}
                   </td>
                 </tr>

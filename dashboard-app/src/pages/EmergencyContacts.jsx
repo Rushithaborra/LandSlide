@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { getEmergencyContacts } from "../services/api";
 
@@ -10,6 +11,7 @@ import { getEmergencyContacts } from "../services/api";
  * unconfirmed rather than presented as verified (see mockData.js).
  */
 export default function EmergencyContacts() {
+  const { t } = useTranslation();
   const [contacts, setContacts] = useState([]);
 
   useEffect(() => {
@@ -17,7 +19,7 @@ export default function EmergencyContacts() {
   }, []);
 
   return (
-    <DashboardLayout title="Emergency Contacts" subtitle="Click-to-call directory for disaster response">
+    <DashboardLayout title={t("emergencyContacts.title")} subtitle={t("emergencyContacts.subtitle")}>
       <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4 divide-y divide-paper-200 dark:divide-night-700">
         {contacts.map((c) => (
           <div key={c.name} className="flex items-center justify-between py-3 gap-4">
@@ -26,7 +28,7 @@ export default function EmergencyContacts() {
               <p className="text-xs text-paper-500">{c.jurisdiction}</p>
               {!c.verified && (
                 <span className="mt-1 inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-risk-moderateSoft text-risk-moderate dark:bg-risk-moderate/20 dark:text-risk-moderateOn">
-                  Unconfirmed — verify before real-world use
+                  {t("emergencyContacts.unconfirmed")}
                 </span>
               )}
             </div>
@@ -36,7 +38,7 @@ export default function EmergencyContacts() {
                 className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-risk-high px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
               >
                 <Phone size={14} />
-                Call {c.phone}
+                {t("common.call", { phone: c.phone })}
               </a>
             ) : (
               <span className="shrink-0 whitespace-nowrap text-xs text-paper-500">{c.phone}</span>

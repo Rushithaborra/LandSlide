@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { getDataSources } from "../services/api";
 
@@ -8,6 +9,7 @@ import { getDataSources } from "../services/api";
  * Owner: data engineering team.
  */
 export default function DataObservations() {
+  const { t } = useTranslation();
   const [sources, setSources] = useState([]);
 
   useEffect(() => {
@@ -15,13 +17,13 @@ export default function DataObservations() {
   }, []);
 
   return (
-    <DashboardLayout title="Data & Observations" subtitle="Upstream data source health and sync status">
+    <DashboardLayout title={t("dataObservations.title")} subtitle={t("dataObservations.subtitle")}>
       <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4 divide-y divide-paper-200 dark:divide-night-700">
         {sources.map((s) => (
           <div key={s.name} className="flex items-center justify-between py-3">
             <div>
               <p className="text-sm font-medium text-ink-800 dark:text-paper-200">{s.name}</p>
-              <p className="text-xs text-paper-500">Last sync: {s.lastSync}</p>
+              <p className="text-xs text-paper-500">{t("dataObservations.lastSync", { value: s.lastSync })}</p>
             </div>
             <span
               className={`text-xs font-medium px-2.5 py-1 rounded-full ${

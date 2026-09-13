@@ -1,4 +1,31 @@
 {
+  "common": {
+    "retry": "Retry",
+    "loading": "Loading…",
+    "none": "None",
+    "download": "Download",
+    "back": "Back",
+    "couldNotLoadPage": "Couldn't load this page",
+    "call": "Call {{phone}}",
+    "close": "Close",
+    "done": "Done"
+  },
+  "table": {
+    "alert": "Alert",
+    "location": "Location",
+    "severity": "Severity",
+    "time": "Time",
+    "broadcast": "Broadcast",
+    "id": "ID",
+    "date": "Date",
+    "status": "Status",
+    "report": "Report",
+    "corridor": "Corridor",
+    "zones": "Zones",
+    "worstRisk": "Worst risk",
+    "highestRiskZone": "Highest-risk zone",
+    "activeAlerts": "Active alerts"
+  },
   "sidebar": {
     "appNameLine1": "Landslide",
     "appNameLine2": "Early Warning",
@@ -37,5 +64,108 @@
     "allStates": "All States",
     "rainfallTrend": "Rainfall Trend (Last 7 Days)",
     "dangerThreshold": "Danger threshold {{value}} mm"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "All landslide risk alerts across regions"
+  },
+  "incidents": {
+    "title": "Incidents",
+    "subtitle": "Verified landslide incidents log",
+    "downloadAriaLabel": "Download the full PDF report for incident {{id}}",
+    "footnote": "Each report contains the incident details, the weather report, the rainfall trend before the event, previous recorded activity in that area, and every citizen report filed from the same area."
+  },
+  "highwayCorridors": {
+    "title": "Highway Corridors",
+    "subtitle": "Real zones grouped by highway, worst risk first — {{state}}"
+  },
+  "emergencyContacts": {
+    "title": "Emergency Contacts",
+    "subtitle": "Click-to-call directory for disaster response",
+    "unconfirmed": "Unconfirmed — verify before real-world use"
+  },
+  "authorityContacts": {
+    "title": "Authority Contacts",
+    "subtitle": "Officials who receive a real phone call on a Critical broadcast",
+    "registeredOfficials": "Registered officials",
+    "noneRegistered": "No officials registered yet — a Critical broadcast has no one to call until at least one is added.",
+    "removeAriaLabel": "Remove {{name}}",
+    "addOfficial": "Add an official",
+    "name": "Name",
+    "role": "Role",
+    "optional": "(optional)",
+    "rolePlaceholder": "e.g. District Disaster Management Officer",
+    "phoneNumber": "Phone number",
+    "adding": "Adding…",
+    "addOfficialButton": "Add official",
+    "twilioNote": "On a Twilio trial account, calls can only reach numbers verified in the Twilio console first — see docs/sms_voice_alert_handover.md."
+  },
+  "dataObservations": {
+    "title": "Data & Observations",
+    "subtitle": "Upstream data source health and sync status",
+    "lastSync": "Last sync: {{value}}"
+  },
+  "citizenReports": {
+    "title": "Citizen Reports",
+    "subtitle": "Ground reports submitted by residents",
+    "recentSubmissions": "Recent submissions",
+    "reportCount_one": "{{count}} report · click any report for full details",
+    "reportCount_other": "{{count}} reports · click any report for full details",
+    "openDetailsAriaLabel": "Open full details for report {{id}}"
+  },
+  "citizenReportModal": {
+    "photoSubmitted": "Photo submitted by the citizen",
+    "area": "Area",
+    "uploadedAt": "Uploaded at",
+    "submittedBy": "Submitted by",
+    "listedPublicly": "{{reporterType}} · listed publicly as “{{reporter}}”",
+    "contact": "Contact",
+    "weatherAtReport": "Weather when reported",
+    "triageSummaryLabel": "AI-generated triage summary",
+    "triageSummaryNote": "AI-generated from the citizen's own comment below — verify against it, not in place of it.",
+    "commentFromCitizen": "Comment from the citizen",
+    "translationLabel": "AI translation (English)",
+    "translationNote": "The citizen's original wording above is unchanged — this is a translation for reading, not a replacement.",
+    "verifyNote": "Verify only after the area has been checked on the ground or against the risk map.",
+    "verified": "Verified",
+    "verifying": "Verifying…",
+    "verifyReport": "Verify report",
+    "closeAriaLabel": "Close report details"
+  },
+  "zoneDetail": {
+    "title": "Zone Detail",
+    "subtitle": "Rainfall history, alerts, and susceptibility for one zone",
+    "loadingZone": "Loading zone…",
+    "risk": "{{level}} risk",
+    "susceptibility": "Susceptibility",
+    "notYetScored": "Not yet scored",
+    "modelVersion": "Model version",
+    "lastUpdated": "Last updated",
+    "rainfallHistory": "Rainfall history",
+    "noRainfallData": "No rainfall data fetched for this zone yet.",
+    "alertsForZone": "Alerts for this zone",
+    "noAlerts": "No alerts have fired for this zone yet."
+  },
+  "broadcastModal": {
+    "ariaLabel": "Issue alert broadcast",
+    "title": "Issue public warning broadcast",
+    "closeAriaLabel": "Close broadcast composer",
+    "broadcastLogged": "Broadcast logged for {{channels}}",
+    "simulatedNote": "Simulated, not a real dispatch — no SMS/CAP/siren gateway is wired up yet. This record is real (saved to the database); the actual send is not.",
+    "alertHeadline": "Alert headline",
+    "severityModerate": "Moderate",
+    "severityHigh": "High",
+    "severityCritical": "Critical (Red Alert)",
+    "draftWithAI": "Draft with AI",
+    "drafting": "Drafting…",
+    "draftHelp": "Fills the headline and message below from this alert's real data — Gemini, review before sending.",
+    "message": "Public safety guidance message",
+    "channels": "Broadcast dispatch channels",
+    "channelSms": "Cellular SMS",
+    "channelPush": "Mobile app push",
+    "channelSiren": "Community sirens",
+    "channelCap": "Govt CAP XML gateway",
+    "transmitting": "Transmitting…",
+    "transmit": "Transmit alert broadcast"
   }
 }

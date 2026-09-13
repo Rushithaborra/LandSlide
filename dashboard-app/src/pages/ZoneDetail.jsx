@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Gauge, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import LoadError from "../components/LoadError";
 import RainfallChart from "../components/RainfallChart";
@@ -22,6 +23,7 @@ const severityStyle = {
  * aggregate -- no new backend surface for this page.
  */
 export default function ZoneDetail() {
+  const { t } = useTranslation();
   const { zoneId } = useParams();
   const navigate = useNavigate();
 
@@ -30,20 +32,20 @@ export default function ZoneDetail() {
   const { data: alerts } = useAsyncData(() => getAlertsForZone(zoneId), [zoneId]);
 
   return (
-    <DashboardLayout title="Zone Detail" subtitle="Rainfall history, alerts, and susceptibility for one zone">
+    <DashboardLayout title={t("zoneDetail.title")} subtitle={t("zoneDetail.subtitle")}>
       <button
         type="button"
         onClick={() => navigate(-1)}
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-paper-600 hover:text-ink-900 dark:text-paper-400 dark:hover:text-paper-100"
       >
         <ArrowLeft size={15} />
-        Back
+        {t("common.back")}
       </button>
 
       {zoneError && !zone ? (
         <LoadError message={zoneError} onRetry={retryZone} />
       ) : !zone ? (
-        <p className="text-sm text-paper-500">Loading zone…</p>
+        <p className="text-sm text-paper-500">{t("zoneDetail.loadingZone")}</p>
       ) : (
         <div className="space-y-6">
           <div className="rounded-xl border border-paper-200 bg-white p-5 dark:border-night-700 dark:bg-night-900">
@@ -56,7 +58,7 @@ export default function ZoneDetail() {
                 </p>
               </div>
               <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${severityStyle[zone.level] || severityStyle.Moderate}`}>
-                {zone.level} risk
+                {t("zoneDetail.risk", { level: zone.level })}
               </span>
             </div>
 
@@ -64,14 +66,14 @@ export default function ZoneDetail() {
               <div>
                 <p className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-paper-500">
                   <Gauge size={12} />
-                  Susceptibility
+                  {t("zoneDetail.susceptibility")}
                 </p>
                 <p className="mt-1 text-sm font-medium text-ink-800 dark:text-paper-200">
-                  {zone.susceptibility != null ? `${(zone.susceptibility * 100).toFixed(0)}%` : "Not yet scored"}
+                  {zone.susceptibility != null ? `${(zone.susceptibility * 100).toFixed(0)}%` : t("zoneDetail.notYetScored")}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-paper-500">Model version</p>
+                <p className="text-[11px] font-medium uppercase tracking-wide text-paper-500">{t("zoneDetail.modelVersion")}</p>
                 <p className="mt-1 text-sm font-medium text-ink-800 dark:text-paper-200">
                   {zone.modelVersion || "—"}
                 </p>
@@ -79,7 +81,7 @@ export default function ZoneDetail() {
               <div>
                 <p className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-paper-500">
                   <Clock size={12} />
-                  Last updated
+                  {t("zoneDetail.lastUpdated")}
                 </p>
                 <p className="mt-1 text-sm font-medium text-ink-800 dark:text-paper-200">
                   {new Date(zone.lastUpdated).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}
@@ -91,31 +93,31 @@ export default function ZoneDetail() {
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
             <div className="xl:col-span-2 rounded-xl border border-paper-200 bg-white p-4 dark:border-night-700 dark:bg-night-900">
               <h3 className="mb-2 font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">
-                Rainfall history
+                {t("zoneDetail.rainfallHistory")}
               </h3>
               {!rainfall ? (
-                <p className="text-sm text-paper-500">Loading…</p>
+                <p className="text-sm text-paper-500">{t("common.loading")}</p>
               ) : rainfall.length === 0 ? (
-                <p className="text-sm text-paper-500">No rainfall data fetched for this zone yet.</p>
+                <p className="text-sm text-paper-500">{t("zoneDetail.noRainfallData")}</p>
               ) : (
                 <RainfallChart data={rainfall} thresholdMm={rainfallThresholdMm} height={260} />
               )}
             </div>
 
             <div className="rounded-xl border border-paper-200 bg-white p-4 dark:border-night-700 dark:bg-night-900">
-              <h3 className="mb-2 font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">Location</h3>
+              <h3 className="mb-2 font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">{t("table.location")}</h3>
               <RiskMap center={{ lat: zone.lat, lng: zone.lng }} zones={[zone]} height={260} />
             </div>
           </div>
 
           <div className="rounded-xl border border-paper-200 bg-white p-4 dark:border-night-700 dark:bg-night-900">
             <h3 className="mb-2 font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">
-              Alerts for this zone
+              {t("zoneDetail.alertsForZone")}
             </h3>
             {!alerts ? (
-              <p className="text-sm text-paper-500">Loading…</p>
+              <p className="text-sm text-paper-500">{t("common.loading")}</p>
             ) : alerts.length === 0 ? (
-              <p className="text-sm text-paper-500">No alerts have fired for this zone yet.</p>
+              <p className="text-sm text-paper-500">{t("zoneDetail.noAlerts")}</p>
             ) : (
               <RecentAlertsTable alerts={alerts} />
             )}

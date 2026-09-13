@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Phone, Trash2, UserPlus, ShieldAlert } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import LoadError from "../components/LoadError";
 import { useAsyncData } from "../hooks/useAsyncData";
@@ -14,6 +15,7 @@ import { getAuthorityContacts, addAuthorityContact, deleteAuthorityContact } fro
  * usable without touching the database by hand.
  */
 export default function AuthorityContacts() {
+  const { t } = useTranslation();
   const { data: contacts, error, retry } = useAsyncData(getAuthorityContacts);
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
@@ -53,26 +55,25 @@ export default function AuthorityContacts() {
 
   return (
     <DashboardLayout
-      title="Authority Contacts"
-      subtitle="Officials who receive a real phone call on a Critical broadcast"
+      title={t("authorityContacts.title")}
+      subtitle={t("authorityContacts.subtitle")}
     >
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="rounded-xl border border-paper-200 bg-white p-4 dark:border-night-700 dark:bg-night-900 xl:col-span-2">
           <div className="mb-3 flex items-center gap-2">
             <ShieldAlert size={16} className="text-risk-high" />
             <h2 className="font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">
-              Registered officials
+              {t("authorityContacts.registeredOfficials")}
             </h2>
           </div>
 
           {error && !contacts ? (
             <LoadError message={error} onRetry={retry} />
           ) : !contacts ? (
-            <p className="text-sm text-paper-500">Loading…</p>
+            <p className="text-sm text-paper-500">{t("common.loading")}</p>
           ) : contacts.length === 0 ? (
             <p className="text-sm text-paper-500">
-              No officials registered yet — a Critical broadcast has no one to call until at least
-              one is added.
+              {t("authorityContacts.noneRegistered")}
             </p>
           ) : (
             <div className="divide-y divide-paper-200 dark:divide-night-700">
@@ -91,7 +92,7 @@ export default function AuthorityContacts() {
                       type="button"
                       onClick={() => handleDelete(c.id)}
                       disabled={deletingId === c.id}
-                      aria-label={`Remove ${c.name}`}
+                      aria-label={t("authorityContacts.removeAriaLabel", { name: c.name })}
                       className="flex h-7 w-7 items-center justify-center rounded-lg text-paper-500 hover:bg-risk-highSoft hover:text-risk-high disabled:opacity-50 dark:hover:bg-risk-high/10"
                     >
                       <Trash2 size={14} />
@@ -107,12 +108,12 @@ export default function AuthorityContacts() {
           <div className="mb-3 flex items-center gap-2">
             <UserPlus size={16} className="text-ink-800 dark:text-paper-200" />
             <h2 className="font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">
-              Add an official
+              {t("authorityContacts.addOfficial")}
             </h2>
           </div>
           <form onSubmit={handleAdd} className="space-y-3">
             <div>
-              <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">Name</label>
+              <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">{t("authorityContacts.name")}</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -122,18 +123,18 @@ export default function AuthorityContacts() {
             </div>
             <div>
               <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">
-                Role <span className="normal-case text-paper-400">(optional)</span>
+                {t("authorityContacts.role")} <span className="normal-case text-paper-400">{t("authorityContacts.optional")}</span>
               </label>
               <input
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. District Disaster Management Officer"
+                placeholder={t("authorityContacts.rolePlaceholder")}
                 className="mt-1 w-full rounded-lg border border-paper-200 bg-white px-3 py-2 text-sm text-ink-800 dark:border-night-700 dark:bg-night-800 dark:text-paper-200"
               />
             </div>
             <div>
               <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">
-                Phone number
+                {t("authorityContacts.phoneNumber")}
               </label>
               <input
                 value={phoneNumber}
@@ -152,12 +153,11 @@ export default function AuthorityContacts() {
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-ink-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-ink-800 disabled:opacity-50 dark:bg-teal-600 dark:hover:bg-teal-500"
             >
               <UserPlus size={15} />
-              {saving ? "Adding…" : "Add official"}
+              {saving ? t("authorityContacts.adding") : t("authorityContacts.addOfficialButton")}
             </button>
           </form>
           <p className="mt-3 text-xs text-paper-500">
-            On a Twilio trial account, calls can only reach numbers verified in the Twilio console
-            first — see docs/sms_voice_alert_handover.md.
+            {t("authorityContacts.twilioNote")}
           </p>
         </div>
       </div>

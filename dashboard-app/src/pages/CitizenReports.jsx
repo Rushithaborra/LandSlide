@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Camera, ChevronRight, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import CitizenReportModal from "../components/CitizenReportModal";
 import LoadError from "../components/LoadError";
@@ -18,6 +19,7 @@ import { getCitizenReports } from "../services/api";
  *    a "Verify report" button. Verifying updates the badge in THIS list.
  */
 export default function CitizenReports() {
+  const { t } = useTranslation();
   const { data, error, retry } = useAsyncData(getCitizenReports);
   const [reports, setReports] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -39,8 +41,8 @@ export default function CitizenReports() {
 
   return (
     <DashboardLayout
-      title="Citizen Reports"
-      subtitle="Ground reports submitted by residents"
+      title={t("citizenReports.title")}
+      subtitle={t("citizenReports.subtitle")}
     >
       {error && !data ? (
         <LoadError message={error} onRetry={retry} />
@@ -51,11 +53,10 @@ export default function CitizenReports() {
         <div className="rounded-xl border border-paper-200 bg-white p-5 dark:border-night-700 dark:bg-night-900">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">
-              Recent submissions
+              {t("citizenReports.recentSubmissions")}
             </h2>
             <span className="text-xs text-paper-500">
-              {reports.length} report{reports.length === 1 ? "" : "s"} · click any
-              report for full details
+              {t("citizenReports.reportCount", { count: reports.length })}
             </span>
           </div>
 
@@ -65,7 +66,7 @@ export default function CitizenReports() {
                 key={r.id}
                 type="button"
                 onClick={() => setSelectedId(r.id)}
-                aria-label={`Open full details for report ${r.id}`}
+                aria-label={t("citizenReports.openDetailsAriaLabel", { id: r.id })}
                 className="flex w-full items-start gap-4 py-4 text-left first:pt-0 last:pb-0 hover:bg-paper-50 dark:hover:bg-night-800"
               >
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-paper-100 text-paper-400 dark:bg-night-800">
