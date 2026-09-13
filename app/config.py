@@ -62,6 +62,14 @@ class Settings(BaseSettings):
     # alerting for it rather than borrowing another state's number.
     rainfall_thresholds: dict[str, RainfallThresholdConfig] = {}
 
+    # Real SMS/voice delivery (app/services/sms_alerts.py), teammate D's
+    # module. Optional, same pattern as supabase_* above -- the app runs fine
+    # without these, but sms_alerts.get_twilio_client() raises a clear error
+    # the moment something actually tries to send. Never commit real values.
+    twilio_account_sid: str | None = None
+    twilio_auth_token: str | None = None
+    twilio_from_number: str | None = None
+
 
 settings = Settings()
 

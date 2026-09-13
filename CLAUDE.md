@@ -85,9 +85,11 @@ serialization. Concretely:
   IMD API access wasn't reachable in the timeframe, so Open-Meteo is what's
   actually wired up. Keep this discrepancy visible to F (PM/pitch) rather than
   letting the deck imply IMD is live.
-- Alerts: SMS delivery is **not implemented** — alerts are logged
-  (`delivery_method="log_only"`) per the Honesty Rule below. Twilio/MSG91
-  sandbox is a stretch goal only if trivial.
+- Alerts: SMS/voice delivery is **real (Twilio, `app/services/sms_alerts.py`),
+  integrated 2026-09-13 from teammate D's handover module — but Twilio
+  credentials aren't set anywhere yet, so both the automated engine and the
+  Broadcast composer still fall back to `delivery_method="log_only"` /
+  `status="simulated"` in practice. See "SMS & voice alerts" section below.
 
 ## Data model
 `migrations/001_schema.sql`: `zones` (PostGIS geometry, susceptibility_score,
@@ -219,14 +221,62 @@ real GSI landslide inventory (the actual hard part), run `fetch_dem` /
 for that state, generate and integrate its real zones, and — for Mizoram
 only — find or adapt a real rainfall threshold.
 
+## SMS & voice alerts — integrated 2026-09-13
+Teammate D handed off a working `sms_alerts.py` module (Twilio) plus a
+migration and a manual test script, packaged for a raw-psycopg2 backend. This
+one is SQLAlchemy ORM throughout, so it needed real porting, not a drop-in:
+DB access rewritten to ORM `select()`/models (`SmsAlertLog`,
+`AuthorityContact` in `app/models.py`), the wrong table name (`reports` ->
+`citizen_reports`) fixed, `zone_id` retyped `UUID` (was `TEXT`) in
+`migrations/005_sms_alerts.sql`, and Twilio credentials moved into
+`app.config.settings` (matching every other credential in this project)
+instead of raw `os.environ.get()`.
+
+**A real design bug the port surfaced**: the original gated phone calls on
+`severity == "critical"`, but the automated rainfall engine only ever
+produces `risk_tier` in `{low, moderate, high}` — there is no "critical" tier
+there. "critical" only exists where a human picks it, in the Broadcast
+composer (`AlertBroadcast.severity` / `BroadcastIn.severity`). Wired in as
+originally suggested, the call-escalation branch would have been permanently
+dead code. Fixed by wiring into the two places a severity actually comes
+from, not one:
+- `alert_engine.check_and_trigger()` -> `sms_alerts.trigger_zone_alert()`:
+  automatic SMS to citizen subscribers using the zone's `risk_tier`. Sets
+  `Alert.delivery_method` to the schema's existing (previously unused)
+  `"sms_twilio"` value if a text actually sent, else stays `"log_only"`.
+  Wrapped in try/except so a Twilio failure can never roll back an alert
+  already committed to the DB — SMS is best-effort on top of a real alert,
+  not a precondition for one.
+- `routers/alerts.py:broadcast_alert()` -> `sms_alerts.escalate_critical_alert()`:
+  real SMS (using the operator's own written message) when `"sms"` is one of
+  the chosen `channels`, plus a real phone call to every `authority_contacts`
+  row when `severity == "critical"` — regardless of whether `"sms"` was
+  chosen, since a critical broadcast should escalate to a call either way.
+  `AlertBroadcast.status` becomes `"sent"` only if a real send was attempted
+  with Twilio configured; otherwise stays `"simulated"`, unchanged from before.
+
+Twilio credentials (`TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/
+`TWILIO_FROM_NUMBER`) are not set anywhere yet (not in `.env`, not on
+Render) — both paths currently still behave exactly as before this
+integration until someone sets them and registers at least one real row in
+`authority_contacts`. Full setup steps, the function-by-function reference,
+and known limitations (Twilio trial accounts only reach manually-verified
+numbers; subscriber list is citizen-report phone numbers, not a real opt-in
+flow; no retry on failed sends; English-only wording): `docs/sms_voice_alert_handover.md`.
+Unit tests for the cooldown/severity-gating logic (everything DB/Twilio
+mocked out): `tests/test_sms_alerts.py`.
+
 ## Testing
 - `tests/test_alert_engine.py` — 12 passing unit tests against the pure
   decision core (`intensity_duration_threshold`, `evaluate_daily_rainfall`),
   no DB required. `check_and_trigger` (the DB-touching wrapper) still needs
   integration testing against a live Postgres.
-- `tests/test_negative_sampling.py`, `tests/test_terrain_features.py` — 12
-  passing tests against synthetic geometry/DEMs (no network, no real data
-  files needed). Together: 24 tests, `pytest tests/ -v`.
+- `tests/test_negative_sampling.py`, `tests/test_terrain_features.py`,
+  `tests/test_spatial_cv.py`, `tests/test_generate_zone_predictions.py` —
+  synthetic geometry/DEMs/rasters, no network or real data files needed.
+- `tests/test_sms_alerts.py` — 9 tests against `sms_alerts.py`'s cooldown and
+  severity-gating logic, every DB/Twilio call mocked out (no real Postgres or
+  Twilio needed). All 50 tests pass together: `pytest tests/ -v`.
 
 ## Integration points to coordinate on
 - ML lead (B): writes susceptibility scores via `PUT /zones/{id}/susceptibility`

@@ -33,7 +33,7 @@ from scripts.ml.extract_landcover import WORLDCOVER_CLASSES, one_hot_encode
 from scripts.ml.extract_terrain_features import build_feature_stack
 from scripts.ml.fetch_osm_roads import load_roads
 from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig
-from scripts.ml.train_susceptibility_model import ARTIFACT_DIR, score_to_tier
+from scripts.ml.train_susceptibility_model import score_to_tier
 from scripts.ml.predict_zone_susceptibility import load_model_bundle
 
 # Same pilot AOI used throughout this session's data/feature/bias audits --

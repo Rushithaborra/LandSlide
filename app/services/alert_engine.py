@@ -150,5 +150,24 @@ def check_and_trigger(db: Session, zone_id) -> Alert | None:
     db.add(alert)
     db.commit()
     db.refresh(alert)
-    print(f"[ALERT] zone={zone_id} {alert.threshold_crossed} — logged (SMS not wired up)")
+
+    # Real SMS to citizen subscribers (app/services/sms_alerts.py), using this
+    # zone's risk_tier as severity -- the automated engine never produces
+    # "critical" (that only exists in the operator-driven Broadcast composer,
+    # see app/routers/alerts.py:broadcast_alert). Wrapped so a Twilio failure
+    # or missing credentials can never roll back the alert already committed
+    # above -- SMS delivery is best-effort on top of a real alert, not a
+    # precondition for one.
+    try:
+        from app.services.sms_alerts import trigger_zone_alert
+
+        sms_result = trigger_zone_alert(db, zone_id, zone.name, risk_tier)
+        if not sms_result.get("skipped") and sms_result.get("sent", 0) > 0:
+            alert.delivery_method = "sms_twilio"
+            db.commit()
+            db.refresh(alert)
+        print(f"[ALERT] zone={zone_id} {alert.threshold_crossed} — {sms_result}")
+    except Exception as e:
+        print(f"[ALERT] zone={zone_id} {alert.threshold_crossed} — logged (SMS send failed: {e})")
+
     return alert
