@@ -10,6 +10,7 @@ corridor, zone-level susceptibility for the Sikkim pilot. Not event-time
 prediction.
 """
 import json
+import pathlib
 from datetime import datetime, timezone
 
 import joblib
@@ -42,14 +43,18 @@ N_FOLDS = 5
 RANDOM_SEED = 42
 DECISION_THRESHOLD = 0.5  # standard default -- not tuned, see diagnostics section
 
-LANDCOVER_COLS = [
-    "landcover_bare_sparse_vegetation", "landcover_built_up", "landcover_cropland",
-    "landcover_grassland", "landcover_moss_lichen", "landcover_tree_cover", "landcover_water",
-]
-FEATURE_SETS = {
-    "baseline": ["elevation", "slope", "curvature", "distance_to_drainage"],
-    "extended": ["elevation", "slope", "curvature", "distance_to_drainage"] + LANDCOVER_COLS,
-}
+BASELINE_FEATURES = ["elevation", "slope", "curvature", "distance_to_drainage"]
+
+
+def feature_sets_for(df: pd.DataFrame) -> dict[str, list[str]]:
+    """landcover_* columns present depend on which classes this state's real
+    points actually landed on (e.g. Assam has no moss_lichen/shrubland/snow_ice
+    classes Sikkim's higher-altitude terrain does) -- derived from the
+    dataframe's own columns, not a fixed list, matching extract_landcover.py's
+    own one_hot_encode() design ("only classes actually present", not an
+    assumption about what's present in any one state)."""
+    landcover_cols = sorted(c for c in df.columns if c.startswith("landcover_"))
+    return {"baseline": BASELINE_FEATURES, "extended": BASELINE_FEATURES + landcover_cols}
 MODEL_BUILDERS = {
     "logistic_regression": lambda: LogisticRegression(max_iter=2000, random_state=RANDOM_SEED),
     "random_forest": lambda: RandomForestClassifier(
@@ -57,7 +62,15 @@ MODEL_BUILDERS = {
     ),
 }
 
-ARTIFACT_DIR = DEFAULT_CONFIG.paths.training_dataset_csv.parent.parent / "models"
+def artifact_dir(config: MlConfig = DEFAULT_CONFIG) -> pathlib.Path:
+    """Sikkim keeps its existing data/models/ location unchanged (already
+    referenced by docs/model_training_report.md and the live-integrated
+    model file) -- any other state gets its own data/models/<state>/
+    subfolder so training a second state can never overwrite Sikkim's
+    artifacts, which stay the evidence trail for the model already
+    integrated into production zones."""
+    base = config.paths.training_dataset_csv.parent.parent / "models"
+    return base if config.state == "Sikkim" else base / config.state.lower()
 
 
 def build_pipeline(model_type: str) -> Pipeline:
@@ -140,7 +153,7 @@ def run_naive_random_split(df: pd.DataFrame, feature_cols: list[str], model_type
 def run_all_experiments(df: pd.DataFrame, folds: pd.Series, config: MlConfig = DEFAULT_CONFIG) -> dict:
     results = {}
     for model_type in MODEL_BUILDERS:
-        for feature_set_name, feature_cols in FEATURE_SETS.items():
+        for feature_set_name, feature_cols in feature_sets_for(df).items():
             key = f"{model_type}__{feature_set_name}"
             print(f"\n{'='*70}\nExperiment: {key}\n{'='*70}")
 
@@ -201,7 +214,11 @@ def diagnostic_checks(results: dict, df: pd.DataFrame) -> None:
 
     print("\n3. Duplicate/overlap issues in this run:")
     dupe_coords = df.duplicated(subset=["latitude", "longitude"]).sum()
-    print(f"  duplicate coordinates in training data: {dupe_coords} (should be 0, resolved pre-training)")
+    print(f"  duplicate coordinates in training data: {dupe_coords} "
+          "(exact-duplicate pairs are resolved pre-training per each state's own dedup script; "
+          "a nonzero count here is expected, not a bug, if that state's real inventory has multiple "
+          "distinct events sharing a coarse-rounded field GPS reading -- see e.g. "
+          "resolve_duplicate_positives_assam.py's documented reasoning for why those are kept)")
 
     print("\n4. Class separation (perfect/near-perfect train fit would signal leakage or trivial separability):")
     for key, r in results.items():
@@ -250,14 +267,14 @@ def plot_roc_pr_curves(results: dict, config: MlConfig = DEFAULT_CONFIG) -> None
     ax_pr.legend(fontsize=8)
 
     fig.tight_layout()
-    out_path = ARTIFACT_DIR / "roc_pr_curves.png"
+    out_path = artifact_dir(config) / "roc_pr_curves.png"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"\nROC/PR curves saved -> {out_path}")
 
 
-def plot_feature_importance(df: pd.DataFrame, results: dict) -> None:
+def plot_feature_importance(df: pd.DataFrame, results: dict, config: MlConfig = DEFAULT_CONFIG) -> None:
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     axes = axes.flatten()
 
@@ -279,7 +296,8 @@ def plot_feature_importance(df: pd.DataFrame, results: dict) -> None:
         ax.axvline(0, color="k", linewidth=0.5)
 
     fig.tight_layout()
-    out_path = ARTIFACT_DIR / "feature_importance.png"
+    out_path = artifact_dir(config) / "feature_importance.png"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"feature importance/coefficients plot saved -> {out_path}")
@@ -318,7 +336,8 @@ def score_to_tier(score: float, low_cut: float, high_cut: float) -> str:
 
 
 def save_artifacts(df: pd.DataFrame, results: dict, best_key: str, config: MlConfig = DEFAULT_CONFIG) -> dict:
-    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir = artifact_dir(config)
+    out_dir.mkdir(parents=True, exist_ok=True)
     best = results[best_key]
     model_version = f"{best_key.replace('__', '-')}-v1-{datetime.now(timezone.utc).strftime('%Y%m%d')}"
 
@@ -326,7 +345,7 @@ def save_artifacts(df: pd.DataFrame, results: dict, best_key: str, config: MlCon
     final_pipeline = build_pipeline(best["model_type"])
     final_pipeline.fit(df[best["feature_cols"]], df["label"])
 
-    model_path = ARTIFACT_DIR / "susceptibility_model.joblib"
+    model_path = out_dir / "susceptibility_model.joblib"
     joblib.dump({"pipeline": final_pipeline, "feature_cols": best["feature_cols"], "model_version": model_version}, model_path)
     print(f"model + pipeline saved -> {model_path}")
 
@@ -361,22 +380,24 @@ def save_artifacts(df: pd.DataFrame, results: dict, best_key: str, config: MlCon
             }
             for key, r in results.items()
         },
-        "scope": "Road-corridor, zone-level landslide susceptibility for the Sikkim pilot. "
+        "scope": f"Road-corridor, zone-level landslide susceptibility for {config.state}. "
                  "NOT event-time prediction.",
         "known_limitations": [
-            "Random Forest's in-sample (train) AUC is notably higher than its spatial-CV AUC "
-            "(0.866 vs 0.735 for the extended model) -- more overfitting than Logistic Regression "
-            "shows (0.722 vs 0.714), though its held-out performance is still the best of the four.",
-            "land_cover_class's built_up signal could not be fully separated between genuine "
-            "anthropogenic slope destabilization and GSI's own documentation priority toward "
-            "infrastructure-adjacent failures -- see docs/duplicate_and_bias_audit.md.",
+            f"{best['model_type']}'s in-sample (train) AUC vs its held-out spatial-CV AUC for this "
+            f"run: see all_experiments_summary above per experiment -- a large gap signals more "
+            f"overfitting than a small one, not evaluated against a fixed Sikkim-specific number here.",
+            "land_cover_class's built_up signal (where present) may reflect genuine anthropogenic "
+            "slope destabilization, GSI's own documentation priority toward infrastructure-adjacent "
+            "failures, or both -- not fully separable from this data alone (see Sikkim's own "
+            "docs/duplicate_and_bias_audit.md for the original investigation of this question).",
             "Positive samples remain concentrated within ~100m of roads (a field-survey property "
             "of the source inventory); the model has not been evaluated on terrain far from roads.",
-            "ROC-AUC 0.67-0.74 range reflects a genuinely modest first-pass model on limited "
-            "features and imperfect labels -- not state-of-the-art, but not overclaimed either.",
+            f"ROC-AUC {best['spatial_cv']['pooled_metrics']['roc_auc']:.2f} reflects a genuinely "
+            "modest first-pass model on limited features and imperfect labels -- not "
+            "state-of-the-art, but not overclaimed either.",
         ],
     }
-    report_path = ARTIFACT_DIR / "validation_report.json"
+    report_path = out_dir / "validation_report.json"
     with open(report_path, "w") as f:
         json.dump(validation_report, f, indent=2)
     print(f"validation report saved -> {report_path}")

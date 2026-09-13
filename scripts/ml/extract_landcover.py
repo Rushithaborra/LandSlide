@@ -10,8 +10,30 @@ is exactly the kind of mistake the earlier SoilGrids Homolosine mixup was.
 import numpy as np
 import pandas as pd
 import rasterio
+from rasterio.merge import merge as rasterio_merge
 
 from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig
+
+
+def ensure_landcover_mosaic(config: MlConfig = DEFAULT_CONFIG) -> None:
+    """WorldCover ships in native 3x3-degree tiles; Sikkim's point spread fit
+    inside one (landcover_source_tifs empty -> config.paths.landcover_tif is
+    used as-is). Assam's spread crosses two, so this mosaics them once with
+    rasterio.merge (same library tool fetch_dem.py uses for multi-tile DEMs)
+    rather than sampling from whichever tile happens to be passed in."""
+    if not config.paths.landcover_source_tifs or config.paths.landcover_tif.exists():
+        return
+    srcs = [rasterio.open(p) for p in config.paths.landcover_source_tifs]
+    try:
+        mosaic, transform = rasterio_merge(srcs)
+        meta = srcs[0].meta.copy()
+        meta.update({"height": mosaic.shape[1], "width": mosaic.shape[2], "transform": transform})
+        config.paths.landcover_tif.parent.mkdir(parents=True, exist_ok=True)
+        with rasterio.open(config.paths.landcover_tif, "w", **meta) as dst:
+            dst.write(mosaic)
+    finally:
+        for s in srcs:
+            s.close()
 
 # Official ESA WorldCover v200 (2021) class legend. Only classes actually
 # observed in our sample points get turned into one-hot columns -- see
@@ -35,6 +57,7 @@ WORLDCOVER_CLASSES = {
 def sample_land_cover(lons: np.ndarray, lats: np.ndarray, config: MlConfig = DEFAULT_CONFIG) -> pd.DataFrame:
     """Returns a DataFrame with land_cover_code, land_cover_class (readable
     name), and land_cover_nodata (bool) for each (lon, lat) point."""
+    ensure_landcover_mosaic(config)
     with rasterio.open(config.paths.landcover_tif) as src:
         assert str(src.crs) == "EPSG:4326", (
             f"WorldCover CRS is {src.crs}, expected EPSG:4326 to match point coordinates "
