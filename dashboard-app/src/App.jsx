@@ -7,6 +7,7 @@ import Incidents from "./pages/Incidents";
 import HighwayCorridors from "./pages/HighwayCorridors";
 import EmergencyContacts from "./pages/EmergencyContacts";
 import AuthorityContacts from "./pages/AuthorityContacts";
+import ZoneDetail from "./pages/ZoneDetail";
 import DataObservations from "./pages/DataObservations";
 import CitizenReports from "./pages/CitizenReports";
 import HelpDocs from "./pages/HelpDocs";
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/highway-corridors" element={<HighwayCorridors />} />
             <Route path="/emergency-contacts" element={<EmergencyContacts />} />
             <Route path="/authority-contacts" element={<AuthorityContacts />} />
+            <Route path="/zones/:zoneId" element={<ZoneDetail />} />
             <Route path="/data-observations" element={<DataObservations />} />
             <Route path="/citizen-reports" element={<CitizenReports />} />
             <Route path="/help" element={<HelpDocs />} />
