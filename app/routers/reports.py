@@ -10,7 +10,7 @@ from app.config import settings
 from app.database import get_db
 from app.models import CitizenReport
 from app.schemas import CitizenReportIn, CitizenReportOut
-from app.services.triage_summary import anthropic_configured, generate_triage_summary
+from app.services.triage_summary import gemini_configured, generate_triage_summary
 
 router = APIRouter(prefix="/reports", tags=["citizen-reports"])
 
@@ -111,7 +111,7 @@ def submit_report(
     # Best-effort AI triage summary (app/services/triage_summary.py) -- never
     # blocks report submission. Skipped entirely (not attempted) when no key
     # is configured, matching sms_alerts' twilio_configured() guard.
-    if anthropic_configured():
+    if gemini_configured():
         try:
             summary = generate_triage_summary(
                 report.report_type, report.severity, report.description, report.place_name,
