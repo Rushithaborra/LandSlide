@@ -10,8 +10,17 @@ import {
   CloudRain,
   MessageSquare,
   Sparkles,
+  Languages,
 } from "lucide-react";
 import { verifyCitizenReport } from "../services/api";
+
+// Only worth showing the translation when it actually says something
+// different from the original -- an English report translated to English
+// (the common case today) would just be visual clutter otherwise.
+function textsDiffer(a, b) {
+  if (!a || !b) return false;
+  return a.trim().toLowerCase() !== b.trim().toLowerCase();
+}
 
 /**
  * ============================================================================
@@ -170,6 +179,15 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
           <Row icon={MessageSquare} label="Comment from the citizen">
             {report.note}
           </Row>
+          {textsDiffer(report.note, report.descriptionTranslated) && (
+            <Row icon={Languages} label="AI translation (English)">
+              {report.descriptionTranslated}
+              <span className="mt-1 block text-[11px] font-normal text-paper-500">
+                The citizen's original wording above is unchanged — this is a translation for
+                reading, not a replacement.
+              </span>
+            </Row>
+          )}
         </div>
 
         {/* Footer — Verify sits in the right corner */}

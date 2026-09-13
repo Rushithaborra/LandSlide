@@ -173,6 +173,7 @@ class CitizenReportOut(BaseModel):
     reporter_phone: str | None
     photo_url: str | None
     triage_summary: str | None
+    description_translated: str | None
     captured_at: datetime
     submitted_at: datetime
     verified_status: str

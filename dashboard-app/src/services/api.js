@@ -302,6 +302,7 @@ function shapeReport(r) {
     landmark: r.place_name || "",
     note: r.description,
     triageSummary: r.triage_summary || null,
+    descriptionTranslated: r.description_translated || null,
     status: verifiedStatusLabel(r.verified_status),
     photoPlaceholder: !r.photo_url,
     photoUrl: r.photo_url,
