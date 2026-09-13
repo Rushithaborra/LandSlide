@@ -32,15 +32,23 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from scripts.ml.extract_landcover import WORLDCOVER_CLASSES, one_hot_encode
 from scripts.ml.extract_terrain_features import build_feature_stack
 from scripts.ml.fetch_osm_roads import load_roads
-from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig
+from scripts.ml.ml_config import DEFAULT_CONFIG, STATE_CONFIGS, MlConfig
 from scripts.ml.train_susceptibility_model import score_to_tier
 from scripts.ml.predict_zone_susceptibility import load_model_bundle
 
-# Same pilot AOI used throughout this session's data/feature/bias audits --
-# the actual bounding box of the 777 (now 774) GSI training points. This is
-# the geographic domain the model has evidence for; predicting outside it
-# would be extrapolation, so road segments are restricted to it.
-PILOT_BOUNDS = (88.077111, 27.08275, 88.840194, 27.749111)
+
+def pilot_bounds(config: MlConfig = DEFAULT_CONFIG) -> tuple[float, float, float, float]:
+    """The actual bounding box of this state's own real positive (label==1)
+    training points -- the geographic domain the model has evidence for;
+    predicting outside it would be extrapolation, so road segments are
+    restricted to it. Derived from training_dataset_csv rather than a frozen
+    literal so a new state doesn't need its own hardcoded tuple -- verified
+    to reproduce Sikkim's original PILOT_BOUNDS constant exactly
+    (88.077111, 27.08275, 88.840194, 27.749111), so this is a pure
+    generalization, not a behavior change."""
+    df = pd.read_csv(config.paths.training_dataset_csv)
+    pos = df[df["label"] == 1]
+    return (pos["longitude"].min(), pos["latitude"].min(), pos["longitude"].max(), pos["latitude"].max())
 
 # "Meaningful" road classes: OSM's standard public-through-road hierarchy
 # (trunk/primary/secondary/tertiary), PLUS anything carrying a highway `ref`
@@ -59,15 +67,10 @@ MEANINGFUL_HIGHWAY_CLASSES = ["trunk", "primary", "secondary", "tertiary"]
 # it captures 99.4% of positives' measured distance to the nearest road
 # (verified during the original data audit, p99=315m). Reusing it here
 # keeps prediction units within the same geographic margin the model's
-# training data actually came from.
+# training data actually came from. Same default for every state so far
+# (see ml_config.py's NegativeSamplingConfig on ASSAM_CONFIG) -- read from
+# `config` inside each function below rather than frozen at import time.
 CORRIDOR_BUFFER_M = DEFAULT_CONFIG.sampling.corridor_buffer_m
-
-# Along-road segment length: no prior project precedent for this specific
-# choice, so it's a new, explicitly documented decision -- set equal to the
-# corridor buffer width so each prediction unit spans roughly one
-# corridor-width along the road (a simple, defensible rule, not tuned to
-# produce a particular-looking count or map).
-SEGMENT_LENGTH_M = CORRIDOR_BUFFER_M
 
 OUTPUT_DIR = pathlib.Path(__file__).resolve().parent.parent / "outputs" / "gis"
 
@@ -77,15 +80,21 @@ def load_and_filter_roads(config: MlConfig = DEFAULT_CONFIG) -> gpd.GeoDataFrame
     is_meaningful = gdf["highway"].isin(MEANINGFUL_HIGHWAY_CLASSES) | gdf["ref"].notna()
     gdf = gdf[is_meaningful].copy()
 
-    pilot_box = box(*PILOT_BOUNDS)
+    pilot_box = box(*pilot_bounds(config))
     gdf = gdf[gdf.intersects(pilot_box)].copy()
     gdf["geometry"] = gdf.intersection(pilot_box)  # clip to the pilot AOI exactly
     gdf = gdf[~gdf.is_empty]
     return gdf.reset_index(drop=True)
 
 
-def segment_roads(gdf_wgs84: gpd.GeoDataFrame, segment_length_m: float = SEGMENT_LENGTH_M,
+def segment_roads(gdf_wgs84: gpd.GeoDataFrame, segment_length_m: float | None = None,
                    config: MlConfig = DEFAULT_CONFIG) -> gpd.GeoDataFrame:
+    # Along-road segment length: no prior project precedent for this specific
+    # choice, so it's a new, explicitly documented decision -- set equal to
+    # the corridor buffer width so each prediction unit spans roughly one
+    # corridor-width along the road (a simple, defensible rule, not tuned to
+    # produce a particular-looking count or map).
+    segment_length_m = segment_length_m if segment_length_m is not None else config.sampling.corridor_buffer_m
     """Chunks each road LineString into ~segment_length_m pieces (in UTM, so
     length is metric), keeping a stable ID per chunk. Any final partial chunk
     shorter than 20% of the target length is merged into the previous chunk
@@ -124,9 +133,33 @@ def segment_roads(gdf_wgs84: gpd.GeoDataFrame, segment_length_m: float = SEGMENT
     return segments
 
 
-def build_corridors(segments_utm: gpd.GeoDataFrame, buffer_m: float = CORRIDOR_BUFFER_M) -> gpd.GeoDataFrame:
+def _largest_part_if_multipolygon(geom):
+    """Buffering an otherwise-ordinary road-segment LineString should produce
+    a single Polygon, but at Assam's scale (66,677 segments vs Sikkim's
+    3,921) a handful of segments -- almost certainly tight hairpin curves or
+    near-self-touching OSM geometry -- buffer into a MultiPolygon instead.
+    zones.geometry is strictly typed Polygon (verified: a real production
+    insert crashed on this exact mismatch after 4,800 rows had already
+    committed). Keeping only the largest-area part is a standard, defensible
+    simplification (drops a tiny disconnected sliver, not the corridor
+    itself) rather than widening the DB column type for a handful of edge
+    cases."""
+    if geom.geom_type == "MultiPolygon":
+        return max(geom.geoms, key=lambda g: g.area)
+    return geom
+
+
+def build_corridors(segments_utm: gpd.GeoDataFrame, buffer_m: float | None = None,
+                     config: MlConfig = DEFAULT_CONFIG) -> gpd.GeoDataFrame:
+    buffer_m = buffer_m if buffer_m is not None else config.sampling.corridor_buffer_m
     corridors = segments_utm.copy()
     corridors["geometry"] = corridors.geometry.buffer(buffer_m)
+
+    is_multi = corridors.geometry.geom_type == "MultiPolygon"
+    if is_multi.any():
+        print(f"  note: {is_multi.sum()} corridor(s) buffered into a MultiPolygon -- "
+              f"keeping only the largest part for each (see _largest_part_if_multipolygon)")
+        corridors["geometry"] = corridors.geometry.apply(_largest_part_if_multipolygon)
     return corridors
 
 
@@ -333,8 +366,9 @@ def sanity_check_against_inventory(predictions: gpd.GeoDataFrame, config: MlConf
     return result
 
 
-def save_gis_outputs(predictions: gpd.GeoDataFrame) -> None:
+def save_gis_outputs(predictions: gpd.GeoDataFrame, config: MlConfig = DEFAULT_CONFIG) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    state_slug = config.state.lower()
 
     # GeoPackage skipped: pyogrio (geopandas' GDAL-backed write engine) is
     # blocked by this machine's Application Control policy -- verified as a
@@ -350,11 +384,12 @@ def save_gis_outputs(predictions: gpd.GeoDataFrame) -> None:
     geojson = {
         "type": "FeatureCollection",
         "properties": {
-            "description": "Road-corridor landslide susceptibility, Sikkim pilot. "
+            "description": f"Road-corridor landslide susceptibility, {config.state}. "
                             "This is a zone-level susceptibility assessment derived from a spatially "
                             "validated model. It does NOT predict the exact time of a landslide. "
-                            "Road-corridor scope: the training inventory has strong road-survey bias "
-                            "(96.1% of positives within 100m of a mapped road), so predictions are only "
+                            "Road-corridor scope: this state's own GSI inventory has known road-survey "
+                            "bias (verified 96.1% of positives within 100m of a mapped road for Sikkim; "
+                            "not independently re-measured for other states), so predictions are only "
                             "produced for road corridors, not arbitrary terrain. No real-time rainfall is "
                             "included -- this is the static layer; rainfall is a separate dynamic alert layer.",
         },
@@ -365,23 +400,23 @@ def save_gis_outputs(predictions: gpd.GeoDataFrame) -> None:
             for _, row in predictions.iterrows()
         ],
     }
-    geojson_path = OUTPUT_DIR / "sikkim_road_susceptibility.geojson"
+    geojson_path = OUTPUT_DIR / f"{state_slug}_road_susceptibility.geojson"
     with open(geojson_path, "w") as f:
         json.dump(geojson, f)
     print(f"\nGeoJSON saved -> {geojson_path}")
 
-    csv_path = OUTPUT_DIR / "sikkim_road_susceptibility.csv"
+    csv_path = OUTPUT_DIR / f"{state_slug}_road_susceptibility.csv"
     predictions[feature_cols].to_csv(csv_path, index=False)
     print(f"CSV saved -> {csv_path}")
 
-    gpkg_note_path = OUTPUT_DIR / "sikkim_road_susceptibility.gpkg.SKIPPED.txt"
+    gpkg_note_path = OUTPUT_DIR / f"{state_slug}_road_susceptibility.gpkg.SKIPPED.txt"
     gpkg_note_path.write_text(
         "GeoPackage output was NOT generated. pyogrio (geopandas' GDAL-backed write engine) is\n"
         "blocked by an Application Control policy on this machine -- verified genuine and persistent\n"
         "(re-checked at the start of this task: `import pyogrio` fails with "
         "'An Application Control policy has blocked this file', not a PATH issue -- adding rasterio's\n"
         "own bundled GDAL directory to the DLL search path did not fix it).\n\n"
-        "Use sikkim_road_susceptibility.geojson instead -- same data, same geometry, no GDAL dependency\n"
+        f"Use {state_slug}_road_susceptibility.geojson instead -- same data, same geometry, no GDAL dependency\n"
         "(written directly via json+shapely, the same pattern already used by scripts/ml/fetch_osm_roads.py).\n"
         "On a machine where pyogrio/fiona import cleanly, `geopandas.GeoDataFrame.to_file(..., driver='GPKG')`\n"
         "on the GeoJSON above will produce the GeoPackage with no other code changes needed.\n"
@@ -390,28 +425,34 @@ def save_gis_outputs(predictions: gpd.GeoDataFrame) -> None:
 
 
 if __name__ == "__main__":
-    print("=== Step 1-3: load model, roads, segments, corridors ===")
-    bundle = load_model_bundle()
+    # Optional state name (matches ml_config.STATE_CONFIGS' keys, e.g.
+    # "sikkim" or "assam"); defaults to Sikkim so a bare invocation is
+    # unchanged from before this script was generalized to other states.
+    state_arg = sys.argv[1].lower() if len(sys.argv) > 1 else "sikkim"
+    cfg = STATE_CONFIGS[state_arg]
+
+    print(f"=== Step 1-3: load model, roads, segments, corridors ({cfg.state}) ===")
+    bundle = load_model_bundle(config=cfg)
     print(f"loaded model bundle: {bundle['model_version']}, feature_cols={bundle['feature_cols']}")
 
-    roads = load_and_filter_roads()
+    roads = load_and_filter_roads(config=cfg)
     print(f"filtered roads (meaningful classes, pilot AOI): {len(roads)} ways")
 
-    segments = segment_roads(roads)
-    print(f"segmented into {len(segments)} ~{SEGMENT_LENGTH_M:.0f}m chunks")
+    segments = segment_roads(roads, config=cfg)
+    print(f"segmented into {len(segments)} ~{cfg.sampling.corridor_buffer_m:.0f}m chunks")
 
-    corridors = build_corridors(segments)
-    print(f"corridors built, buffer={CORRIDOR_BUFFER_M:.0f}m")
+    corridors = build_corridors(segments, config=cfg)
+    print(f"corridors built, buffer={cfg.sampling.corridor_buffer_m:.0f}m")
 
     print("\n=== Step 4-5: feature extraction (this takes ~2-3 minutes) ===")
-    features = extract_corridor_features(corridors)
+    features = extract_corridor_features(corridors, config=cfg)
 
     print("\n=== Step 6-7: predict + risk tier ===")
     predictions = predict_corridors(corridors, features, bundle)
     predictions_wgs84 = predictions.to_crs("EPSG:4326")
 
     checks = run_quality_checks(predictions_wgs84, corridors.to_crs("EPSG:4326"))
-    sanity = sanity_check_against_inventory(predictions_wgs84)
-    save_gis_outputs(predictions_wgs84)
+    sanity = sanity_check_against_inventory(predictions_wgs84, config=cfg)
+    save_gis_outputs(predictions_wgs84, config=cfg)
 
     print(f"\nDONE. {len(predictions_wgs84)} corridor predictions generated.")
