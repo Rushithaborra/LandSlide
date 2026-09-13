@@ -12,6 +12,7 @@ from app.models import CitizenReport
 from app.schemas import CitizenReportIn, CitizenReportOut, PolishDescriptionIn, PolishDescriptionOut
 from app.services.ai_client import gemini_configured
 from app.services.description_polish import polish_description
+from app.services.translation import translate_to_english
 from app.services.triage_summary import generate_triage_summary
 
 router = APIRouter(prefix="/reports", tags=["citizen-reports"])
@@ -124,8 +125,9 @@ def submit_report(
     db.commit()
     db.refresh(report)
 
-    # Best-effort AI triage summary (app/services/triage_summary.py) -- never
-    # blocks report submission. Skipped entirely (not attempted) when no key
+    # Best-effort AI generations (triage_summary.py, translation.py) -- never
+    # block report submission, and each is independent so one failing
+    # doesn't affect the other. Skipped entirely (not attempted) when no key
     # is configured, matching sms_alerts' twilio_configured() guard.
     if gemini_configured():
         try:
@@ -138,6 +140,15 @@ def submit_report(
                 db.refresh(report)
         except Exception as e:
             print(f"[REPORTS] triage summary generation failed for {report.id}: {e}")
+
+        try:
+            translated = translate_to_english(report.description)
+            if translated:
+                report.description_translated = translated
+                db.commit()
+                db.refresh(report)
+        except Exception as e:
+            print(f"[REPORTS] translation failed for {report.id}: {e}")
 
     return report
 

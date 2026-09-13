@@ -167,6 +167,12 @@ class CitizenReport(Base):
     # -- condenses the free-text `description` above for a fast dashboard scan.
     # Null until generated (best-effort at submission time; never blocks it).
     triage_summary: Mapped[str | None] = mapped_column(String, nullable=True)
+    # AI-translated English rendering of `description` above (see
+    # app/services/translation.py) -- the citizen's original text is never
+    # altered; this is shown alongside it for an officer who doesn't read
+    # the language it was written in. Null until generated (best-effort at
+    # submission time; never blocks it).
+    description_translated: Mapped[str | None] = mapped_column(String, nullable=True)
     captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     verified_status: Mapped[str] = mapped_column(String, default="unverified")

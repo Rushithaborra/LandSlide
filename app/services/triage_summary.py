@@ -17,7 +17,10 @@ SYSTEM_PROMPT = (
     "type, severity, and free-text description, write exactly ONE short sentence "
     "(under 20 words) capturing the most actionable fact -- what's happening and "
     "what's at risk or needed. Do not add hedging, greetings, or explanation. "
-    "Do not invent details not in the report. Output only the sentence, nothing else."
+    "Do not invent details not in the report. Always write the summary in English, "
+    "even when the report description is in another language -- the officer reading "
+    "this list may not read the language the citizen wrote in. "
+    "Output only the sentence, nothing else."
 )
 
 
