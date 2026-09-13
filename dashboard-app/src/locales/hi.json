@@ -1,0 +1,41 @@
+{
+  "sidebar": {
+    "appNameLine1": "भूस्खलन",
+    "appNameLine2": "पूर्व चेतावनी",
+    "overview": "अवलोकन",
+    "alerts": "अलर्ट",
+    "incidents": "घटनाएं",
+    "highwayCorridors": "राजमार्ग गलियारे",
+    "emergencyContacts": "आपातकालीन संपर्क",
+    "authorityContacts": "प्राधिकरण संपर्क",
+    "dataObservations": "डेटा और अवलोकन",
+    "citizenReports": "नागरिक रिपोर्ट",
+    "help": "सहायता",
+    "systemStatus": "सिस्टम स्थिति",
+    "operational": "चालू",
+    "systemsNormal": "सभी सिस्टम सामान्य रूप से चल रहे हैं"
+  },
+  "topbar": {
+    "sos": "SOS 112",
+    "sosAriaLabel": "राष्ट्रीय आपातकालीन नंबर, 112 पर कॉल करें",
+    "openAdminDetails": "व्यवस्थापक विवरण खोलें",
+    "admin": "व्यवस्थापक",
+    "changeLanguage": "भाषा बदलें"
+  },
+  "overview": {
+    "title": "अवलोकन",
+    "subtitle": "भूस्खलन जोखिम और सिस्टम स्थिति का लाइव सारांश",
+    "loading": "अवलोकन लोड हो रहा है…",
+    "loadErrorTitle": "अवलोकन लोड नहीं हो सका",
+    "retry": "पुनः प्रयास करें",
+    "highRiskZones": "उच्च जोखिम क्षेत्र",
+    "activeAlerts": "सक्रिय अलर्ट",
+    "affectedVillages": "प्रभावित गांव",
+    "rainfall24h": "वर्षा (24 घंटे)",
+    "systemHealth": "सिस्टम स्वास्थ्य",
+    "riskMap": "भूस्खलन जोखिम मानचित्र",
+    "allStates": "सभी राज्य",
+    "rainfallTrend": "वर्षा प्रवृत्ति (पिछले 7 दिन)",
+    "dangerThreshold": "खतरे की सीमा {{value}} मिमी"
+  }
+}

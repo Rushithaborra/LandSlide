@@ -1,0 +1,41 @@
+{
+  "sidebar": {
+    "appNameLine1": "Landslide",
+    "appNameLine2": "Early Warning",
+    "overview": "Overview",
+    "alerts": "Alerts",
+    "incidents": "Incidents",
+    "highwayCorridors": "Highway Corridors",
+    "emergencyContacts": "Emergency Contacts",
+    "authorityContacts": "Authority Contacts",
+    "dataObservations": "Data & Observations",
+    "citizenReports": "Citizen Reports",
+    "help": "Help",
+    "systemStatus": "System Status",
+    "operational": "Operational",
+    "systemsNormal": "All systems are running normally"
+  },
+  "topbar": {
+    "sos": "SOS 112",
+    "sosAriaLabel": "Call the national emergency number, 112",
+    "openAdminDetails": "Open admin details",
+    "admin": "Admin",
+    "changeLanguage": "Change language"
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Live summary of landslide risk and system status",
+    "loading": "Loading overview…",
+    "loadErrorTitle": "Couldn't load the overview",
+    "retry": "Retry",
+    "highRiskZones": "High Risk Zones",
+    "activeAlerts": "Active Alerts",
+    "affectedVillages": "Affected Villages",
+    "rainfall24h": "Rainfall (24h)",
+    "systemHealth": "System Health",
+    "riskMap": "Landslide Risk Map",
+    "allStates": "All States",
+    "rainfallTrend": "Rainfall Trend (Last 7 Days)",
+    "dangerThreshold": "Danger threshold {{value}} mm"
+  }
+}

@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { PhoneCall } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import SearchBox from "./SearchBox";
 import StateSelector from "./StateSelector";
 import NotificationsPanel from "./NotificationsPanel";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSwitcher from "./LanguageSwitcher";
 import AdminDrawer from "./AdminDrawer";
 import { getAdminProfile } from "../services/api";
 
 export default function Topbar({ title, subtitle }) {
+  const { t } = useTranslation();
   // Drawer with the admin's details — opens when the avatar is clicked.
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -34,15 +37,18 @@ export default function Topbar({ title, subtitle }) {
             number, always visible, no page navigation needed to reach it. */}
         <a
           href="tel:112"
-          aria-label="Call the national emergency number, 112"
+          aria-label={t("topbar.sosAriaLabel")}
           className="flex items-center gap-1.5 rounded-lg bg-risk-high px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
         >
           <PhoneCall size={14} />
-          SOS 112
+          {t("topbar.sos")}
         </a>
 
         {/* Notification bell — LINK SPOT N */}
         <NotificationsPanel />
+
+        {/* Language switcher — left of the theme toggle */}
+        <LanguageSwitcher />
 
         {/* Light / dark switch — right of the bell, left of the avatar */}
         <ThemeToggle />
@@ -51,14 +57,14 @@ export default function Topbar({ title, subtitle }) {
         <button
           type="button"
           onClick={() => setDrawerOpen(true)}
-          aria-label="Open admin details"
+          aria-label={t("topbar.openAdminDetails")}
           className="flex items-center gap-2 pl-3 border-l border-paper-200 rounded-r-lg hover:opacity-90 dark:border-night-700"
         >
           <div className="w-8 h-8 rounded-full bg-ink-900 text-white text-xs font-semibold flex items-center justify-center dark:bg-teal-600">
             {profile?.initials || "AD"}
           </div>
           <span className="text-sm font-medium text-paper-700 hidden sm:inline dark:text-paper-300">
-            {profile ? profile.fullName.split(" ").slice(-1)[0] : "Admin"}
+            {profile ? profile.fullName.split(" ").slice(-1)[0] : t("topbar.admin")}
           </span>
         </button>
       </div>
