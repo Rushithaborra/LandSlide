@@ -34,7 +34,7 @@ from shapely.geometry import shape
 from app.database import SessionLocal
 from app.models import Zone
 
-GEOJSON_PATH = pathlib.Path(__file__).resolve().parent.parent / "outputs" / "gis" / "sikkim_road_susceptibility.geojson"
+OUTPUT_DIR = pathlib.Path(__file__).resolve().parent.parent / "outputs" / "gis"
 BACKEND_BASE_URL = "http://localhost:8000"
 
 
@@ -53,7 +53,8 @@ def zone_name_for(props: dict) -> str:
     return f"{label} ({props['segment_id']})"
 
 
-def create_or_get_zones(features: list[dict], limit: int | None = None, chunk_size: int = 300) -> list[tuple]:
+def create_or_get_zones(features: list[dict], state: str = "Sikkim", limit: int | None = None,
+                         chunk_size: int = 300) -> list[tuple]:
     """Creates a Zone row for each corridor not already present (matched by
     name, since segment_id isn't stored on Zone -- the schema wasn't
     changed for this task). Returns [(segment_id, zone_id, score, tier, version), ...].
@@ -62,6 +63,13 @@ def create_or_get_zones(features: list[dict], limit: int | None = None, chunk_si
     round trip is needed to learn each new row's id) instead of one INSERT
     + commit per zone -- the only thing that changed is how many network
     round trips this takes, not what ends up in the database.
+
+    `state` MUST be passed explicitly for any non-Sikkim run: Zone.state
+    defaults to "Sikkim" at the ORM level, and this bulk Core-level insert
+    respects that Python-side default for any column left out of the values
+    dict -- so a first version of this script that ran for Assam without
+    setting `state` here would have silently mislabeled every real Assam
+    zone as Sikkim. Caught and fixed before this ever ran against Assam.
     """
     db = SessionLocal()
     mapping = []
@@ -76,7 +84,7 @@ def create_or_get_zones(features: list[dict], limit: int | None = None, chunk_si
             if name not in existing:
                 new_id = str(uuid.uuid4())
                 polygon = shape(feat["geometry"])
-                to_insert.append({"id": new_id, "name": name, "geometry": from_shape(polygon, srid=4326)})
+                to_insert.append({"id": new_id, "name": name, "state": state, "geometry": from_shape(polygon, srid=4326)})
                 existing[name] = new_id
 
         for i in range(0, len(to_insert), chunk_size):
@@ -136,17 +144,23 @@ def verify_readback(zone_id: str, base_url: str = BACKEND_BASE_URL) -> dict:
 
 
 if __name__ == "__main__":
-    limit = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    # e.g. `python scripts/integrate_zone_predictions.py assam` or with a
+    # row limit for a smoke test: `... assam 5`. Defaults to Sikkim so a
+    # bare invocation is unchanged from before this script was generalized.
+    state_arg = sys.argv[1] if len(sys.argv) > 1 else "sikkim"
+    limit = int(sys.argv[2]) if len(sys.argv) > 2 else None
+    state = state_arg.capitalize()
 
-    with open(GEOJSON_PATH) as f:
+    geojson_path = OUTPUT_DIR / f"{state_arg.lower()}_road_susceptibility.geojson"
+    with open(geojson_path) as f:
         geojson = json.load(f)
     features = geojson["features"]
-    print(f"loaded {len(features)} corridor predictions from {GEOJSON_PATH}")
+    print(f"loaded {len(features)} corridor predictions from {geojson_path} (state={state})")
     if limit:
         print(f"limiting to first {limit} for this run")
 
     t0 = time.time()
-    mapping = create_or_get_zones(features, limit=limit)
+    mapping = create_or_get_zones(features, state=state, limit=limit)
     print(f"zones created/matched: {len(mapping)} in {time.time()-t0:.1f}s")
 
     t0 = time.time()
