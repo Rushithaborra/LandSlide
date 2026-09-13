@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { X, Radio, CheckCircle2 } from "lucide-react";
-import { broadcastAlert } from "../services/api";
+import { X, Radio, CheckCircle2, Sparkles } from "lucide-react";
+import { broadcastAlert, generateBulletin } from "../services/api";
 
 /**
  * ============================================================================
@@ -38,6 +38,8 @@ export default function BroadcastComposerModal({ alert, onClose }) {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [draftError, setDraftError] = useState(null);
 
   useEffect(() => {
     if (!alert) return;
@@ -59,6 +61,20 @@ export default function BroadcastComposerModal({ alert, onClose }) {
 
   const toggleChannel = (id) =>
     setChannels((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setDraftError(null);
+    try {
+      const draft = await generateBulletin(alert.id, severity);
+      setHeadline(draft.headline);
+      setMessage(draft.message);
+    } catch (err) {
+      setDraftError(err.message || "Could not generate a draft right now");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -154,6 +170,22 @@ export default function BroadcastComposerModal({ alert, onClose }) {
                 <option value="high">High</option>
                 <option value="critical">Critical (Red Alert)</option>
               </select>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={generating}
+                className="flex items-center gap-1.5 rounded-lg border border-teal-600/40 bg-teal-600/10 px-3 py-1.5 text-xs font-medium text-teal-700 hover:bg-teal-600/20 disabled:opacity-50 dark:text-teal-400"
+              >
+                <Sparkles size={13} />
+                {generating ? "Drafting…" : "Draft with AI"}
+              </button>
+              <p className="mt-1 text-[11px] text-paper-500">
+                Fills the headline and message below from this alert's real data — Gemini, review before sending.
+              </p>
+              {draftError && <p className="mt-1 text-xs text-risk-high">{draftError}</p>}
             </div>
 
             <div>

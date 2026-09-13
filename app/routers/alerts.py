@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models import Alert, AlertBroadcast
-from app.schemas import AlertOut, BroadcastIn, BroadcastOut
+from app.schemas import AlertOut, BroadcastIn, BroadcastOut, GenerateBulletinIn, GenerateBulletinOut
+from app.services.bulletin import generate_bulletin
 from app.services.sms_alerts import escalate_critical_alert, twilio_configured
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
@@ -30,6 +31,22 @@ def resolve_alert(alert_id: uuid.UUID, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(alert)
     return alert
+
+
+@router.post("/{alert_id}/generate-bulletin", response_model=GenerateBulletinOut)
+def generate_bulletin_draft(alert_id: uuid.UUID, payload: GenerateBulletinIn, db: Session = Depends(get_db)):
+    """AI-drafted headline+message for the Broadcast composer (Gemini, see
+    app.services.bulletin) -- the officer reviews and can edit every word
+    before actually sending. Uses the alert's own real data, not invented
+    numbers. 502 if the draft can't be generated (missing key, API error) --
+    the composer falls back to a blank form, not a fake draft."""
+    alert = db.get(Alert, alert_id)
+    if alert is None:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    draft = generate_bulletin(alert.zone.name, alert.zone.risk_tier, alert.threshold_crossed, payload.severity)
+    if draft is None:
+        raise HTTPException(status_code=502, detail="Could not generate a bulletin draft right now")
+    return GenerateBulletinOut(headline=draft.headline, message=draft.message)
 
 
 @router.post("/{alert_id}/broadcast", response_model=BroadcastOut)

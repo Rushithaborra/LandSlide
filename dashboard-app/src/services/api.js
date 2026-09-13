@@ -467,6 +467,22 @@ export async function verifyCitizenReport(reportId) {
  * back "simulated" -- no SMS/CAP/siren gateway is wired up yet, same
  * honesty as delivery_method="log_only" on the alert itself.
  * ----------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------- *
+ * AI-drafted bulletin for the Broadcast composer -- POST /alerts/{id}/
+ * generate-bulletin (Gemini, see app/services/bulletin.py). The officer
+ * reviews and can edit every word before sending; this only saves them
+ * writing a headline/message from scratch.
+ * ----------------------------------------------------------------------- */
+export async function generateBulletin(alertId, severity) {
+  const res = await fetch(`${BASE_URL}/alerts/${alertId}/generate-bulletin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ severity }),
+  });
+  if (!res.ok) throw new Error(`generate bulletin failed: ${res.status}`);
+  return res.json();
+}
+
 export async function broadcastAlert(alertId, { headline, severity, message, channels }) {
   const res = await fetch(`${BASE_URL}/alerts/${alertId}/broadcast`, {
     method: "POST",

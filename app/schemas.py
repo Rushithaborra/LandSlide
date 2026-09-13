@@ -65,6 +65,15 @@ class AlertOut(BaseModel):
     delivery_method: str
 
 
+class GenerateBulletinIn(BaseModel):
+    severity: Literal["moderate", "high", "critical"]
+
+
+class GenerateBulletinOut(BaseModel):
+    headline: str
+    message: str
+
+
 class BroadcastIn(BaseModel):
     headline: str = Field(min_length=1)
     severity: Literal["moderate", "high", "critical"]
