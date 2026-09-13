@@ -72,9 +72,11 @@ class Settings(BaseSettings):
 
     # AI-generated triage summary (app/services/triage_summary.py) -- condenses
     # a citizen report's free-text description into a one-line priority
-    # summary via Claude. Optional, same pattern as everything else above:
-    # POST /reports still works without it, just leaves triage_summary null.
-    anthropic_api_key: str | None = None
+    # summary via Gemini (Google AI Studio's free tier -- no budget for
+    # Anthropic's prepaid API credits on this project). Optional, same
+    # pattern as everything else above: POST /reports still works without
+    # it, just leaves triage_summary null.
+    google_api_key: str | None = None
 
 
 settings = Settings()
