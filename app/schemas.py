@@ -148,6 +148,14 @@ class CitizenReportIn(BaseModel):
         return self
 
 
+class PolishDescriptionIn(BaseModel):
+    description: str = Field(min_length=5)
+
+
+class PolishDescriptionOut(BaseModel):
+    polished: str
+
+
 class CitizenReportOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

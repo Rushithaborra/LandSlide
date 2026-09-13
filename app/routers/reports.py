@@ -9,11 +9,26 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.models import CitizenReport
-from app.schemas import CitizenReportIn, CitizenReportOut
+from app.schemas import CitizenReportIn, CitizenReportOut, PolishDescriptionIn, PolishDescriptionOut
 from app.services.ai_client import gemini_configured
+from app.services.description_polish import polish_description
 from app.services.triage_summary import generate_triage_summary
 
 router = APIRouter(prefix="/reports", tags=["citizen-reports"])
+
+
+@router.post("/polish-description", response_model=PolishDescriptionOut)
+def polish_report_description(payload: PolishDescriptionIn):
+    """AI wording assist for the citizen-facing form, BEFORE submission --
+    fixes grammar/clarity in the citizen's own words only (see
+    app.services.description_polish for the "no new facts" constraint). The
+    citizen sees this as a suggestion and chooses whether to use it; nothing
+    is ever saved or auto-applied here. 502 if generation fails -- the form
+    falls back to the citizen's original text unchanged."""
+    polished = polish_description(payload.description)
+    if polished is None:
+        raise HTTPException(status_code=502, detail="Could not generate a suggestion right now")
+    return PolishDescriptionOut(polished=polished)
 
 
 def _save_photo(photo: UploadFile) -> str:

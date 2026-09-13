@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   Mic,
   MicOff,
+  Sparkles,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -51,6 +52,21 @@ function parseBackendError(detail) {
   }
   if (typeof detail === "string") return detail;
   return "Something went wrong sending the report — try again.";
+}
+
+// AI wording assist -- fixes grammar/clarity in the citizen's OWN words
+// only (see app/services/description_polish.py for the "no new facts"
+// constraint). Never auto-applied: the citizen sees the suggestion and
+// chooses whether to use it.
+async function polishDescription(description) {
+  const res = await fetch(`${API_BASE}/reports/polish-description`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description }),
+  });
+  if (!res.ok) throw new Error("Couldn't get a suggestion right now");
+  const body = await res.json();
+  return body.polished;
 }
 
 async function submitReport(payload, photoFile) {
@@ -108,6 +124,9 @@ export default function CitizenReportForm() {
   const [listening, setListening] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(true);
   const [voiceError, setVoiceError] = useState("");
+  const [polishing, setPolishing] = useState(false);
+  const [polishSuggestion, setPolishSuggestion] = useState(null);
+  const [polishError, setPolishError] = useState("");
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
   const baseDescriptionRef = useRef("");
@@ -188,6 +207,30 @@ export default function CitizenReportForm() {
     return () => recognition.stop();
   }, []);
 
+  async function handlePolish() {
+    if (!description.trim() || description.trim().length < 5) {
+      setPolishError("Write a little more first, then try Clean up wording.");
+      return;
+    }
+    setPolishing(true);
+    setPolishError("");
+    setPolishSuggestion(null);
+    try {
+      const polished = await polishDescription(description.trim());
+      setPolishSuggestion(polished);
+    } catch (err) {
+      setPolishError(err.message || "Couldn't get a suggestion right now.");
+    } finally {
+      setPolishing(false);
+    }
+  }
+
+  function acceptPolish() {
+    baseDescriptionRef.current = polishSuggestion;
+    setDescription(polishSuggestion);
+    setPolishSuggestion(null);
+  }
+
   function toggleListening() {
     if (!voiceSupported || !recognitionRef.current) return;
     setVoiceError("");
@@ -260,6 +303,8 @@ export default function CitizenReportForm() {
     setReporterPhone("");
     setSubmitted(null);
     setFormError("");
+    setPolishSuggestion(null);
+    setPolishError("");
   }
 
   async function handleSubmit() {
@@ -561,25 +606,37 @@ export default function CitizenReportForm() {
                 >
                   What's happening
                 </label>
-                {voiceSupported && (
+                <div className="flex items-center gap-1.5">
                   <button
-                    onClick={toggleListening}
-                    className="flex items-center gap-1 text-xs font-semibold rounded-full px-2 py-1"
-                    style={{
-                      background: listening ? "#9A2F1F" : "#EFEBE1",
-                      color: listening ? "#FFFFFF" : "#5B6359",
-                    }}
+                    onClick={handlePolish}
+                    disabled={polishing}
+                    className="flex items-center gap-1 text-xs font-semibold rounded-full px-2 py-1 disabled:opacity-50"
+                    style={{ background: "#EFEBE1", color: "#5B6359" }}
                   >
-                    {listening ? <MicOff size={12} /> : <Mic size={12} />}
-                    {listening ? "Listening…" : "Speak instead"}
+                    <Sparkles size={12} />
+                    {polishing ? "Checking…" : "Clean up wording"}
                   </button>
-                )}
+                  {voiceSupported && (
+                    <button
+                      onClick={toggleListening}
+                      className="flex items-center gap-1 text-xs font-semibold rounded-full px-2 py-1"
+                      style={{
+                        background: listening ? "#9A2F1F" : "#EFEBE1",
+                        color: listening ? "#FFFFFF" : "#5B6359",
+                      }}
+                    >
+                      {listening ? <MicOff size={12} /> : <Mic size={12} />}
+                      {listening ? "Listening…" : "Speak instead"}
+                    </button>
+                  )}
+                </div>
               </div>
               <textarea
                 value={description}
                 onChange={(e) => {
                   baseDescriptionRef.current = e.target.value;
                   setDescription(e.target.value);
+                  setPolishSuggestion(null);
                 }}
                 rows={3}
                 placeholder="e.g. Fresh crack across the road, widening after last night's rain"
@@ -598,6 +655,43 @@ export default function CitizenReportForm() {
                 <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#9A2F1F" }}>
                   <TriangleAlert size={12} /> {voiceError}
                 </p>
+              )}
+              {polishError && (
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#9A2F1F" }}>
+                  <TriangleAlert size={12} /> {polishError}
+                </p>
+              )}
+              {polishSuggestion && (
+                <div
+                  className="mt-2 rounded-md p-3"
+                  style={{ background: "#F0EDE4", border: "1px solid #C7C0AE" }}
+                >
+                  <p
+                    className="text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1"
+                    style={{ color: "#5B6359" }}
+                  >
+                    <Sparkles size={11} /> AI suggestion — same facts, tidier wording
+                  </p>
+                  <p className="text-sm mt-1.5" style={{ color: "#2E332D" }}>
+                    {polishSuggestion}
+                  </p>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={acceptPolish}
+                      className="text-xs font-semibold rounded-md px-3 py-1.5"
+                      style={{ background: "#22332B", color: "#F0EDE4" }}
+                    >
+                      Use this
+                    </button>
+                    <button
+                      onClick={() => setPolishSuggestion(null)}
+                      className="text-xs font-semibold rounded-md px-3 py-1.5 border"
+                      style={{ borderColor: "#C7C0AE", color: "#5B6359" }}
+                    >
+                      Keep my wording
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
 
