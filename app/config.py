@@ -46,10 +46,33 @@ class Settings(BaseSettings):
         "image/jpeg", "image/png", "image/heic", "image/heif",
     ]
 
-    # No default: the app must be told what threshold to use, from .env or
-    # real env vars — see RAINFALL_THRESHOLD__* in .env.example. Startup
-    # fails loudly rather than silently falling back to a guessed number.
-    rainfall_threshold: RainfallThresholdConfig
+    # Original single-state field, kept as-is on purpose: Render's live
+    # deployment already has RAINFALL_THRESHOLD__COEFFICIENT etc. set in its
+    # dashboard (not this repo -- see render.yaml's `sync: false` entries),
+    # and this session has no way to edit Render's env vars directly. Making
+    # this optional and keeping it, rather than renaming/removing it, means
+    # Sikkim's alerting keeps working in production with zero manual steps.
+    rainfall_threshold: RainfallThresholdConfig | None = None
+
+    # NER expansion, phase 1: new states get their own entry here instead of
+    # reusing Sikkim's config. Keyed by state, lowercased by pydantic-settings'
+    # env parsing (e.g. RAINFALL_THRESHOLDS__ASSAM__COEFFICIENT ->
+    # thresholds["assam"]). A state with no entry (e.g. Mizoram, which has no
+    # dedicated published equation yet) means alert_engine.py honestly skips
+    # alerting for it rather than borrowing another state's number.
+    rainfall_thresholds: dict[str, RainfallThresholdConfig] = {}
 
 
 settings = Settings()
+
+
+def get_rainfall_threshold(state: str) -> RainfallThresholdConfig | None:
+    per_state = settings.rainfall_thresholds.get(state.lower())
+    if per_state is not None:
+        return per_state
+    # Backward-compat fallback: Sikkim's threshold has always lived in the
+    # single original field (still true in production today), not the new
+    # per-state dict.
+    if state == "Sikkim":
+        return settings.rainfall_threshold
+    return None

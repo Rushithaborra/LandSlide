@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PhoneCall } from "lucide-react";
 import SearchBox from "./SearchBox";
+import StateSelector from "./StateSelector";
 import NotificationsPanel from "./NotificationsPanel";
 import ThemeToggle from "./ThemeToggle";
 import AdminDrawer from "./AdminDrawer";
@@ -25,6 +26,9 @@ export default function Topbar({ title, subtitle }) {
       <div className="flex items-center gap-4">
         {/* Global search — LINK SPOT M */}
         <SearchBox />
+
+        {/* NER expansion, phase 1 — filters the map/stats/corridors by state */}
+        <StateSelector />
 
         {/* One-touch SOS — real tel: link to India's national emergency
             number, always visible, no page navigation needed to reach it. */}

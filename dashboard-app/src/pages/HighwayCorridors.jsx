@@ -2,6 +2,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import LoadError from "../components/LoadError";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { getCorridors } from "../services/api";
+import { useRegion } from "../context/RegionContext";
 
 const severityStyle = {
   High: "bg-risk-highSoft dark:bg-risk-high/20 text-risk-high dark:text-risk-highOn",
@@ -15,10 +16,14 @@ const severityStyle = {
  * instead of listed flat, so an officer can see "which road" at a glance.
  */
 export default function HighwayCorridors() {
-  const { data: corridors, error, retry } = useAsyncData(getCorridors);
+  const { state: selectedState } = useRegion();
+  const { data: corridors, error, retry } = useAsyncData(() => getCorridors(selectedState), [selectedState]);
 
   return (
-    <DashboardLayout title="Highway Corridors" subtitle="Real zones grouped by highway, worst risk first">
+    <DashboardLayout
+      title="Highway Corridors"
+      subtitle={`Real zones grouped by highway, worst risk first — ${selectedState || "All States"}`}
+    >
       {error && !corridors ? (
         <LoadError message={error} onRetry={retry} />
       ) : (

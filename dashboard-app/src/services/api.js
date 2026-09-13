@@ -135,8 +135,14 @@ async function findZoneWithRainfall(zones, tryCount = 15) {
  * active alert; latest reading from the highest-risk zone with data)
  * rather than invented.
  * ----------------------------------------------------------------------- */
-export async function getSummaryStats() {
-  const [zones, alerts] = await Promise.all([getJSON("/zones"), getJSON("/alerts")]);
+export async function getSummaryStats(state) {
+  const [allZones, allAlerts] = await Promise.all([getJSON("/zones"), getJSON("/alerts")]);
+  const zones = state ? allZones.filter((z) => z.state === state) : allZones;
+  // Alert has no state field of its own (it's a property of the zone it
+  // belongs to) -- filter by checking membership in the already-filtered
+  // zone set rather than adding a second backend round trip.
+  const zoneIds = new Set(zones.map((z) => z.id));
+  const alerts = state ? allAlerts.filter((a) => zoneIds.has(a.zone_id)) : allAlerts;
   const highRisk = zones.filter((z) => z.risk_tier === "high").length;
   const activeAlerts = alerts.filter((a) => a.status === "active");
   const affectedZoneIds = new Set(activeAlerts.map((a) => a.zone_id));
@@ -193,8 +199,9 @@ function isToday(isoTimestamp) {
   return d.toDateString() === now.toDateString();
 }
 
-export async function getRainfallTrend() {
-  const zones = await getJSON("/zones");
+export async function getRainfallTrend(state) {
+  const allZones = await getJSON("/zones");
+  const zones = state ? allZones.filter((z) => z.state === state) : allZones;
   if (zones.length === 0) return [];
   const found = await findZoneWithRainfall(zones);
   if (!found) return [];
@@ -236,11 +243,12 @@ export async function getRainfallTrend() {
  * computed server-side (see app/models.py Zone.centroid_lat/lng) from the
  * stored polygon, since the map needs one point per zone, not the full shape.
  * ----------------------------------------------------------------------- */
-export async function getRiskZones() {
-  const zones = await getJSON("/zones");
+export async function getRiskZones(state) {
+  const zones = await getJSON(state ? `/zones?state=${encodeURIComponent(state)}` : "/zones");
   return zones.map((z) => ({
     id: z.id,
     name: z.name,
+    state: z.state,
     lat: z.centroid_lat,
     lng: z.centroid_lng,
     level: capitalizeTier(z.risk_tier),
@@ -254,8 +262,8 @@ export async function getRiskZones() {
  * name (e.g. "NH310A" from "NH310A (1224920841_00_000)") -- no new data
  * source, just a different aggregation of what /zones already serves.
  * ----------------------------------------------------------------------- */
-export async function getCorridors() {
-  const corridors = await getJSON("/corridors");
+export async function getCorridors(state) {
+  const corridors = await getJSON(state ? `/corridors?state=${encodeURIComponent(state)}` : "/corridors");
   return corridors.map((c) => ({
     code: c.code,
     zoneCount: c.zone_count,

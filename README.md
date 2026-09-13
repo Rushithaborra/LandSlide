@@ -5,6 +5,13 @@ Backend scope only: API, DB schema, rainfall ingestion, rule-based alert
 trigger, citizen report intake. See `CLAUDE.md` for the full project brief,
 and `docs/` for the team roadmap, the internal 4-day plan, and the pitch deck.
 
+**Multi-state, as of the NER expansion (phase 1):** `zones.state` and a
+per-state rainfall threshold mean the architecture is no longer Sikkim-only
+by construction. **Sikkim is still the only state with real, populated data**
+— Assam and Mizoram are valid, plannable next states (see CLAUDE.md's "NER
+expansion" section) with zero zones until their own GSI-inventory-to-model
+pipeline actually runs, same as Sikkim's did.
+
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /
   `model_version` — written via `PUT /zones/{id}/susceptibility` by the ML

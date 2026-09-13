@@ -1,9 +1,15 @@
 """Dynamic-layer alert trigger: rainfall intensity-duration (I-D) threshold,
 combined with the static ML susceptibility tier. Deliberately rule-based, not
 ML — the "two layers, named separately" pitch point (docs/landslide_ews_pitch.pptx,
-slide 4). The I-D threshold itself is loaded from config (app.config.settings
-.rainfall_threshold) — see .env.example for its source/citation. Nothing here
-invents a threshold number.
+slide 4). The I-D threshold is loaded per-state from config
+(app.config.get_rainfall_threshold) — see .env.example for its source/citation.
+Nothing here invents a threshold number.
+
+NER expansion, phase 1: each state gets its own literature-sourced threshold
+(they're geologically different regions) instead of one global config, so
+the pure functions below now take `config` as a required argument rather
+than silently defaulting to a single global -- there's no longer one
+sensible default across states.
 
 Split into a pure decision core (no DB, directly unit-testable) and a thin
 DB-touching wrapper, so the rule logic can be verified without Postgres.
@@ -14,7 +20,7 @@ from datetime import date, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.config import RainfallThresholdConfig, settings
+from app.config import RainfallThresholdConfig, get_rainfall_threshold
 from app.models import Alert, RainfallReading
 
 # How susceptibility tier scales the rainfall threshold: a high-susceptibility
@@ -31,8 +37,8 @@ SUSCEPTIBILITY_MULTIPLIERS = {
 
 def intensity_duration_threshold(
     duration_days: int,
+    config: RainfallThresholdConfig,
     risk_tier: str = "moderate",
-    config: RainfallThresholdConfig | None = None,
 ) -> float:
     """Threshold mean rainfall intensity (mm/day) for a duration window,
     scaled by susceptibility tier."""
@@ -41,7 +47,6 @@ def intensity_duration_threshold(
     if risk_tier not in SUSCEPTIBILITY_MULTIPLIERS:
         raise ValueError(f"risk_tier must be one of {list(SUSCEPTIBILITY_MULTIPLIERS)}, got {risk_tier!r}")
 
-    config = config or settings.rainfall_threshold
     base = config.coefficient * (duration_days**config.exponent)
     return base * SUSCEPTIBILITY_MULTIPLIERS[risk_tier]
 
@@ -56,9 +61,9 @@ class ThresholdCrossing:
 
 def evaluate_daily_rainfall(
     daily_totals: dict[date, float],
+    config: RainfallThresholdConfig,
     risk_tier: str = "moderate",
     durations_days: list[int] | None = None,
-    config: RainfallThresholdConfig | None = None,
 ) -> ThresholdCrossing | None:
     """Pure function: given {date: rainfall_mm}, check each duration window
     ending on the latest date for an I-D threshold crossing, scaled by
@@ -76,7 +81,6 @@ def evaluate_daily_rainfall(
     if not daily_totals:
         return None
 
-    config = config or settings.rainfall_threshold
     durations_days = durations_days or config.durations_days
     latest = max(daily_totals)
 
@@ -107,6 +111,15 @@ def check_and_trigger(db: Session, zone_id) -> Alert | None:
         raise ValueError(f"zone {zone_id} not found")
     risk_tier = zone.risk_tier or "moderate"  # no ML score yet -> assume moderate, don't silently skip alerting
 
+    config = get_rainfall_threshold(zone.state)
+    if config is None:
+        # Honest gap, not a bug: this zone's state has no literature-sourced
+        # threshold configured yet (e.g. Mizoram, pending a citable I-D
+        # equation) -- skip alerting rather than borrow another state's
+        # geologically-unrelated number.
+        print(f"[ALERT] zone={zone_id} state={zone.state!r} has no configured rainfall threshold -- skipping")
+        return None
+
     readings = (
         db.query(RainfallReading)
         .filter(RainfallReading.zone_id == zone_id)
@@ -116,7 +129,7 @@ def check_and_trigger(db: Session, zone_id) -> Alert | None:
     )
     daily_totals = {r.timestamp.date(): r.intensity_mm for r in readings}
 
-    crossing = evaluate_daily_rainfall(daily_totals, risk_tier=risk_tier)
+    crossing = evaluate_daily_rainfall(daily_totals, config=config, risk_tier=risk_tier)
     if crossing is None:
         return None
 
