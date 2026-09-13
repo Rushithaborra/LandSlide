@@ -10,6 +10,7 @@ class ZoneOut(BaseModel):
 
     id: uuid.UUID
     name: str
+    state: str
     susceptibility_score: float | None
     risk_tier: str | None
     model_version: str | None

@@ -13,6 +13,7 @@ import {
   getRiskZones,
 } from "../services/api";
 import { mapCenter, rainfallThresholdMm } from "../data/mockData";
+import { useRegion } from "../context/RegionContext";
 
 export default function Overview() {
   // All of this state is populated through src/services/api.js, which today
@@ -24,6 +25,7 @@ export default function Overview() {
   const [zones, setZones] = useState([]);
   const [loadError, setLoadError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const { state: selectedState } = useRegion();
 
   useEffect(() => {
     // Previously each call was a bare .then(setX) with no .catch() -- if any
@@ -37,10 +39,10 @@ export default function Overview() {
     setLoadError(null);
 
     Promise.allSettled([
-      getSummaryStats(),
+      getSummaryStats(selectedState),
       getActiveAlerts(),
-      getRainfallTrend(),
-      getRiskZones(),
+      getRainfallTrend(selectedState),
+      getRiskZones(selectedState),
     ]).then(([statsR, alertsR, rainfallR, zonesR]) => {
       if (cancelled) return;
       if (statsR.status === "fulfilled") setStats(statsR.value);
@@ -55,7 +57,7 @@ export default function Overview() {
     return () => {
       cancelled = true;
     };
-  }, [retryCount]);
+  }, [retryCount, selectedState]);
 
   return (
     <DashboardLayout
@@ -131,7 +133,7 @@ export default function Overview() {
             <div className="xl:col-span-2 bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-serif font-semibold text-ink-900 dark:text-paper-100 text-[15px]">Landslide Risk Map</h2>
-                <span className="text-xs text-paper-500">Sikkim</span>
+                <span className="text-xs text-paper-500">{selectedState || "All States"}</span>
               </div>
               <div className="relative z-0">
                 <RiskMap center={mapCenter} zones={zones} />

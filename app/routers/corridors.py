@@ -21,13 +21,16 @@ def _corridor_code(zone_name: str) -> str:
 
 
 @router.get("", response_model=list[CorridorOut])
-def list_corridors(db: Session = Depends(get_db)):
+def list_corridors(state: str | None = None, db: Session = Depends(get_db)):
     """Groups all zones by their real highway/road code and surfaces, per
     corridor: how many zones sit on it, its single highest-risk zone, and how
     many of its zones currently have an active alert. Nothing here is
     invented -- it's the same zones and alerts /zones and /alerts already
     serve, just aggregated by corridor instead of listed flat."""
-    zones = db.query(Zone).all()
+    query = db.query(Zone)
+    if state:
+        query = query.filter(Zone.state == state)
+    zones = query.all()
     active_zone_ids = {
         a.zone_id for a in db.query(Alert.zone_id).filter(Alert.status == "active").all()
     }

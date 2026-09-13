@@ -77,6 +77,7 @@ class PathsConfig:
 
 @dataclass(frozen=True)
 class MlConfig:
+    state: str = "Sikkim"
     dem: DemConfig = field(default_factory=DemConfig)
     roads: RoadsConfig = field(default_factory=RoadsConfig)
     sampling: NegativeSamplingConfig = field(default_factory=NegativeSamplingConfig)
@@ -84,3 +85,25 @@ class MlConfig:
 
 
 DEFAULT_CONFIG = MlConfig()
+
+# NER expansion, phase 1: a registry so a future state's config is looked up
+# by name instead of another hardcoded module-level constant -- every script
+# in this package still imports DEFAULT_CONFIG directly and is completely
+# unaffected by this addition.
+#
+# Assam and Mizoram are deliberately NOT stubbed in here yet. DemConfig's
+# tile_ids and target_crs (UTM 45N) and RoadsConfig's bbox above are
+# Sikkim-specific real, verified values -- inventing placeholder tile
+# IDs/bboxes/UTM zones for a state whose real inputs haven't been sourced
+# yet would risk a config that looks complete but silently points at the
+# wrong geography (or, worse, quietly reuses Sikkim's DEM tile under an
+# "Assam" label). When Assam's actual pipeline run begins (Phase 2), add
+# `STATE_CONFIGS["assam"] = MlConfig(state="Assam", dem=DemConfig(tile_ids=...,
+# target_crs="EPSG:326NN"), roads=RoadsConfig(bbox=...), paths=PathsConfig(...))`
+# with real, verified values determined the same way Sikkim's were (see
+# docs/dataset_inventory.md and CLAUDE.md's ML pipeline section) -- correct
+# UTM zone depends on the state's longitude and must be re-derived, not
+# copied from Sikkim's 45N.
+STATE_CONFIGS: dict[str, MlConfig] = {
+    "sikkim": DEFAULT_CONFIG,
+}

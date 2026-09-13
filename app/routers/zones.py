@@ -11,8 +11,11 @@ router = APIRouter(prefix="/zones", tags=["zones"])
 
 
 @router.get("", response_model=list[ZoneOut])
-def list_zones(db: Session = Depends(get_db)):
-    return db.query(Zone).all()
+def list_zones(state: str | None = None, db: Session = Depends(get_db)):
+    query = db.query(Zone)
+    if state:
+        query = query.filter(Zone.state == state)
+    return query.all()
 
 
 @router.get("/{zone_id}", response_model=ZoneOut)

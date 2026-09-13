@@ -172,6 +172,53 @@ and the merged `main`) — not yet inspected. Worth checking before the
 internal round in case there's more real work sitting unconnected the same
 way B's model was.
 
+## NER expansion — phase 1 (architecture), 2026-09-13
+The literal PS26001 wording is NER-wide; this build has been Sikkim-only.
+Decided: stage the expansion, Assam and Mizoram next (chosen over Meghalaya/
+Nagaland/Manipur/Arunachal Pradesh — both have a real, publicly-sourced
+GSI-linked landslide inventory; Assam additionally has a real, citable
+Guwahati rainfall intensity-duration equation, I = 5.9·D^-0.479, ISPRS
+Archives 2014 — Nagaland/Manipur don't have confirmed public inventories).
+
+**This phase makes the architecture multi-state-capable; it does NOT yet
+add Assam's or Mizoram's real data** — that's substantial separate work
+(sourcing each state's real GSI inventory is the hard part, the same as it
+was for Sikkim) and is explicitly Phase 2/3, not done yet:
+
+- `zones.state` column added (migration `004_zone_state.sql`), defaulted to
+  `'Sikkim'` — all 3,921 existing real zones correctly backfilled, verified
+  live. `GET /zones` and `GET /corridors` both take an optional `?state=`
+  filter now.
+- Rainfall thresholds are per-state (`app.config.get_rainfall_threshold`),
+  not one global config. **Sikkim's threshold still lives in the original
+  single `rainfall_threshold` field on purpose** — Render's live env vars
+  already set it and this session can't edit Render's dashboard directly, so
+  changing its name/shape would have silently broken production alerting.
+  Assam's real Guwahati equation is added as a new, separate
+  `rainfall_thresholds["assam"]` entry (see `.env.example`) —
+  `verified_against_primary_text: false`, and its intensity unit (assumed
+  mm/day) hasn't been independently confirmed either. Mizoram has no entry
+  yet (no dedicated published equation found) — `check_and_trigger` skips
+  alerting for any zone whose state has no configured threshold rather than
+  borrowing another state's number.
+- `scripts/ml/ml_config.py` has a `STATE_CONFIGS` registry now, but only
+  `"sikkim"` is populated (pointing at the exact same real, verified DEM
+  tile/bbox/UTM-45N values as before — zero behavior change). Assam/Mizoram
+  are deliberately NOT stubbed with placeholder tile IDs/bboxes — see the
+  comment in that file for exactly what Phase 2 needs to fill in for real
+  (their correct UTM zone differs by longitude and must be re-derived, not
+  copied from Sikkim's 45N).
+- Dashboard has a state selector (`RegionContext`, `StateSelector.jsx` in the
+  header) filtering the map, stat cards, and Highway Corridors. "All States"
+  and "Sikkim" are functionally identical right now; Assam/Mizoram correctly
+  show an honest empty state, not an error or fake data — verified live.
+
+**Phase 2 (Assam) and Phase 3 (Mizoram), still to do:** source each state's
+real GSI landslide inventory (the actual hard part), run `fetch_dem` /
+`fetch_osm_roads` / terrain extraction / negative sampling / model training
+for that state, generate and integrate its real zones, and — for Mizoram
+only — find or adapt a real rainfall threshold.
+
 ## Testing
 - `tests/test_alert_engine.py` — 12 passing unit tests against the pure
   decision core (`intensity_duration_threshold`, `evaluate_daily_rainfall`),
