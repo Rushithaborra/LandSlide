@@ -9,6 +9,7 @@ import EmergencyContacts from "./pages/EmergencyContacts";
 import AuthorityContacts from "./pages/AuthorityContacts";
 import ZoneDetail from "./pages/ZoneDetail";
 import DataObservations from "./pages/DataObservations";
+import DataMethodology from "./pages/DataMethodology";
 import CitizenReports from "./pages/CitizenReports";
 import HelpDocs from "./pages/HelpDocs";
 
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/authority-contacts" element={<AuthorityContacts />} />
             <Route path="/zones/:zoneId" element={<ZoneDetail />} />
             <Route path="/data-observations" element={<DataObservations />} />
+            <Route path="/data-methodology" element={<DataMethodology />} />
             <Route path="/citizen-reports" element={<CitizenReports />} />
             <Route path="/help" element={<HelpDocs />} />
           </Routes>

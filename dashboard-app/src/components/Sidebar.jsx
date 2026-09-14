@@ -12,6 +12,7 @@ import {
   HelpCircle,
   Mountain,
   CheckCircle2,
+  ScrollText,
 } from "lucide-react";
 
 const navItems = [
@@ -22,6 +23,7 @@ const navItems = [
   { to: "/emergency-contacts", key: "emergencyContacts", icon: Phone },
   { to: "/authority-contacts", key: "authorityContacts", icon: ShieldAlert },
   { to: "/data-observations", key: "dataObservations", icon: Database },
+  { to: "/data-methodology", key: "dataMethodology", icon: ScrollText },
   { to: "/citizen-reports", key: "citizenReports", icon: Users },
   { to: "/help", key: "help", icon: HelpCircle },
 ];

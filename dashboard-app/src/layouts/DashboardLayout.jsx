@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import AlertTicker from "../components/AlertTicker";
@@ -44,7 +45,9 @@ export default function DashboardLayout({ title, subtitle, children }) {
 
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-paper-200 dark:border-night-700 bg-paper-50 dark:bg-night-900 px-6 py-3 text-xs text-paper-600 dark:text-paper-400">
           <span>© 2026 Landslide Early Warning System</span>
-          <span>Data sources: IMD, GSI, ISRO, Open-Meteo</span>
+          <Link to="/data-methodology" className="underline decoration-dotted underline-offset-2 hover:text-teal-600">
+            Data sources & methodology
+          </Link>
         </footer>
       </div>
     </div>

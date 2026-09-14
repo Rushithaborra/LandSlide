@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Radio, CheckCircle2, Sparkles } from "lucide-react";
+import { X, Radio, CheckCircle2, Sparkles, MessageCircle, Copy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { broadcastAlert, generateBulletin } from "../services/api";
 
@@ -31,6 +31,27 @@ function defaultSeverity(alertSeverity) {
   return s === "high" || s === "critical" ? s : "moderate";
 }
 
+const SEVERITY_EMOJI = { moderate: "🟡", high: "🟠", critical: "🔴" };
+
+// Village-level disaster alerts in this region travel over WhatsApp groups
+// far more than SMS -- no gateway exists for that today, so this formats a
+// paste-ready message (WhatsApp's own *bold* markdown, an emoji severity
+// marker, a plain-text layout) an officer copies into a real WhatsApp
+// broadcast list by hand. Zero API cost, zero new credentials.
+function formatWhatsAppAlert({ headline, message, severity, location }) {
+  const emoji = SEVERITY_EMOJI[severity] || "🟡";
+  return [
+    `${emoji} *${headline}*`,
+    "",
+    message,
+    "",
+    `📍 Zone: ${location}`,
+    `🆘 Emergency: 112`,
+    "",
+    "— Landslide Early Warning System, official alert",
+  ].join("\n");
+}
+
 export default function BroadcastComposerModal({ alert, onClose }) {
   const { t } = useTranslation();
   const [headline, setHeadline] = useState("");
@@ -42,6 +63,8 @@ export default function BroadcastComposerModal({ alert, onClose }) {
   const [error, setError] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [draftError, setDraftError] = useState(null);
+  const [waCopied, setWaCopied] = useState(false);
+  const [waFallback, setWaFallback] = useState(null);
 
   useEffect(() => {
     if (!alert) return;
@@ -51,6 +74,8 @@ export default function BroadcastComposerModal({ alert, onClose }) {
     setChannels(["sms", "push"]);
     setResult(null);
     setError(null);
+    setWaCopied(false);
+    setWaFallback(null);
   }, [alert]);
 
   useEffect(() => {
@@ -75,6 +100,21 @@ export default function BroadcastComposerModal({ alert, onClose }) {
       setDraftError(err.message || "Could not generate a draft right now");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleCopyWhatsApp = async () => {
+    const text = formatWhatsAppAlert({ headline, message, severity, location: alert.location });
+    try {
+      await navigator.clipboard.writeText(text);
+      setWaCopied(true);
+      setWaFallback(null);
+      setTimeout(() => setWaCopied(false), 2000);
+    } catch {
+      // Clipboard API unavailable/blocked (older browser, no HTTPS, no
+      // permission) -- fall back to showing the text selected for a manual
+      // copy instead of silently failing.
+      setWaFallback(text);
     }
   };
 
@@ -200,6 +240,32 @@ export default function BroadcastComposerModal({ alert, onClose }) {
                 rows={3}
                 className="mt-1 w-full rounded-lg border border-paper-200 bg-white px-3 py-2 text-sm text-ink-800 dark:border-night-700 dark:bg-night-800 dark:text-paper-200"
               />
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={handleCopyWhatsApp}
+                className="flex items-center gap-1.5 rounded-lg border border-[#25D366]/40 bg-[#25D366]/10 px-3 py-1.5 text-xs font-medium text-[#1a8a47] hover:bg-[#25D366]/20 dark:text-[#3ddb7c]"
+              >
+                {waCopied ? <CheckCircle2 size={13} /> : <MessageCircle size={13} />}
+                {waCopied ? t("broadcastModal.waCopied") : t("broadcastModal.waCopy")}
+              </button>
+              <p className="mt-1 text-[11px] text-paper-500">{t("broadcastModal.waHelp")}</p>
+              {waFallback && (
+                <div className="mt-2">
+                  <p className="mb-1 flex items-center gap-1 text-[11px] text-risk-high">
+                    <Copy size={11} /> {t("broadcastModal.waFallbackHelp")}
+                  </p>
+                  <textarea
+                    readOnly
+                    value={waFallback}
+                    rows={4}
+                    onFocus={(e) => e.target.select()}
+                    className="w-full rounded-lg border border-paper-200 bg-paper-50 px-3 py-2 text-xs text-ink-800 dark:border-night-700 dark:bg-night-800 dark:text-paper-200"
+                  />
+                </div>
+              )}
             </div>
 
             <div>
