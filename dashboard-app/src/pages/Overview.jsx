@@ -15,6 +15,7 @@ import {
 } from "../services/api";
 import { mapCenter, rainfallThresholdMm } from "../data/mockData";
 import { useRegion } from "../context/RegionContext";
+import { useAlertStream } from "../hooks/useAlertStream";
 
 export default function Overview() {
   const { t } = useTranslation();
@@ -60,6 +61,12 @@ export default function Overview() {
       cancelled = true;
     };
   }, [retryCount, selectedState]);
+
+  // Re-fetch the moment a new alert actually fires, instead of waiting for
+  // the officer to manually refresh -- the stat cards, map markers, and
+  // Active Alerts panel all update in place, no loading flash (existing
+  // data stays on screen while the re-fetch is in flight).
+  useAlertStream(() => setRetryCount((n) => n + 1));
 
   return (
     <DashboardLayout

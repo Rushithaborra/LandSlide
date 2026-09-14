@@ -48,7 +48,9 @@
     "sosAriaLabel": "Call the national emergency number, 112",
     "openAdminDetails": "Open admin details",
     "admin": "Admin",
-    "changeLanguage": "Change language"
+    "changeLanguage": "Change language",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
   },
   "overview": {
     "title": "Overview",

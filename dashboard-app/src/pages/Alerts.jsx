@@ -5,6 +5,7 @@ import RecentAlertsTable from "../components/RecentAlertsTable";
 import LoadError from "../components/LoadError";
 import BroadcastComposerModal from "../components/BroadcastComposerModal";
 import { useAsyncData } from "../hooks/useAsyncData";
+import { useAlertStream } from "../hooks/useAlertStream";
 import { getRecentAlerts } from "../services/api";
 
 /**
@@ -16,6 +17,10 @@ export default function Alerts() {
   const { t } = useTranslation();
   const { data: alerts, error, retry } = useAsyncData(getRecentAlerts);
   const [broadcastTarget, setBroadcastTarget] = useState(null);
+
+  // A new alert should appear in this table the moment it fires, not only
+  // when the officer happens to refresh.
+  useAlertStream(retry);
 
   return (
     <DashboardLayout title={t("alerts.title")} subtitle={t("alerts.subtitle")}>
