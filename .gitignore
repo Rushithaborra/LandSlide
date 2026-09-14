@@ -2,3 +2,20 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# NER expansion (scripts/16-21): raw/processed geospatial rasters and large
+# OSM road pulls are regeneratable via those scripts (deterministic, given
+# cached source downloads) -- not committing them. Several already exceed
+# GitHub's 100MB hard push limit (Assam/Arunachal Pradesh's processed DEM,
+# slope, aspect and LS-factor rasters run 300-370MB each), and the full set
+# is ~9GB total. The small, irreplaceable deliverables -- landslide CSVs,
+# boundary vectors, negative samples, rainfall points, and the final
+# training_dataset_<state>.csv files -- are NOT covered by these rules and
+# stay tracked normally. Regenerate anything excluded here by re-running
+# scripts/18_run_state_pipeline.py / 19 / 20 / 21 for the state in question.
+data/raw/Copernicus_DSM_COG_10_*.tif
+data/raw/ESA_WorldCover_10m_2021_v200_*.tif
+data/raw/soil_*_0-5cm.tif
+data/processed/*.tif
+data/raw/*_roads.geojson
+data/interim/

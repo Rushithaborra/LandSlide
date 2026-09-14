@@ -1,0 +1,9 @@
+state,city,lat,lon,fetched_at_utc,current_precip_mm,current_rain_mm,next_24h_forecast_mm,id_threshold_check
+Sikkim,Gangtok,27.3389,88.6065,2026-09-13T06:08:03.127709+00:00,0.0,0.0,9.3,
+Assam,Guwahati,26.1445,91.7362,2026-09-13T06:08:03.127709+00:00,0.0,0.0,19.0,below Guwahati ID threshold (5.90 mm/hr @ 1hr duration)
+Arunachal Pradesh,Itanagar,27.0844,93.6053,2026-09-13T06:08:03.127709+00:00,0.1,0.1,17.6,
+Manipur,Imphal,24.817,93.9368,2026-09-13T06:08:03.127709+00:00,0.0,0.0,2.6,
+Meghalaya,Shillong,25.5788,91.8933,2026-09-13T06:08:03.127709+00:00,0.9,0.4,10.7,
+Mizoram,Aizawl,23.7271,92.7176,2026-09-13T06:08:03.127709+00:00,0.0,0.0,10.6,
+Nagaland,Kohima,25.6751,94.1086,2026-09-13T06:08:03.127709+00:00,0.9,0.0,13.0,
+Tripura,Agartala,23.8315,91.2868,2026-09-13T06:08:03.127709+00:00,0.1,0.0,3.9,
