@@ -47,9 +47,13 @@ class Zone(Base):
     # GET /zones response -- fine at Sikkim's 3,921 zones, but a real,
     # demonstrated cause of GET /zones timing out completely once Assam's
     # 66,677 zones landed. Computed once at zone-creation time instead (see
-    # scripts/integrate_zone_predictions.py, scripts/seed_zone.py).
-    centroid_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
-    centroid_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # scripts/integrate_zone_predictions.py, scripts/seed_zone.py). NOT NULL
+    # (migrations/010_zone_centroid_not_null.sql) because ZoneOut requires
+    # both as plain floats -- a zone inserted without one would otherwise
+    # 500 every GET /zones response containing it, not just fail loudly at
+    # insert time.
+    centroid_lat: Mapped[float] = mapped_column(Float, nullable=False)
+    centroid_lng: Mapped[float] = mapped_column(Float, nullable=False)
 
 
 class RainfallReading(Base):
