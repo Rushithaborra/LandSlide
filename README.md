@@ -59,6 +59,18 @@ pipeline actually runs, same as Sikkim's did.
   visually distinguishes the 2 forecast days (lighter bar + legend) instead
   of blending them into observed history — see `CLAUDE.md`'s "Two-layer
   risk logic" section for the full writeup.
+  **Demo-rehearsal finding (2026-09-14):** the code fix alone didn't make
+  the forecast visible — a zone's rainfall only re-fetches from Open-Meteo
+  when its newest stored reading isn't from today, and most zones already
+  had a "today" reading from before this fix, so they'd never naturally
+  pick up the new forecast days until that heuristic's condition happened
+  to fire again. Ran `scripts/fetch_rainfall_for_top_zones.py 30` to force
+  a real refresh for the top 30 highest-susceptibility zones (real
+  Open-Meteo data, not fabricated) so the forecast is actually visible for
+  a demo today, not just correct in the code. Any zone not among those 30
+  and not separately browsed to won't show forecast days until its own
+  daily refresh condition fires — re-run that script (raise the limit, or
+  target specific zones) before a demo if a different zone matters.
 - ML → backend contract finalized: `PUT /zones/{id}/susceptibility` takes
   `susceptibility_score`, `risk_tier`, `model_version`
 
