@@ -273,6 +273,70 @@ zone rows with the right `state` value, add a real `STATE_CONFIGS` entry
 when that state's DEM/roads data is ready — with no further schema, API, or
 dashboard changes needed first.
 
+## Assam Phase 2 attempted, rolled back for now, 2026-09-14
+Assam's real road-corridor pipeline was actually run this session
+(`scripts/generate_zone_predictions.py`, same real OSM-road + terrain-feature
+approach as Sikkim's): 66,677 real ~500m corridor segments, output at
+`outputs/gis/assam_road_susceptibility.geojson` (+ `.csv`) — that source file
+is untouched by the rollback below and is what re-integration will replay
+against. `scripts/integrate_zone_predictions.py assam` bulk-inserted all
+66,677 as real `Zone` rows, but the susceptibility PUT phase (writing each
+zone's real model score via the same unmodified `PUT /zones/{id}/
+susceptibility`) was interrupted after only 834 of 66,677 — the other 65,843
+sat in production with `risk_tier IS NULL`.
+
+**This surfaced a real, demonstrated production bug**, unrelated to Assam's
+data quality: `GET /zones` and `GET /corridors` had no pagination and
+computed each zone's centroid in Python (Shapely) on every request — already
+a slow ~45-60s load at Sikkim's 3,921 zones, and a complete timeout once
+66,677 more rows landed. Root-caused and fixed: stored `centroid_lat/lng`
+columns computed once at insert time instead of per-request
+(`migrations/009_zone_centroid_columns.sql`, backfilled and later made
+`NOT NULL` in `migrations/010_zone_centroid_not_null.sql` once verified zero
+NULL rows existed), `limit`/`offset` pagination with safe defaults
+(`DEFAULT_ZONE_LIMIT=2000`, `MAX_ZONE_LIMIT=5000` in `app/routers/zones.py`),
+sorting by the indexable `susceptibility_score` instead of a non-indexable
+`risk_tier` CASE expression, and `load_only()` to stop hydrating the unused
+`geometry` polygon column on every row — that last one was the dominant
+cost, `/corridors?state=Assam` alone went from 21.5s to ~2s. Measured
+before/after: Sikkim 45-60s → 1.5s, Assam (66,677 rows, unbounded) → 7s
+capped. Deployed to Render.
+
+That pagination default then broke the dashboard, which had been written
+when "no limit" silently meant "everything": every `/zones` call in
+`dashboard-app/src/services/api.js` was truncating Sikkim's real 3,921 zones
+to 2000 on the map with no error. Fixed by having every call pass an
+explicit `limit` matching the backend's own ceiling. That fix in turn
+exposed two more real bugs, both fixed and deployed: `CACHE_TTL_MS` was
+keyed by the literal string `"/zones"` but every call now carries a query
+string, so the intended 10-minute cache silently never matched and every
+page view was refetching from scratch; and switching the NER state selector
+showed the newly-selected state's label next to the *previous* state's
+real map/stats until the new fetch resolved (`Overview.jsx`,
+`useAsyncData.js` now reset to a real loading state on an actual state/deps
+change, while still not resetting on `useAlertStream`'s background
+live-alert refresh, which must stay flash-free).
+
+**Rolled back, 2026-09-14**: with only 834 of 66,677 Assam zones actually
+scored, the other 65,843 unscored zones rendered on the map as ordinary
+"Moderate" risk markers — `capitalizeTier(risk_tier)` in `api.js` defaults a
+`null` tier to `"Moderate"`, visually indistinguishable from a real
+assessment. That's a real honesty gap against this project's own "flag
+simulated/unscored data clearly" rule, so rather than ship it, all 66,677
+Assam `Zone` rows were deleted from production (verified first: zero
+rainfall_readings/alerts/sms_alert_log/citizen_reports referenced them, so
+nothing else was affected). `GET /zones?state=Assam` is back to `[]`, same
+honest empty state as before Assam's data ever landed. Sikkim (3,921 zones,
+fully scored) is unaffected and is the only state with real data again.
+
+**To resume Assam properly**: re-run `scripts/integrate_zone_predictions.py
+assam` (the source geojson is unchanged) and this time let the PUT phase
+run to completion — or push scores in verified batches — before the zones
+are visible in a state selectable from the dashboard. Also worth fixing
+before any future partially-scored state goes live: `capitalizeTier`'s
+`null → "Moderate"` fallback should be a distinct "not yet assessed" state,
+not a silent stand-in for a real risk level.
+
 ## SMS & voice alerts — integrated 2026-09-13
 Teammate D handed off a working `sms_alerts.py` module (Twilio) plus a
 migration and a manual test script, packaged for a raw-psycopg2 backend. This
