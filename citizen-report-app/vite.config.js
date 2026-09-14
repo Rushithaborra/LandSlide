@@ -22,6 +22,15 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: "autoUpdate",
+        // The default auto-injected register script is just a bare
+        // navigator.serviceWorker.register() with no update-checking loop --
+        // "autoUpdate" doesn't actually self-update without it. Disabled
+        // here in favor of explicitly calling virtual:pwa-register's own
+        // registerSW() in main.jsx, which checks for a new version on load
+        // and reloads automatically the moment one activates -- otherwise a
+        // returning visitor keeps getting served whatever version of the app
+        // was cached on their last visit, even after a new deploy.
+        injectRegister: false,
         includeAssets: ["icon.svg"],
         manifest: {
           name: "RESQ Citizen Report",
