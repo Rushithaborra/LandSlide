@@ -20,13 +20,13 @@ export default function Topbar({ title, subtitle }) {
   }, []);
 
   return (
-    <header className="h-16 border-b border-paper-200 bg-white flex items-center justify-between px-6 sticky top-0 z-30 dark:border-night-700 dark:bg-night-900">
-      <div>
-        <h1 className="font-serif text-lg font-semibold text-ink-900 leading-none dark:text-paper-100">{title}</h1>
-        {subtitle && <p className="text-xs text-paper-600 mt-1 dark:text-paper-400">{subtitle}</p>}
+    <header className="h-16 border-b border-paper-200 bg-white flex items-center justify-between gap-4 px-6 sticky top-0 z-30 dark:border-night-700 dark:bg-night-900">
+      <div className="min-w-[96px] flex-1">
+        <h1 className="font-serif text-lg font-semibold text-ink-900 leading-none truncate dark:text-paper-100">{title}</h1>
+        {subtitle && <p className="text-xs text-paper-600 mt-1 truncate dark:text-paper-400">{subtitle}</p>}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex shrink-0 items-center gap-3 lg:gap-4">
         {/* Global search — LINK SPOT M */}
         <SearchBox />
 

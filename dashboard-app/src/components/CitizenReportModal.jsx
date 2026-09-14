@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Sparkles,
   Languages,
+  Camera,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { verifyCitizenReport } from "../services/api";
@@ -53,7 +54,7 @@ function Row({ icon: Icon, label, children }) {
           {label}
         </p>
         <p className="mt-0.5 break-words text-sm text-paper-700 dark:text-paper-300">
-          {children}
+          {children || <span className="text-paper-400">—</span>}
         </p>
       </div>
     </div>
@@ -132,11 +133,17 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-paper-500">
               {t("citizenReportModal.photoSubmitted")}
             </p>
-            <img
-              src={report.photoUrl}
-              alt={`Submitted photo for report ${report.id} at ${report.location}`}
-              className="w-full rounded-lg border border-paper-200 object-cover dark:border-night-700"
-            />
+            {report.photoUrl ? (
+              <img
+                src={report.photoUrl}
+                alt={`Submitted photo for report ${report.id} at ${report.location}`}
+                className="w-full rounded-lg border border-paper-200 object-cover dark:border-night-700"
+              />
+            ) : (
+              <div className="flex h-48 w-full items-center justify-center rounded-lg border border-dashed border-paper-200 text-paper-400 dark:border-night-700">
+                <Camera size={28} />
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -154,9 +161,11 @@ export default function CitizenReportModal({ report, onClose, onVerified }) {
             </Row>
             <Row icon={User} label={t("citizenReportModal.submittedBy")}>
               {report.reporterName}
-              <span className="block text-xs text-paper-500">
-                {t("citizenReportModal.listedPublicly", { reporterType: report.reporterType, reporter: report.reporter })}
-              </span>
+              {report.reporterType && (
+                <span className="block text-xs text-paper-500">
+                  {t("citizenReportModal.listedPublicly", { reporterType: report.reporterType, reporter: report.reporter })}
+                </span>
+              )}
             </Row>
             <Row icon={Phone} label={t("citizenReportModal.contact")}>
               {report.reporterPhone}
