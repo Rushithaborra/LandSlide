@@ -2,7 +2,6 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -30,8 +29,7 @@ def fetch_and_store(zone_id: uuid.UUID, db: Session = Depends(get_db)):
     if zone is None:
         raise HTTPException(status_code=404, detail="Zone not found")
 
-    centroid = to_shape(zone.geometry).centroid
-    daily = open_meteo.fetch_daily_rainfall(lat=centroid.y, lng=centroid.x)
+    daily = open_meteo.fetch_daily_rainfall(lat=zone.centroid_lat, lng=zone.centroid_lng)
     if not daily:
         return []
 

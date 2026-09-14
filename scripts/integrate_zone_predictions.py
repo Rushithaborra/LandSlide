@@ -84,7 +84,12 @@ def create_or_get_zones(features: list[dict], state: str = "Sikkim", limit: int 
             if name not in existing:
                 new_id = str(uuid.uuid4())
                 polygon = shape(feat["geometry"])
-                to_insert.append({"id": new_id, "name": name, "state": state, "geometry": from_shape(polygon, srid=4326)})
+                centroid = polygon.centroid
+                to_insert.append({
+                    "id": new_id, "name": name, "state": state,
+                    "geometry": from_shape(polygon, srid=4326),
+                    "centroid_lat": centroid.y, "centroid_lng": centroid.x,
+                })
                 existing[name] = new_id
 
         for i in range(0, len(to_insert), chunk_size):

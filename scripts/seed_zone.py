@@ -41,9 +41,15 @@ def main() -> None:
         sys.exit(1)
 
     polygon = shape(geojson)
+    centroid = polygon.centroid
     db = SessionLocal()
     try:
-        zone = Zone(name=zone_name, geometry=from_shape(polygon, srid=4326))
+        zone = Zone(
+            name=zone_name,
+            geometry=from_shape(polygon, srid=4326),
+            centroid_lat=centroid.y,
+            centroid_lng=centroid.x,
+        )
         db.add(zone)
         db.commit()
         db.refresh(zone)

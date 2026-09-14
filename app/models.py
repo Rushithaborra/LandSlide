@@ -2,7 +2,6 @@ import uuid
 from datetime import datetime, timezone
 
 from geoalchemy2 import Geometry
-from geoalchemy2.shape import to_shape
 from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -43,16 +42,14 @@ class Zone(Base):
     rainfall_readings: Mapped[list["RainfallReading"]] = relationship(back_populates="zone")
     alerts: Mapped[list["Alert"]] = relationship(back_populates="zone")
 
-    # Computed, not stored: the dashboard's map needs a single point per zone
-    # to place a pin, but the stored geometry is a full polygon. Centroid is
-    # good enough for a pin location -- no new column needed.
-    @property
-    def centroid_lat(self) -> float:
-        return to_shape(self.geometry).centroid.y
-
-    @property
-    def centroid_lng(self) -> float:
-        return to_shape(self.geometry).centroid.x
+    # Stored, not computed (migrations/009_zone_centroid_columns.sql): this
+    # used to be a per-request Shapely centroid() call on every zone in every
+    # GET /zones response -- fine at Sikkim's 3,921 zones, but a real,
+    # demonstrated cause of GET /zones timing out completely once Assam's
+    # 66,677 zones landed. Computed once at zone-creation time instead (see
+    # scripts/integrate_zone_predictions.py, scripts/seed_zone.py).
+    centroid_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    centroid_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
 class RainfallReading(Base):

@@ -5,11 +5,22 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Alert, Zone
+from app.routers.zones import MAX_ZONE_LIMIT, ZONE_LIST_COLUMNS
 from app.schemas import CorridorOut
 
 router = APIRouter(prefix="/corridors", tags=["corridors"])
 
 _TIER_RANK = {"low": 0, "moderate": 1, "high": 2}
+
+# Same fix as GET /zones (see app/routers/zones.py): this endpoint used to
+# fetch every matching zone unbounded before grouping them in Python, which
+# is the same query that started timing out once Assam's 66,677 zones
+# landed. Capped at the same MAX_ZONE_LIMIT, sorted by risk first, so a
+# corridor's worst zone (what this endpoint actually surfaces) is never the
+# one that got cut off -- only very long tails of low-risk zones on a
+# corridor could be undercounted at extreme scale, not the risk signal
+# itself.
+CORRIDOR_ZONE_LIMIT = MAX_ZONE_LIMIT
 
 
 def _corridor_code(zone_name: str) -> str:
@@ -27,10 +38,10 @@ def list_corridors(state: str | None = None, db: Session = Depends(get_db)):
     many of its zones currently have an active alert. Nothing here is
     invented -- it's the same zones and alerts /zones and /alerts already
     serve, just aggregated by corridor instead of listed flat."""
-    query = db.query(Zone)
+    query = db.query(Zone).options(ZONE_LIST_COLUMNS)
     if state:
         query = query.filter(Zone.state == state)
-    zones = query.all()
+    zones = query.order_by(Zone.susceptibility_score.desc().nulls_last()).limit(CORRIDOR_ZONE_LIMIT).all()
     active_zone_ids = {
         a.zone_id for a in db.query(Alert.zone_id).filter(Alert.status == "active").all()
     }
