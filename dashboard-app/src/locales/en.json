@@ -62,7 +62,7 @@
     "systemHealth": "System Health",
     "riskMap": "Landslide Risk Map",
     "allStates": "All States",
-    "rainfallTrend": "Rainfall Trend (Last 7 Days)",
+    "rainfallTrend": "Rainfall Trend & Forecast",
     "dangerThreshold": "Danger threshold {{value}} mm"
   },
   "alerts": {
@@ -141,7 +141,7 @@
     "notYetScored": "Not yet scored",
     "modelVersion": "Model version",
     "lastUpdated": "Last updated",
-    "rainfallHistory": "Rainfall history",
+    "rainfallHistory": "Rainfall history & forecast",
     "noRainfallData": "No rainfall data fetched for this zone yet.",
     "alertsForZone": "Alerts for this zone",
     "noAlerts": "No alerts have fired for this zone yet."
