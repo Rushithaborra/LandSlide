@@ -2,12 +2,12 @@
 No DB needed — intensity_duration_threshold() and evaluate_daily_rainfall()
 take an explicit config, independent of whatever's in .env. check_and_trigger()
 (the DB-touching wrapper) still needs a live Postgres to integration-test."""
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
 from app.config import RainfallThresholdConfig
-from app.services.alert_engine import evaluate_daily_rainfall, intensity_duration_threshold
+from app.services.alert_engine import drop_forecast_days, evaluate_daily_rainfall, intensity_duration_threshold
 
 # Deterministic test config: threshold(D) = 40 * D^-1 = 40/D mm/day.
 # D=1 -> 40, D=3 -> 13.33, D=5 -> 8, D=7 -> 5.71 mm/day (moderate tier).
@@ -120,3 +120,35 @@ def test_zero_or_negative_duration_raises():
 def test_unknown_risk_tier_raises():
     with pytest.raises(ValueError):
         intensity_duration_threshold(1, risk_tier="extreme", config=TEST_CONFIG)
+
+
+# --- forecast data must never anchor a real alert --------------------------
+# open_meteo.fetch_daily_rainfall pulls forecast_days alongside past_days,
+# and both get stored as plain RainfallReading rows with no distinction --
+# check_and_trigger must filter tomorrow's *predicted* rainfall out before
+# it can become evaluate_daily_rainfall's `latest` anchor, or a real SMS/
+# call (Twilio is live) could fire off unconfirmed forecast data.
+
+
+def test_drop_forecast_days_keeps_today_and_past():
+    today = datetime.now(timezone.utc).date()
+    totals = {today - timedelta(days=1): 10.0, today: 20.0}
+    assert drop_forecast_days(totals) == totals
+
+
+def test_drop_forecast_days_removes_future_dates():
+    today = datetime.now(timezone.utc).date()
+    totals = {today - timedelta(days=1): 10.0, today: 20.0, today + timedelta(days=1): 999.0}
+    result = drop_forecast_days(totals)
+    assert today + timedelta(days=1) not in result
+    assert result == {today - timedelta(days=1): 10.0, today: 20.0}
+
+
+def test_forecast_alone_cannot_breach_threshold():
+    # A single forecast day of enormous rainfall must not be usable as
+    # evaluate_daily_rainfall's `latest` anchor -- without drop_forecast_days,
+    # this would breach the 1-day threshold (40mm) on predicted rain alone.
+    today = datetime.now(timezone.utc).date()
+    totals = {today: 5.0, today + timedelta(days=1): 999.0}
+    filtered = drop_forecast_days(totals)
+    assert evaluate_daily_rainfall(filtered, config=TEST_CONFIG) is None

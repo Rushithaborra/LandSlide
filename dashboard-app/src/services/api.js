@@ -245,6 +245,11 @@ export async function getRainfallTrend(state) {
   return ascending.slice(-7).map((r) => ({
     day: new Date(r.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
     mm: Math.round(r.intensity_mm),
+    // See app/schemas.py RainfallReadingOut.is_forecast -- open_meteo's
+    // forecast_days window is stored the same as real past_days readings,
+    // so the chart needs this to avoid showing an unconfirmed forecast day
+    // as if it were observed rainfall.
+    isForecast: Boolean(r.is_forecast),
   }));
 }
 
@@ -362,6 +367,7 @@ export async function getRainfallForZone(zoneId) {
   return ascending.map((r) => ({
     day: new Date(r.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
     mm: Math.round(r.intensity_mm),
+    isForecast: Boolean(r.is_forecast),
   }));
 }
 

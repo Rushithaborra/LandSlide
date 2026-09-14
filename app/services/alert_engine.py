@@ -16,7 +16,7 @@ DB-touching wrapper, so the rule logic can be verified without Postgres.
 """
 import math
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -100,6 +100,19 @@ def evaluate_daily_rainfall(
     return None
 
 
+def drop_forecast_days(daily_totals: dict[date, float]) -> dict[date, float]:
+    """Real-alert evaluation must never anchor on a day that hasn't happened
+    yet: `open_meteo.fetch_daily_rainfall` pulls forecast_days alongside
+    past_days (see app/routers/rainfall.py), and both get stored as plain
+    RainfallReading rows with no distinction -- so `evaluate_daily_rainfall`'s
+    `latest = max(daily_totals)` would otherwise anchor its backward-looking
+    windows on tomorrow's *predicted* rainfall. With Twilio now live, that
+    would mean a real SMS/call could fire off an unconfirmed forecast. Pure
+    and separately testable from the DB-touching check_and_trigger below."""
+    today = datetime.now(timezone.utc).date()
+    return {d: mm for d, mm in daily_totals.items() if d <= today}
+
+
 def check_and_trigger(db: Session, zone_id) -> Alert | None:
     """DB-touching wrapper: pulls this zone's stored daily rainfall and its
     susceptibility tier, runs it through the pure threshold check, and writes
@@ -127,7 +140,7 @@ def check_and_trigger(db: Session, zone_id) -> Alert | None:
         .limit(31)
         .all()
     )
-    daily_totals = {r.timestamp.date(): r.intensity_mm for r in readings}
+    daily_totals = drop_forecast_days({r.timestamp.date(): r.intensity_mm for r in readings})
 
     crossing = evaluate_daily_rainfall(daily_totals, config=config, risk_tier=risk_tier)
     if crossing is None:
