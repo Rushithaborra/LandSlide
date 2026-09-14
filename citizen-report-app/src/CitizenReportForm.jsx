@@ -13,7 +13,9 @@ import {
   Mic,
   MicOff,
   Sparkles,
+  QrCode,
 } from "lucide-react";
+import PosterModal from "./PosterModal";
 
 // ---------------------------------------------------------------------------
 // BACKEND — set VITE_API_BASE_URL in a .env file at the project root.
@@ -144,6 +146,7 @@ export default function CitizenReportForm() {
   const baseDescriptionRef = useRef("");
   const clientReportIdRef = useRef(null);
   const [backendReachable, setBackendReachable] = useState(null); // null = checking
+  const [showPoster, setShowPoster] = useState(false);
 
   useEffect(() => {
     const goOnline = () => setOnline(true);
@@ -410,7 +413,7 @@ export default function CitizenReportForm() {
         @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;700&family=Public+Sans:wght@400;500;600;700&display=swap');
       `}</style>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md print:hidden">
         {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div>
@@ -428,6 +431,16 @@ export default function CitizenReportForm() {
               Cracks, slope movement, or blocked roads — takes under a minute.
             </p>
           </div>
+          <button
+            onClick={() => setShowPoster(true)}
+            className="flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-2 text-xs font-semibold"
+            style={{ borderColor: "#DAD4C6", color: "#5B6359" }}
+            aria-label="Get a printable QR poster for this form"
+            title="Get a printable poster"
+          >
+            <QrCode size={16} />
+            Poster
+          </button>
         </div>
 
         {/* Connectivity banner */}
@@ -822,6 +835,8 @@ export default function CitizenReportForm() {
           </div>
         )}
       </div>
+
+      {showPoster && <PosterModal onClose={() => setShowPoster(false)} />}
     </div>
   );
 }

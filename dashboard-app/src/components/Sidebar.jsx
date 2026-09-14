@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Mountain,
   CheckCircle2,
+  ScrollText,
   X,
 } from "lucide-react";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -26,6 +27,7 @@ const navItems = [
   { to: "/emergency-contacts", key: "emergencyContacts", icon: Phone },
   { to: "/authority-contacts", key: "authorityContacts", icon: ShieldAlert },
   { to: "/data-observations", key: "dataObservations", icon: Database },
+  { to: "/data-methodology", key: "dataMethodology", icon: ScrollText },
   { to: "/citizen-reports", key: "citizenReports", icon: Users },
   { to: "/help", key: "help", icon: HelpCircle },
 ];
