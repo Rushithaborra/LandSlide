@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Bell, Users, CloudRain, ShieldCheck } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -29,6 +29,10 @@ export default function Overview() {
   const [loadError, setLoadError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const { state: selectedState } = useRegion();
+  // Tracks which state this effect last actually fetched for, so a
+  // retryCount bump (a live alert arriving via useAlertStream, or the
+  // manual Retry button) can be told apart from a real NER-state switch.
+  const lastFetchedState = useRef(selectedState);
 
   useEffect(() => {
     // Previously each call was a bare .then(setX) with no .catch() -- if any
@@ -40,6 +44,18 @@ export default function Overview() {
     // and a full failure shows a real retry button.
     let cancelled = false;
     setLoadError(null);
+
+    // Only reset to the loading state on an actual state switch -- not on
+    // every retryCount bump, since useAlertStream fires that on every live
+    // alert precisely so existing data stays on screen with no loading
+    // flash while the re-fetch happens in the background (see below). A
+    // real switch, left un-reset, showed the newly selected state's label
+    // next to the PREVIOUS state's stat cards/map/alerts for the few
+    // seconds the new state's zones took to load -- reported live.
+    if (selectedState !== lastFetchedState.current) {
+      setStats(null);
+    }
+    lastFetchedState.current = selectedState;
 
     Promise.allSettled([
       getSummaryStats(selectedState),

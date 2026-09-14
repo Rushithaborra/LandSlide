@@ -28,6 +28,8 @@ export default function HighwayCorridors() {
     >
       {error && !corridors ? (
         <LoadError message={error} onRetry={retry} />
+      ) : !corridors ? (
+        <p className="text-sm text-paper-500">{t("common.loading")}</p>
       ) : (
         <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4 overflow-x-auto">
           <table className="w-full text-sm">

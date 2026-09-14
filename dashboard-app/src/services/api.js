@@ -52,7 +52,19 @@ const inFlight = new Map();
 // instead of each paying 7s. Alerts and reports can change during a live
 // demo (a report submitted from a phone must show up), so they stay near-
 // live at 3s.
-const CACHE_TTL_MS = { "/zones": 10 * 60 * 1000 };
+// Matched by prefix, not exact equality -- every /zones call now carries a
+// query string (?limit=...&state=...), so a plain `CACHE_TTL_MS[path]`
+// lookup never matched and every zones fetch silently fell back to the 3s
+// default below instead of the intended 10 minutes, once limit/state were
+// added to every call site. Re-fetching thousands of rows on effectively
+// every page view was the real cause of the dashboard "still" feeling slow
+// after the backend performance fix -- not a regression in the backend
+// itself, confirmed by re-timing GET /zones directly.
+const CACHE_TTL_MS_PREFIXES = [["/zones", 10 * 60 * 1000]];
+function cacheTtlFor(path) {
+  const hit = CACHE_TTL_MS_PREFIXES.find(([prefix]) => path.startsWith(prefix));
+  return hit ? hit[1] : 3000;
+}
 
 // GET /zones now defaults to a small page (DEFAULT_ZONE_LIMIT=2000 in
 // app/routers/zones.py) so an unbounded request can never time out the API
@@ -78,7 +90,7 @@ async function getJSON(path) {
     return res.json();
   });
   promise.then(
-    () => setTimeout(() => inFlight.delete(path), CACHE_TTL_MS[path] ?? 3000),
+    () => setTimeout(() => inFlight.delete(path), cacheTtlFor(path)),
     // Never hold on to a failure: a Retry click must hit the network again,
     // not get handed back the same rejected promise.
     () => inFlight.delete(path),
