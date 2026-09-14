@@ -156,9 +156,10 @@ export default function CitizenReportForm() {
     };
   }, []);
 
-  // Checks the tunnel is actually alive, since it's a temporary Cloudflare
-  // URL that dies whenever Sushanth's machine or tunnel restarts — separate
-  // from the browser's own online/offline state.
+  // Checks the real backend (Render) is actually reachable -- separate from
+  // the browser's own online/offline state, since a cold Render free-tier
+  // instance or a real outage looks identical to "online" from the browser's
+  // point of view.
   useEffect(() => {
     let cancelled = false;
     checkBackendHealth().then((ok) => {
@@ -451,8 +452,9 @@ export default function CitizenReportForm() {
           >
             <TriangleAlert size={16} />
             <span>
-              Backend isn't responding — the tunnel URL may have changed. Ask
-              Sushanth for the current one.
+              Backend isn't responding right now — it may just be waking up (the
+              free-tier server sleeps after inactivity and takes 30-50s on its first
+              request). Try again in a moment.
             </span>
           </div>
         )}
