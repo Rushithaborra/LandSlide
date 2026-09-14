@@ -27,6 +27,10 @@ import {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
+// Server-Sent Events endpoint (see useAlertStream.js) -- exported here so
+// this file stays the one place that knows the backend's base URL.
+export const ALERT_STREAM_URL = `${BASE_URL}/alerts/stream`;
+
 const fakeDelay = (data, ms = 200) =>
   new Promise((resolve) => setTimeout(() => resolve(data), ms));
 

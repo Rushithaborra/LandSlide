@@ -1,15 +1,77 @@
+import asyncio
+import json
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session, joinedload
+from starlette.concurrency import run_in_threadpool
 
-from app.database import get_db
+from app.database import SessionLocal, get_db
 from app.models import Alert, AlertBroadcast
 from app.schemas import AlertOut, BroadcastIn, BroadcastOut, GenerateBulletinIn, GenerateBulletinOut
 from app.services.bulletin import generate_bulletin
 from app.services.sms_alerts import escalate_critical_alert, twilio_configured
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
+
+# How often the stream re-checks for new alerts. A live "does the dashboard
+# actually update when an alert fires" demo moment doesn't need millisecond
+# precision -- polling the DB every few seconds inside an SSE response is far
+# simpler and more robust than a real pub/sub broker, and correct at this
+# scale (a handful of alerts, a single Render worker). See
+# `run_in_threadpool` below -- the DB session is plain sync SQLAlchemy (same
+# as every other endpoint in this app), so each poll runs off the event loop
+# instead of blocking every other request for the query's duration.
+STREAM_POLL_SECONDS = 3
+
+
+def _fetch_alerts_since(last_seen: datetime | None) -> list[Alert]:
+    db = SessionLocal()
+    try:
+        query = db.query(Alert).options(joinedload(Alert.zone)).order_by(Alert.triggered_at.asc())
+        if last_seen is not None:
+            query = query.filter(Alert.triggered_at > last_seen)
+        return query.all()
+    finally:
+        db.close()
+
+
+@router.get("/stream")
+async def stream_alerts():
+    """Server-Sent Events: pushes each newly-triggered alert to connected
+    dashboards the moment it's created, instead of the officer needing to
+    manually refresh (or wait out a polling interval) to see it. One-way
+    server -> browser, so SSE over the browser's native EventSource -- no
+    new frontend dependency, automatic reconnection built in -- rather than
+    WebSockets, which this doesn't need (the dashboard never sends anything
+    back over this channel)."""
+
+    async def event_stream():
+        last_seen = datetime.now(timezone.utc)
+        while True:
+            await asyncio.sleep(STREAM_POLL_SECONDS)
+            new_alerts = await run_in_threadpool(_fetch_alerts_since, last_seen)
+            if new_alerts:
+                last_seen = new_alerts[-1].triggered_at
+                for alert in new_alerts:
+                    payload = {
+                        "id": str(alert.id),
+                        "zone_id": str(alert.zone_id),
+                        "zone_name": alert.zone.name if alert.zone else None,
+                        "threshold_crossed": alert.threshold_crossed,
+                        "triggered_at": alert.triggered_at.isoformat(),
+                    }
+                    yield f"data: {json.dumps(payload)}\n\n"
+            else:
+                yield ": keep-alive\n\n"  # SSE comment line -- keeps proxies from timing out an idle connection
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.get("", response_model=list[AlertOut])

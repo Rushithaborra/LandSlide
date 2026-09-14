@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import AlertTicker from "../components/AlertTicker";
 import { getTickerBulletins } from "../services/api";
+import { useAlertStream } from "../hooks/useAlertStream";
 
 /**
- * How often the scrolling warning strip re-fetches its bulletins.
- * 5 minutes is a sensible default for a weather bulletin feed; drop it to
- * 60_000 if the backend team makes the endpoint cheap enough.
+ * How often the scrolling warning strip re-fetches its bulletins on its own,
+ * as a fallback -- useAlertStream below already re-fetches immediately the
+ * moment a new alert actually fires, so this interval mostly just covers
+ * bulletins that change for other reasons (edited/resolved elsewhere).
  * LINK SPOT I — see src/services/api.js → getTickerBulletins()
  */
 const TICKER_REFRESH_MS = 5 * 60 * 1000;
@@ -16,20 +18,20 @@ export default function DashboardLayout({ title, subtitle, children }) {
   const [bulletins, setBulletins] = useState([]);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  useEffect(() => {
-    let alive = true;
-    const load = () => {
-      getTickerBulletins().then((data) => {
-        if (alive) setBulletins(data);
-      });
-    };
-    load();
-    const timer = setInterval(load, TICKER_REFRESH_MS);
-    return () => {
-      alive = false;
-      clearInterval(timer);
-    };
+  const loadBulletins = useCallback(() => {
+    getTickerBulletins().then(setBulletins);
   }, []);
+
+  useEffect(() => {
+    loadBulletins();
+    const timer = setInterval(loadBulletins, TICKER_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, [loadBulletins]);
+
+  // A newly-triggered alert should show up in the scrolling warning strip
+  // immediately, not up to 5 minutes later -- this is the "does the
+  // dashboard actually update live" moment for a demo.
+  useAlertStream(loadBulletins);
 
   return (
     <div className="flex min-h-screen bg-paper-100 dark:bg-night-950">
