@@ -86,10 +86,11 @@ serialization. Concretely:
   actually wired up. Keep this discrepancy visible to F (PM/pitch) rather than
   letting the deck imply IMD is live.
 - Alerts: SMS/voice delivery is **real (Twilio, `app/services/sms_alerts.py`),
-  integrated 2026-09-13 from teammate D's handover module — but Twilio
-  credentials aren't set anywhere yet, so both the automated engine and the
-  Broadcast composer still fall back to `delivery_method="log_only"` /
-  `status="simulated"` in practice. See "SMS & voice alerts" section below.
+  integrated 2026-09-13 from teammate D's handover module, credentials set
+  and live-verified 2026-09-14** — a real critical broadcast placed an
+  actual phone call, `AlertBroadcast.status` came back `"sent"`. Trial
+  account, so only manually-verified numbers actually receive anything.
+  See "SMS & voice alerts" section below.
 
 ## Data model
 `migrations/001_schema.sql`: `zones` (PostGIS geometry, susceptibility_score,
@@ -221,6 +222,31 @@ real GSI landslide inventory (the actual hard part), run `fetch_dem` /
 for that state, generate and integrate its real zones, and — for Mizoram
 only — find or adapt a real rainfall threshold.
 
+## NER expansion — widened to all 8 states, 2026-09-14
+Phase 1 above only made `zones.state` accept `'Sikkim'`, `'Assam'`,
+`'Mizoram'` — every other real NER state would have needed its own schema
+migration the day its real data was ready. Widened `zones.state`'s CHECK
+constraint (`migrations/008_ner_all_states.sql`, plus the matching
+declarative `CheckConstraint` in `app/models.py`) to all 8 real NER states:
+Sikkim, Assam, Arunachal Pradesh, Manipur, Meghalaya, Mizoram, Nagaland,
+Tripura. Dashboard's `NER_STATES` (`RegionContext.jsx`) widened to match, so
+the state selector already lists all 8.
+
+**Still only schema/UI scaffolding, same discipline as Phase 1** — this
+does NOT add zones, DEM tiles, road bboxes, or rainfall thresholds for
+Arunachal Pradesh/Manipur/Meghalaya/Nagaland/Tripura. `scripts/ml/
+ml_config.py`'s `STATE_CONFIGS` still only has real entries for `"sikkim"`
+and `"assam"` — inventing placeholder DEM tile IDs/bboxes/UTM zones for a
+state whose real inputs haven't been sourced would risk a config that looks
+complete but silently points at the wrong geography. Verified live:
+3,921 zones unchanged, `GET /zones?state=Meghalaya` (and the other four
+newly-allowed states) returns `[]`, not an error or fake data. The point of
+this change is that sourcing any of these five states' real GSI inventory
+and running the pipeline is now a pure data-and-config task — insert real
+zone rows with the right `state` value, add a real `STATE_CONFIGS` entry
+when that state's DEM/roads data is ready — with no further schema, API, or
+dashboard changes needed first.
+
 ## SMS & voice alerts — integrated 2026-09-13
 Teammate D handed off a working `sms_alerts.py` module (Twilio) plus a
 migration and a manual test script, packaged for a raw-psycopg2 backend. This
@@ -255,14 +281,18 @@ from, not one:
   `AlertBroadcast.status` becomes `"sent"` only if a real send was attempted
   with Twilio configured; otherwise stays `"simulated"`, unchanged from before.
 
-Twilio credentials (`TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/
-`TWILIO_FROM_NUMBER`) are not set anywhere yet (not in `.env`, not on
-Render) — both paths currently still behave exactly as before this
-integration until someone sets them and registers at least one real row in
-`authority_contacts`. Full setup steps, the function-by-function reference,
-and known limitations (Twilio trial accounts only reach manually-verified
-numbers; subscriber list is citizen-report phone numbers, not a real opt-in
-flow; no retry on failed sends; English-only wording): `docs/sms_voice_alert_handover.md`.
+**Credentials set and live-verified 2026-09-14** (local `.env` and Render):
+a real trial Twilio account, a purchased number, one manually-verified test
+number, and a real `authority_contacts` row (`"Sushanth (Twilio test)"`,
+`+918125710271`) — worth renaming/replacing with a real team contact before
+the demo, or adding more real officials via the Authority Contacts page.
+A live critical broadcast against production placed a real phone call and
+came back `AlertBroadcast.status == "sent"`, confirmed by the recipient.
+Trial-account limits still apply (see below) — full setup steps, the
+function-by-function reference, and known limitations (Twilio trial
+accounts only reach manually-verified numbers; subscriber list is
+citizen-report phone numbers, not a real opt-in flow; no retry on failed
+sends; English-only wording): `docs/sms_voice_alert_handover.md`.
 Unit tests for the cooldown/severity-gating logic (everything DB/Twilio
 mocked out): `tests/test_sms_alerts.py`.
 

@@ -3,8 +3,8 @@ import { useRegion, NER_STATES } from "../context/RegionContext";
 /**
  * Filters the map, stat cards, and Highway Corridors by NER state. Sikkim is
  * the only state with real zones right now -- "All States" and "Sikkim"
- * show identical results until Assam/Mizoram's own data pipeline runs (see
- * CLAUDE.md, NER expansion phase 1).
+ * show identical results until each other state's own data pipeline runs
+ * (see CLAUDE.md, NER expansion phase 1).
  */
 export default function StateSelector() {
   const { state, setState } = useRegion();

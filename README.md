@@ -54,15 +54,16 @@ pipeline actually runs, same as Sikkim's did.
   wasn't reachable in this timeframe, so Open-Meteo is what's actually live.
   Treat IMD as a documented future/primary institutional integration, not
   something currently wired up.
-- SMS/voice delivery: **real, via Twilio (`app/services/sms_alerts.py`), but
-  not yet configured anywhere.** Both the automated rainfall engine
-  (`check_and_trigger`) and the Broadcast composer will send a real SMS (and,
-  for a critical broadcast, a real phone call to every row in
-  `authority_contacts`) the moment `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/
-  `TWILIO_FROM_NUMBER` are set — until then both honestly fall back to
-  `delivery_method="log_only"` / broadcast `status="simulated"`, same as
-  before. See `docs/sms_voice_alert_handover.md` for setup and known limits
-  (Twilio trial accounts can only reach manually-verified numbers).
+- SMS/voice delivery: **real and configured, via Twilio
+  (`app/services/sms_alerts.py`) — live-verified 2026-09-14.**
+  `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_FROM_NUMBER` are set on
+  Render; a real critical broadcast was triggered against production and
+  placed an actual phone call to a verified number (`AlertBroadcast.status`
+  came back `"sent"`, not `"simulated"`). It's on a **trial** Twilio
+  account, so both SMS and calls only reach phone numbers manually verified
+  in the Twilio console — real citizens' numbers won't receive anything
+  until the account is upgraded to paid. See
+  `docs/sms_voice_alert_handover.md` for setup and full known limits.
 - Citizen report photo upload: this API accepts a `photo_url` string only —
   it does not host file uploads. Reporting lead's form needs to upload the
   photo somewhere and pass the resulting URL.

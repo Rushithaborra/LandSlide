@@ -23,8 +23,8 @@ import HelpDocs from "./pages/HelpDocs";
  *
  * ThemeProvider wraps everything so any component can read or flip the
  * light/dark theme — see src/context/ThemeContext.jsx. RegionProvider does
- * the same for the selected NER state (Sikkim/Assam/Mizoram) — see
- * src/context/RegionContext.jsx.
+ * the same for the selected NER state (all 8 real NER states — see
+ * NER_STATES) — see src/context/RegionContext.jsx.
  */
 export default function App() {
   return (

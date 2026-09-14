@@ -24,15 +24,20 @@ class Zone(Base):
     risk_tier: Mapped[str | None] = mapped_column(String, nullable=True)
     model_version: Mapped[str | None] = mapped_column(String, nullable=True)
     last_updated: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-    # NER expansion, phase 1 (see migrations/004_zone_state.sql). Sikkim is
-    # the only state with real populated zones so far -- Assam/Mizoram are
-    # real, valid values with zero rows until their own data pipeline runs.
+    # NER expansion, phase 1 (migrations/004_zone_state.sql), widened to all
+    # 8 real NER states in migrations/008_ner_all_states.sql so a future
+    # state's real zones don't need another schema migration to land. Sikkim
+    # is the only state with real populated zones so far -- every other
+    # value is real and valid but has zero rows until that state's own data
+    # pipeline runs (see scripts/ml/ml_config.py's STATE_CONFIGS).
     state: Mapped[str] = mapped_column(String, default="Sikkim")
 
     __table_args__ = (
         CheckConstraint("risk_tier IN ('low','moderate','high')"),
         CheckConstraint("susceptibility_score IS NULL OR (susceptibility_score >= 0 AND susceptibility_score <= 1)"),
-        CheckConstraint("state IN ('Sikkim','Assam','Mizoram')"),
+        CheckConstraint(
+            "state IN ('Sikkim','Assam','Arunachal Pradesh','Manipur','Meghalaya','Mizoram','Nagaland','Tripura')"
+        ),
     )
 
     rainfall_readings: Mapped[list["RainfallReading"]] = relationship(back_populates="zone")
