@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 
 class ZoneOut(BaseModel):
@@ -50,6 +50,16 @@ class RainfallReadingOut(BaseModel):
     timestamp: datetime
     intensity_mm: float
     source: str
+
+    @computed_field
+    @property
+    def is_forecast(self) -> bool:
+        """True for a reading dated after today -- open_meteo.fetch_daily_rainfall
+        pulls forecast_days alongside past_days, and the two are otherwise
+        indistinguishable once stored. Computed from the date itself (not a
+        stored flag) so a reading correctly stops being "forecast" the moment
+        its day actually arrives, with no backfill needed."""
+        return self.timestamp.astimezone(timezone.utc).date() > datetime.now(timezone.utc).date()
 
 
 class AlertOut(BaseModel):

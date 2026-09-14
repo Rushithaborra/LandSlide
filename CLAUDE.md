@@ -77,6 +77,25 @@ serialization. Concretely:
 - Honest answer to "is this AI or rules?": two layers, named separately on
   purpose. Never dress the rainfall-trigger layer up as ML.
 
+**Real bug found and fixed 2026-09-14**: `open_meteo.fetch_daily_rainfall`
+pulls `forecast_days` alongside `past_days` (see `app/routers/rainfall.py`),
+and both get stored as plain `RainfallReading` rows with no distinction.
+`evaluate_daily_rainfall`'s `latest = max(daily_totals)` was therefore
+anchoring its backward-looking I-D windows on tomorrow's *predicted*
+rainfall, not today's confirmed data — meaning a real alert (and, now that
+Twilio is live, a real SMS/call) could fire off an unconfirmed forecast.
+Fixed with `alert_engine.drop_forecast_days()`, a small pure function that
+filters any date past today out of `check_and_trigger`'s dataset before
+evaluation — unit-tested directly (`tests/test_alert_engine.py`), including
+a test confirming a single huge forecast day alone cannot breach a
+threshold. Separately, `RainfallReadingOut` gained a computed `is_forecast`
+field (`app/schemas.py`, derived from the date, no new DB column) so the
+dashboard's Rainfall Trend chart can show that same forecast day distinctly
+(lighter bar + legend) instead of silently blending it into "observed"
+history — this part was PS26001-motivated (the PS explicitly names "weather
+forecasts" as a dashboard requirement) but the alerting fix is the one that
+actually mattered.
+
 ## Tech stack
 - API: FastAPI (Python)
 - DB: PostgreSQL + PostGIS (`docker-compose.yml` for local dev)
