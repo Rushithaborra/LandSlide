@@ -47,7 +47,9 @@
     "sosAriaLabel": "राष्ट्रीय आपातकालीन नंबर, 112 पर कॉल करें",
     "openAdminDetails": "व्यवस्थापक विवरण खोलें",
     "admin": "व्यवस्थापक",
-    "changeLanguage": "भाषा बदलें"
+    "changeLanguage": "भाषा बदलें",
+    "openMenu": "नेविगेशन मेनू खोलें",
+    "closeMenu": "नेविगेशन मेनू बंद करें"
   },
   "overview": {
     "title": "अवलोकन",

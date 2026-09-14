@@ -14,6 +14,7 @@ const TICKER_REFRESH_MS = 5 * 60 * 1000;
 
 export default function DashboardLayout({ title, subtitle, children }) {
   const [bulletins, setBulletins] = useState([]);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -32,9 +33,9 @@ export default function DashboardLayout({ title, subtitle, children }) {
 
   return (
     <div className="flex min-h-screen bg-paper-100 dark:bg-night-950">
-      <Sidebar />
+      <Sidebar mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
       <div className="flex flex-1 flex-col min-w-0">
-        <Topbar title={title} subtitle={subtitle} />
+        <Topbar title={title} subtitle={subtitle} onMenuClick={() => setMobileNavOpen(true)} />
 
         {/* Scrolling warning strip — sits directly under the header on every
             page, exactly like the running bar on the IMD rainfall site. */}
