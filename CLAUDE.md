@@ -77,24 +77,31 @@ serialization. Concretely:
 - Honest answer to "is this AI or rules?": two layers, named separately on
   purpose. Never dress the rainfall-trigger layer up as ML.
 
-**Real bug found and fixed 2026-09-14**: `open_meteo.fetch_daily_rainfall`
-pulls `forecast_days` alongside `past_days` (see `app/routers/rainfall.py`),
-and both get stored as plain `RainfallReading` rows with no distinction.
-`evaluate_daily_rainfall`'s `latest = max(daily_totals)` was therefore
-anchoring its backward-looking I-D windows on tomorrow's *predicted*
-rainfall, not today's confirmed data — meaning a real alert (and, now that
-Twilio is live, a real SMS/call) could fire off an unconfirmed forecast.
-Fixed with `alert_engine.drop_forecast_days()`, a small pure function that
-filters any date past today out of `check_and_trigger`'s dataset before
-evaluation — unit-tested directly (`tests/test_alert_engine.py`), including
-a test confirming a single huge forecast day alone cannot breach a
-threshold. Separately, `RainfallReadingOut` gained a computed `is_forecast`
-field (`app/schemas.py`, derived from the date, no new DB column) so the
-dashboard's Rainfall Trend chart can show that same forecast day distinctly
-(lighter bar + legend) instead of silently blending it into "observed"
-history — this part was PS26001-motivated (the PS explicitly names "weather
-forecasts" as a dashboard requirement) but the alerting fix is the one that
-actually mattered.
+**Real forecast added, and a bug it would have caused pre-empted, 2026-09-14**:
+PS26001 explicitly names "weather forecasts" as a dashboard requirement, and
+this build had none — `open_meteo.fetch_daily_rainfall`'s `forecast_days=1`
+turns out (verified directly against Open-Meteo's API) to mean "today only,"
+not "tomorrow"; no genuinely future-dated day was ever being fetched at all.
+Bumped `forecast_days` to 3 (today + the next 2 real days) to actually
+deliver a forecast. Doing that immediately created the exact risk the fix
+below guards against, so both landed together rather than the fetch change
+going out first and the guard following later:
+- `evaluate_daily_rainfall`'s `latest = max(daily_totals)` would otherwise
+  anchor its backward-looking I-D windows on a *predicted* future day rather
+  than today's confirmed data the moment forecast data with a real future
+  date exists — meaning a real alert (and, now that Twilio is live, a real
+  SMS/call) could fire off an unconfirmed forecast. Fixed with
+  `alert_engine.drop_forecast_days()`, a small pure function filtering any
+  date past today out of `check_and_trigger`'s dataset before evaluation —
+  unit-tested directly (`tests/test_alert_engine.py`), including a test
+  confirming a single huge forecast day alone cannot breach a threshold.
+- `RainfallReadingOut` gained a computed `is_forecast` field (`app/schemas.py`,
+  derived from the date being after today, no new DB column) so the
+  dashboard's Rainfall Trend chart shows those 2 real forecast days distinctly
+  (lighter bar + legend) instead of blending them into "observed" history.
+  "Today" itself is deliberately never flagged as forecast — the alert engine
+  needs to keep reacting to today's accumulating rain, not exclude it as
+  unconfirmed, and that's also the more defensible rule to explain.
 
 ## Tech stack
 - API: FastAPI (Python)

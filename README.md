@@ -44,16 +44,20 @@ pipeline actually runs, same as Sikkim's did.
   high susceptibility scaling, threshold breach and no-breach (including a
   sustained-rain-over-longer-duration case a same-day cutoff would miss),
   invalid rainfall input (negative, NaN, None, infinite) raising `ValueError`
-  instead of silently misbehaving, and (added 2026-09-14, see below) a real
-  bug where forecast data could anchor a real alert
-- **Real bug fixed 2026-09-14**: rainfall forecast data (Open-Meteo's
-  `forecast_days`, stored identically to real `past_days` readings) could be
-  used as the "latest" day the I-D threshold check anchors on — meaning a
-  real alert, and now a real Twilio SMS/call, could fire from an unconfirmed
-  forecast rather than confirmed rainfall. Fixed with
+  instead of silently misbehaving, and (added 2026-09-14, see below) a
+  guard against forecast data anchoring a real alert
+- **Real weather forecast added 2026-09-14** (PS26001 names this as a
+  dashboard requirement): `open_meteo.fetch_daily_rainfall`'s
+  `forecast_days` bumped from 1 to 3, which (verified directly against
+  Open-Meteo) means "today only" vs. "today + 2 real future days" — the old
+  default never actually returned a future-dated day at all. That change
+  immediately created a real risk: the I-D threshold check's "latest day"
+  anchor could land on a *predicted* day instead of confirmed rainfall,
+  meaning a real alert — and now a real Twilio SMS/call — could fire off an
+  unconfirmed forecast. Fixed together with the forecast fetch itself via
   `alert_engine.drop_forecast_days()`; the Rainfall Trend chart also now
-  visually distinguishes a forecast day (lighter bar + legend) instead of
-  silently blending it into observed history — see `CLAUDE.md`'s "Two-layer
+  visually distinguishes the 2 forecast days (lighter bar + legend) instead
+  of blending them into observed history — see `CLAUDE.md`'s "Two-layer
   risk logic" section for the full writeup.
 - ML → backend contract finalized: `PUT /zones/{id}/susceptibility` takes
   `susceptibility_score`, `risk_tier`, `model_version`

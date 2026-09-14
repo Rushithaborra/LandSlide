@@ -62,7 +62,7 @@
     "systemHealth": "प्रणाली स्वास्थ्य",
     "riskMap": "पहिरो जोखिम नक्सा",
     "allStates": "सबै राज्यहरू",
-    "rainfallTrend": "वर्षा प्रवृत्ति (गत ७ दिन)",
+    "rainfallTrend": "वर्षा प्रवृत्ति र पूर्वानुमान",
     "dangerThreshold": "खतरा सीमा {{value}} मिमी"
   },
   "alerts": {
@@ -141,7 +141,7 @@
     "notYetScored": "अझै स्कोर गरिएको छैन",
     "modelVersion": "मोडेल संस्करण",
     "lastUpdated": "पछिल्लो अपडेट",
-    "rainfallHistory": "वर्षा इतिहास",
+    "rainfallHistory": "वर्षा इतिहास र पूर्वानुमान",
     "noRainfallData": "यस क्षेत्रका लागि अझै कुनै वर्षा डेटा प्राप्त भएको छैन।",
     "alertsForZone": "यस क्षेत्रका चेतावनीहरू",
     "noAlerts": "यस क्षेत्रका लागि अझै कुनै चेतावनी आएको छैन।"
