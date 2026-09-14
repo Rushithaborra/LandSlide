@@ -54,6 +54,23 @@ const inFlight = new Map();
 // live at 3s.
 const CACHE_TTL_MS = { "/zones": 10 * 60 * 1000 };
 
+// GET /zones now defaults to a small page (DEFAULT_ZONE_LIMIT=2000 in
+// app/routers/zones.py) so an unbounded request can never time out the API
+// again the way it did once Assam's 66,677 real zones landed -- but every
+// call here was written when "no limit" meant "everything," so leaving it
+// implicit silently truncated Sikkim's real 3,921 zones to 2000 on the map.
+// Passing an explicit limit matching the backend's own ceiling
+// (MAX_ZONE_LIMIT) fixes that for any state sized like Sikkim's today,
+// without reopening the original unbounded-response bug -- same
+// intentional cap /corridors already accepts (CORRIDOR_ZONE_LIMIT).
+const ZONE_FETCH_LIMIT = 5000;
+
+function zonesPath(state) {
+  const params = new URLSearchParams({ limit: ZONE_FETCH_LIMIT });
+  if (state) params.set("state", state);
+  return `/zones?${params.toString()}`;
+}
+
 async function getJSON(path) {
   if (inFlight.has(path)) return inFlight.get(path);
   const promise = fetch(`${BASE_URL}${path}`).then((res) => {
@@ -141,7 +158,7 @@ async function findZoneWithRainfall(zones, tryCount = 15) {
  * rather than invented.
  * ----------------------------------------------------------------------- */
 export async function getSummaryStats(state) {
-  const [allZones, allAlerts] = await Promise.all([getJSON("/zones"), getJSON("/alerts")]);
+  const [allZones, allAlerts] = await Promise.all([getJSON(zonesPath()), getJSON("/alerts")]);
   const zones = state ? allZones.filter((z) => z.state === state) : allZones;
   // Alert has no state field of its own (it's a property of the zone it
   // belongs to) -- filter by checking membership in the already-filtered
@@ -193,8 +210,8 @@ export async function getActiveAlerts(state) {
   const shaped = await fetchAndShapeAlerts();
   const active = shaped.filter((a) => a.status === "active");
   if (!state) return active;
-  const zones = await getJSON("/zones");
-  const zoneIds = new Set(zones.filter((z) => z.state === state).map((z) => z.id));
+  const zones = await getJSON(zonesPath(state));
+  const zoneIds = new Set(zones.map((z) => z.id));
   return active.filter((a) => zoneIds.has(a.zoneId));
 }
 
@@ -214,8 +231,7 @@ function isToday(isoTimestamp) {
 }
 
 export async function getRainfallTrend(state) {
-  const allZones = await getJSON("/zones");
-  const zones = state ? allZones.filter((z) => z.state === state) : allZones;
+  const zones = await getJSON(zonesPath(state));
   if (zones.length === 0) return [];
   const found = await findZoneWithRainfall(zones);
   if (!found) return [];
@@ -263,7 +279,7 @@ export async function getRainfallTrend(state) {
  * stored polygon, since the map needs one point per zone, not the full shape.
  * ----------------------------------------------------------------------- */
 export async function getRiskZones(state) {
-  const zones = await getJSON(state ? `/zones?state=${encodeURIComponent(state)}` : "/zones");
+  const zones = await getJSON(zonesPath(state));
   return zones.map((z) => ({
     id: z.id,
     name: z.name,
@@ -528,7 +544,7 @@ export async function searchAll(query) {
   if (!q) return [];
 
   const [zones, alerts, reports] = await Promise.all([
-    getJSON("/zones"),
+    getJSON(zonesPath()),
     fetchAndShapeAlerts(),
     getCitizenReports(),
   ]);
