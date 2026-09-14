@@ -74,12 +74,24 @@ async function submitReport(payload, photoFile) {
   formData.append("data", JSON.stringify(payload));
   if (photoFile) formData.append("photo", photoFile);
 
-  const res = await fetch(`${API_BASE}/reports`, {
-    method: "POST",
-    body: formData,
-    // No Content-Type header set on purpose — the browser sets the correct
-    // multipart boundary automatically. Setting it manually breaks the upload.
-  });
+  let res;
+  try {
+    res = await fetch(`${API_BASE}/reports`, {
+      method: "POST",
+      body: formData,
+      // No Content-Type header set on purpose — the browser sets the correct
+      // multipart boundary automatically. Setting it manually breaks the upload.
+    });
+  } catch {
+    // fetch() itself rejecting (not an HTTP error status) means the request
+    // never reached the network -- exactly the case vite.config.js's
+    // Workbox backgroundSync runtimeCaching rule for POST /reports queues
+    // in IndexedDB and auto-retries once connectivity returns. Tag it so
+    // the caller can show "saved, will send later" instead of a plain error.
+    const err = new Error("No connection right now.");
+    err.queuedForSync = true;
+    throw err;
+  }
 
   const body = await res.json();
   if (!res.ok) {
@@ -362,6 +374,26 @@ export default function CitizenReportForm() {
       ]);
     } catch (err) {
       setSubmitting(false);
+      if (err.queuedForSync) {
+        // Workbox already has this exact request (multipart body included)
+        // in its IndexedDB queue — it WILL send once the device is back
+        // online, even if this tab is closed first. No reference id exists
+        // yet since the backend hasn't actually seen it.
+        setSubmitted("queued");
+        clientReportIdRef.current = null; // this attempt is queued — next report gets a fresh id
+        setRecent((prev) => [
+          {
+            id: "Pending — will send automatically",
+            type: REPORT_TYPES.find((t) => t.id === reportType)?.label,
+            place: placeName.trim() || (coords ? "GPS location" : "—"),
+            severity,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            thumb: photoPreview,
+          },
+          ...prev,
+        ]);
+        return;
+      }
       // client_report_id is kept as-is here on purpose — tapping "Send" again
       // retries the same report instead of creating a duplicate.
       setFormError(err.message || "Couldn't send the report — check your connection and try again.");
@@ -409,7 +441,7 @@ export default function CitizenReportForm() {
           <span>
             {online
               ? "Connected — reports send immediately."
-              : "No connection — offline queueing isn't wired up yet in this build."}
+              : "No connection — your report will be saved on this device and sent automatically once you're back online."}
           </span>
         </div>
         {backendReachable === false && (
@@ -431,19 +463,34 @@ export default function CitizenReportForm() {
             className="rounded-lg p-6 text-center"
             style={{ background: "#FFFFFF", border: "1px solid #DAD4C6" }}
           >
-            <CheckCircle2
-              size={40}
-              style={{ color: "#3F6B3F", margin: "0 auto" }}
-            />
-            <h2
-              className="text-lg mt-3"
-              style={{ fontFamily: "'Zilla Slab', serif", fontWeight: 700, color: "#22332B" }}
-            >
-              Report sent
-            </h2>
-            <p className="text-sm mt-1" style={{ color: "#5B6359" }}>
-              Reference {submitted}. It'll appear on the district dashboard shortly.
-            </p>
+            {submitted === "queued" ? (
+              <>
+                <WifiOff size={40} style={{ color: "#8A4A1E", margin: "0 auto" }} />
+                <h2
+                  className="text-lg mt-3"
+                  style={{ fontFamily: "'Zilla Slab', serif", fontWeight: 700, color: "#22332B" }}
+                >
+                  Report saved — no connection yet
+                </h2>
+                <p className="text-sm mt-1" style={{ color: "#5B6359" }}>
+                  It's stored on this device and will send automatically the moment you're back
+                  online, even if you close the app.
+                </p>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={40} style={{ color: "#3F6B3F", margin: "0 auto" }} />
+                <h2
+                  className="text-lg mt-3"
+                  style={{ fontFamily: "'Zilla Slab', serif", fontWeight: 700, color: "#22332B" }}
+                >
+                  Report sent
+                </h2>
+                <p className="text-sm mt-1" style={{ color: "#5B6359" }}>
+                  Reference {submitted}. It'll appear on the district dashboard shortly.
+                </p>
+              </>
+            )}
             <button
               onClick={resetForm}
               className="mt-4 px-4 py-2 rounded-md text-sm font-semibold"

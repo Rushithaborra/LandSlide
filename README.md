@@ -138,6 +138,34 @@ than silently left half-done:
 Hindi/Nepali strings are machine-quality translations, not reviewed by a
 native speaker — say so if asked.
 
+**Offline-first citizen reporting added 2026-09-14** (`citizen-report-app`,
+`vite-plugin-pwa` + Workbox — library, not hand-rolled): PS26001 explicitly
+asks for "low-network/offline functionality for remote areas," which
+Sikkim's villages genuinely are. Two real pieces, both verified via the
+built `dist/sw.js` output (see `vite.config.js`):
+- The app shell (JS/CSS/HTML/icon/manifest) is precached by a service
+  worker, so the form itself loads with zero network.
+- `POST /reports` is registered as `NetworkOnly` + Workbox's
+  `BackgroundSyncPlugin` — a report submitted with no signal (including its
+  multipart photo body) is queued in IndexedDB and automatically retried
+  the moment connectivity returns, even if the app has been closed in the
+  meantime. `CitizenReportForm.jsx` shows a distinct "Report saved — no
+  connection yet" confirmation for this case (no server-assigned reference
+  id exists until it actually sends), instead of overclaiming delivery.
+- **Not independently verified in a real browser this session** — the
+  sandboxed preview tooling used to build this couldn't register a service
+  worker (a CDP/remote-automation limitation, not an app bug: the generated
+  `sw.js` was inspected directly and contains the correct precache list and
+  `BackgroundSyncPlugin` config). Confirm for real once deployed: open the
+  Vercel URL, check DevTools → Application → Service Workers shows it
+  active, then DevTools → Network → "Offline" and submit a report — it
+  should show the "saved, will send later" state and actually arrive once
+  you go back online.
+- Known gap, same as everywhere else offline is mentioned in this project:
+  Background Sync isn't supported on iOS Safari — Workbox falls back to
+  retrying on the next `online` event instead, which is weaker but not
+  silent failure.
+
 ## ML data pipeline (`scripts/ml/`)
 
 **Scope, stated plainly:** this is a **road-corridor** susceptibility model,
