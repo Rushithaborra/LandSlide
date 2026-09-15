@@ -6,6 +6,11 @@ __pycache__/
 .pytest_cache/
 uploads/
 
+# Claude Code's own instructions/session files -- local dev tooling, not
+# meant to be visible in the submitted repo.
+CLAUDE.md
+.claude/
+
 # Frontend (citizen-report-app/) build artifacts and deps
 citizen-report-app/node_modules/
 citizen-report-app/dist/
