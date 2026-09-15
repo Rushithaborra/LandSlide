@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Gauge, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, Gauge, Clock, Navigation } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import LoadError from "../components/LoadError";
@@ -7,7 +7,7 @@ import RainfallChart from "../components/RainfallChart";
 import RecentAlertsTable from "../components/RecentAlertsTable";
 import RiskMap from "../components/RiskMap";
 import { useAsyncData } from "../hooks/useAsyncData";
-import { getZoneById, getRainfallForZone, getAlertsForZone } from "../services/api";
+import { getZoneById, getRainfallForZone, getAlertsForZone, getNearestSafeZone } from "../services/api";
 import { rainfallThresholdMm } from "../data/mockData";
 
 const severityStyle = {
@@ -30,6 +30,12 @@ export default function ZoneDetail() {
   const { data: zone, error: zoneError, retry: retryZone } = useAsyncData(() => getZoneById(zoneId), [zoneId]);
   const { data: rainfall } = useAsyncData(() => getRainfallForZone(zoneId), [zoneId]);
   const { data: alerts } = useAsyncData(() => getAlertsForZone(zoneId), [zoneId]);
+  // null while loading, undefined-safe "no safer zone found" is represented
+  // as an explicit null result from getNearestSafeZone itself, not this.
+  const { data: nearestSafe } = useAsyncData(
+    () => (zone ? getNearestSafeZone(zone) : Promise.resolve(null)),
+    [zone?.id],
+  );
 
   return (
     <DashboardLayout title={t("zoneDetail.title")} subtitle={t("zoneDetail.subtitle")}>
@@ -86,6 +92,32 @@ export default function ZoneDetail() {
                 <p className="mt-1 text-sm font-medium text-ink-800 dark:text-paper-200">
                   {new Date(zone.lastUpdated).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}
                 </p>
+              </div>
+              <div>
+                <p className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-paper-500">
+                  <Navigation size={12} />
+                  {t("zoneDetail.nearestSafer")}
+                </p>
+                {zone.level === "Low" ? (
+                  <p className="mt-1 text-sm text-paper-500">{t("zoneDetail.alreadyLowest")}</p>
+                ) : nearestSafe === undefined ? (
+                  <p className="mt-1 text-sm text-paper-500">{t("common.loading")}</p>
+                ) : nearestSafe === null ? (
+                  <p className="mt-1 text-sm text-paper-500">{t("zoneDetail.noSaferNearby")}</p>
+                ) : (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&origin=${zone.lat},${zone.lng}&destination=${nearestSafe.lat},${nearestSafe.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 flex items-center gap-1 text-sm font-medium text-teal-700 hover:underline dark:text-teal-400"
+                  >
+                    {t("zoneDetail.saferZoneLink", {
+                      name: nearestSafe.name,
+                      km: nearestSafe.distanceKm.toFixed(1),
+                      level: nearestSafe.level,
+                    })}
+                  </a>
+                )}
               </div>
             </div>
           </div>

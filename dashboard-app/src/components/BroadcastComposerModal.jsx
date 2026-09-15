@@ -8,11 +8,13 @@ import { broadcastAlert, generateBulletin } from "../services/api";
  *  BROADCAST COMPOSER MODAL — officer sends an alert out
  * ============================================================================
  * Opened from the "Broadcast" button on a row in RecentAlertsTable. Real
- * backend write (POST /alerts/{id}/broadcast, persisted in alert_broadcasts),
- * but the result always comes back status="simulated" -- no SMS/CAP/siren
- * gateway is wired up yet. That's said explicitly in the confirmation
- * banner below, not buried in a code comment, so the honesty is visible in
- * the product itself.
+ * backend write (POST /alerts/{id}/broadcast, persisted in alert_broadcasts).
+ * status="sent" when Twilio actually dispatched a real SMS and/or phone call
+ * (app/routers/alerts.py); otherwise "simulated" -- push/siren/CAP-gateway
+ * have no real gateway wired up regardless. The result banner below shows
+ * whichever is honestly true, not a hardcoded claim either way. Critical
+ * severity (a real call to every authority contact) gets an explicit
+ * confirm step before doSend() actually fires.
  * ============================================================================
  */
 
@@ -65,6 +67,7 @@ export default function BroadcastComposerModal({ alert, onClose }) {
   const [draftError, setDraftError] = useState(null);
   const [waCopied, setWaCopied] = useState(false);
   const [waFallback, setWaFallback] = useState(null);
+  const [confirmingCritical, setConfirmingCritical] = useState(false);
 
   useEffect(() => {
     if (!alert) return;
@@ -76,6 +79,7 @@ export default function BroadcastComposerModal({ alert, onClose }) {
     setError(null);
     setWaCopied(false);
     setWaFallback(null);
+    setConfirmingCritical(false);
   }, [alert]);
 
   useEffect(() => {
@@ -118,9 +122,7 @@ export default function BroadcastComposerModal({ alert, onClose }) {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (channels.length === 0) return;
+  const doSend = async () => {
     setSending(true);
     setError(null);
     try {
@@ -130,7 +132,23 @@ export default function BroadcastComposerModal({ alert, onClose }) {
       setError(err.message || "Could not send this broadcast");
     } finally {
       setSending(false);
+      setConfirmingCritical(false);
     }
+  };
+
+  // Critical severity is the one path that places a real phone call to
+  // every authority contact (app/routers/alerts.py -> escalate_critical_alert),
+  // regardless of which channels are ticked -- an officer clicking the wrong
+  // severity by accident shouldn't be one click away from that. Moderate/high
+  // still go out immediately, matching this modal's existing behavior.
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (channels.length === 0) return;
+    if (severity === "critical" && !confirmingCritical) {
+      setConfirmingCritical(true);
+      return;
+    }
+    doSend();
   };
 
   return (
@@ -165,14 +183,23 @@ export default function BroadcastComposerModal({ alert, onClose }) {
 
         {result ? (
           <div className="px-5 py-6">
-            <div className="flex items-start gap-3 rounded-lg bg-risk-lowSoft p-4 dark:bg-risk-low/10">
-              <CheckCircle2 size={20} className="mt-0.5 shrink-0 text-risk-low" />
+            <div
+              className={`flex items-start gap-3 rounded-lg p-4 ${
+                result.status === "sent"
+                  ? "bg-risk-highSoft dark:bg-risk-high/10"
+                  : "bg-risk-lowSoft dark:bg-risk-low/10"
+              }`}
+            >
+              <CheckCircle2
+                size={20}
+                className={`mt-0.5 shrink-0 ${result.status === "sent" ? "text-risk-high" : "text-risk-low"}`}
+              />
               <div>
                 <p className="text-sm font-medium text-ink-800 dark:text-paper-200">
                   {t("broadcastModal.broadcastLogged", { channels: result.channels.join(", ") })}
                 </p>
                 <p className="mt-1 text-xs text-paper-600 dark:text-paper-400">
-                  {t("broadcastModal.simulatedNote")}
+                  {t(result.status === "sent" ? "broadcastModal.sentNote" : "broadcastModal.simulatedNote")}
                 </p>
               </div>
             </div>
@@ -183,6 +210,38 @@ export default function BroadcastComposerModal({ alert, onClose }) {
             >
               {t("common.done")}
             </button>
+          </div>
+        ) : confirmingCritical ? (
+          <div className="px-5 py-6">
+            <div className="flex items-start gap-3 rounded-lg bg-risk-highSoft p-4 dark:bg-risk-high/10">
+              <Radio size={20} className="mt-0.5 shrink-0 text-risk-high" />
+              <div>
+                <p className="text-sm font-medium text-ink-800 dark:text-paper-200">
+                  {t("broadcastModal.confirmCriticalTitle")}
+                </p>
+                <p className="mt-1 text-xs text-paper-600 dark:text-paper-400">
+                  {t("broadcastModal.confirmCriticalBody")}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmingCritical(false)}
+                className="flex-1 rounded-lg border border-paper-200 px-4 py-2 text-sm font-medium text-paper-700 hover:bg-paper-50 dark:border-night-700 dark:text-paper-300 dark:hover:bg-night-800"
+              >
+                {t("broadcastModal.confirmCriticalBack")}
+              </button>
+              <button
+                type="button"
+                onClick={doSend}
+                disabled={sending}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-risk-high px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+              >
+                <Radio size={15} />
+                {sending ? t("broadcastModal.transmitting") : t("broadcastModal.confirmCriticalProceed")}
+              </button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">

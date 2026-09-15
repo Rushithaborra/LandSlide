@@ -303,6 +303,48 @@ export async function getRiskZones(state) {
   }));
 }
 
+// Great-circle distance, not a real driving/walking route -- this is meant
+// to answer "roughly which direction and how far to safety," with the
+// actual routing handed off to Google Maps (see ZoneDetail.jsx) rather than
+// reimplementing turn-by-turn navigation for a hackathon prototype.
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+/* ----------------------------------------------------------------------- *
+ * Nearest lower-risk zone -- an officer/citizen on Zone Detail needs "which
+ * way is safer," not just a susceptibility number. Real data only: searches
+ * this zone's own state (a "safe" zone in a different state isn't
+ * reachable-by-road information this system has), among zones that are
+ * actually scored (unscored zones default to "Moderate" on the map --
+ * excluding null-tier zones here so this never recommends fleeing toward an
+ * unassessed area under the guise of it being safer). No route/ETA is
+ * computed -- see haversineKm's note -- so this hands off to Google Maps
+ * for real turn-by-turn directions instead of pretending to have them.
+ * ----------------------------------------------------------------------- */
+export async function getNearestSafeZone(zone) {
+  const zones = await getRiskZones(zone.state);
+  const safer = { High: ["Moderate", "Low"], Moderate: ["Low"], Low: [] }[zone.level] || ["Low"];
+  const candidates = zones.filter((z) => z.id !== zone.id && safer.includes(z.level));
+  if (candidates.length === 0) return null;
+  let nearest = null;
+  let nearestKm = Infinity;
+  for (const c of candidates) {
+    const km = haversineKm(zone.lat, zone.lng, c.lat, c.lng);
+    if (km < nearestKm) {
+      nearestKm = km;
+      nearest = c;
+    }
+  }
+  return { ...nearest, distanceKm: nearestKm };
+}
+
 /* ----------------------------------------------------------------------- *
  * LINK SPOT N — Highway corridors. Real: GET /corridors groups the same
  * 3,921 real zones by the highway/road code already embedded in each zone's
