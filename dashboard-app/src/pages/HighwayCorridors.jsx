@@ -9,6 +9,9 @@ const severityStyle = {
   High: "bg-risk-highSoft dark:bg-risk-high/20 text-risk-high dark:text-risk-highOn",
   Moderate: "bg-risk-moderateSoft dark:bg-risk-moderate/20 text-risk-moderate dark:text-risk-moderateOn",
   Low: "bg-risk-lowSoft dark:bg-risk-low/20 text-risk-low dark:text-risk-lowOn",
+  // A corridor whose zones are all unscored (see api.js capitalizeTier) --
+  // deliberately neutral, never the same styling as a real risk level.
+  Unscored: "bg-paper-100 dark:bg-night-800 text-paper-600 dark:text-paper-400",
 };
 
 /**

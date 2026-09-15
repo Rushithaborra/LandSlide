@@ -62,6 +62,21 @@ class RainfallReadingOut(BaseModel):
         return self.timestamp.astimezone(timezone.utc).date() > datetime.now(timezone.utc).date()
 
 
+class RainfallThresholdOut(BaseModel):
+    """The real, config-driven 1-day I-D threshold for one zone -- what the
+    dashboard's rainfall chart should draw its reference line against,
+    instead of an invented flat number. 1-day specifically because the
+    chart plots daily mm bars; the real engine also checks longer duration
+    windows (3/5/7/10/15/20 days), which a single flat line can't represent
+    -- this is the closest single, honest number to that per-day view, not
+    a claim that it's the only threshold that matters."""
+
+    threshold_mm_per_day: float
+    risk_tier: str
+    source: str
+    verified_against_primary_text: bool
+
+
 class AlertOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

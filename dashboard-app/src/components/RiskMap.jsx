@@ -20,11 +20,15 @@ import { useTheme } from "../context/ThemeContext";
  * clustering that many overlapping circles at Sikkim-wide zoom is unreadable.
  */
 // Earth-pigment hazard colours — must stay in sync with the `risk` scale
-// in tailwind.config.js and with RiskLegend.jsx.
+// in tailwind.config.js and with RiskLegend.jsx. "Unscored" (no ML result
+// yet, api.js's capitalizeTier) gets a neutral grey, never one of the real
+// risk colors -- it must never look like a real (e.g. "safe" green/low)
+// assessment.
 const levelColor = {
   High: "#b4472f",
   Moderate: "#c8871d",
   Low: "#5b8c4f",
+  Unscored: "#8b8474",
 };
 
 function riskDivIcon(color, diameter) {
@@ -91,13 +95,17 @@ export default function RiskMap({ center, zones, height = 420 }) {
               key={zone.id}
               position={[zone.lat, zone.lng]}
               riskLevel={zone.level}
-              icon={riskDivIcon(levelColor[zone.level] || "#8b8474", 8 + zone.susceptibility * 10)}
+              icon={riskDivIcon(
+                levelColor[zone.level] || "#8b8474",
+                zone.susceptibility != null ? 8 + zone.susceptibility * 10 : 8,
+              )}
               eventHandlers={{ click: () => navigate(`/zones/${zone.id}`) }}
             >
               <Tooltip direction="top" offset={[0, -4]}>
                 <strong>{zone.name}</strong>
                 <br />
-                Risk: {zone.level} · Susceptibility: {(zone.susceptibility * 100).toFixed(0)}%
+                Risk: {zone.level}
+                {zone.susceptibility != null && ` · Susceptibility: ${(zone.susceptibility * 100).toFixed(0)}%`}
                 <br />
                 <em>Click for details</em>
               </Tooltip>

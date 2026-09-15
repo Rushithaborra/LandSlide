@@ -4,6 +4,7 @@ const items = [
   { label: "High", color: "#b4472f" },
   { label: "Moderate", color: "#c8871d" },
   { label: "Low", color: "#5b8c4f" },
+  { label: "Not yet scored", color: "#8b8474" },
 ];
 
 export default function RiskLegend() {

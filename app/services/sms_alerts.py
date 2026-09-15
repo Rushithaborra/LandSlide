@@ -124,16 +124,26 @@ def log_alert_sent(db: Session, zone_id, severity: str, recipient_count: int, ch
     db.commit()
 
 
-def trigger_zone_alert(db: Session, zone_id, zone_name: str, severity: str, message: str | None = None) -> dict:
+def trigger_zone_alert(
+    db: Session, zone_id, zone_name: str, severity: str, message: str | None = None, bypass_cooldown: bool = False,
+) -> dict:
     """Automatic SMS to citizen subscribers, gated by a per-zone cooldown so
     the same rain event doesn't re-text people every few minutes. `message`
     lets a caller (the Broadcast composer) pass the operator's own written
-    text instead of the auto-generated one."""
-    last_sent = get_last_alert_time_by_channel(db, zone_id, "sms")
-    if last_sent is not None:
-        elapsed = datetime.datetime.now(datetime.timezone.utc) - last_sent
-        if elapsed < datetime.timedelta(minutes=COOLDOWN_MINUTES):
-            return {"skipped": True, "reason": f"Cooldown active -- last SMS {elapsed.seconds // 60} min ago"}
+    text instead of the auto-generated one. `bypass_cooldown` exists because
+    this same function is also the composer's SMS path (via
+    escalate_critical_alert) -- without it, a recent *automatic* SMS for a
+    zone could silently swallow an operator's later, deliberate composer
+    send, directly contradicting this module's own documented guarantee
+    (see COOLDOWN_MINUTES's comment) that the composer path is never
+    silently dropped. Caught live: verified the two paths shared this gate
+    with no way to tell them apart."""
+    if not bypass_cooldown:
+        last_sent = get_last_alert_time_by_channel(db, zone_id, "sms")
+        if last_sent is not None:
+            elapsed = datetime.datetime.now(datetime.timezone.utc) - last_sent
+            if elapsed < datetime.timedelta(minutes=COOLDOWN_MINUTES):
+                return {"skipped": True, "reason": f"Cooldown active -- last SMS {elapsed.seconds // 60} min ago"}
 
     subscribers = get_subscribers_for_zone(db, zone_id)
     if not subscribers:
@@ -164,7 +174,7 @@ def escalate_critical_alert(
     the auto-generated one."""
     text = message or format_alert_message(zone_name, severity)
     sms_result = (
-        trigger_zone_alert(db, zone_id, zone_name, severity, message=text)
+        trigger_zone_alert(db, zone_id, zone_name, severity, message=text, bypass_cooldown=True)
         if send_sms
         else {"skipped": True, "reason": "sms channel not selected"}
     )

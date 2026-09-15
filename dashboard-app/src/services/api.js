@@ -102,8 +102,15 @@ async function getJSON(path) {
 // Real risk_tier values are lowercase ("low"/"moderate"/"high") in the
 // database; every page/component here expects the capitalised form
 // ("Low"/"Moderate"/"High"), matching the mock data's original casing.
+//
+// A null tier used to fall back to "Moderate" -- silently indistinguishable
+// from a zone the model actually rated moderate risk (a real, previously
+// flagged honesty gap: an officer could deprioritize an actually-high-risk
+// but not-yet-modeled zone because it looked like an ordinary moderate one).
+// "Unscored" is a distinct value every consumer (RiskMap, RiskLegend,
+// ZoneDetail, HighwayCorridors) renders differently from a real tier.
 function capitalizeTier(tier) {
-  if (!tier) return "Moderate";
+  if (!tier) return "Unscored";
   return tier.charAt(0).toUpperCase() + tier.slice(1);
 }
 
@@ -242,11 +249,44 @@ function isToday(isoTimestamp) {
   return d.toDateString() === now.toDateString();
 }
 
+// Shared by getRainfallTrend and getRainfallForZone -- both used to
+// independently sort+map the exact same reading shape (a real duplicate,
+// not just similar-looking code): GET /rainfall/{id} returns newest-first,
+// POST .../fetch returns whatever order Open-Meteo's response was in, so
+// this sorts explicitly rather than trusting either implicit order.
+function shapeRainfallReadings(readings, { limit } = {}) {
+  const ascending = readings.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const windowed = limit ? ascending.slice(-limit) : ascending;
+  return windowed.map((r) => ({
+    day: new Date(r.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+    mm: Math.round(r.intensity_mm),
+    // See app/schemas.py RainfallReadingOut.is_forecast -- open_meteo's
+    // forecast_days window is stored the same as real past_days readings,
+    // so the chart needs this to avoid showing an unconfirmed forecast day
+    // as if it were observed rainfall.
+    isForecast: Boolean(r.is_forecast),
+  }));
+}
+
+// The real, config-driven per-zone threshold (app/services/alert_engine.py,
+// scaled by this zone's own risk_tier) -- replaces a hardcoded, fake flat
+// 100mm constant the chart used to plot real rainfall against with no
+// relationship to what actually fires an alert. null (not a guessed
+// number) when this zone's state has no configured threshold yet (e.g.
+// Mizoram today) -- RainfallChart.jsx skips drawing the reference line
+// entirely in that case rather than showing a fabricated one.
+export async function getRainfallThreshold(zoneId) {
+  const res = await fetch(`${BASE_URL}/rainfall/${zoneId}/threshold`);
+  if (!res.ok) throw new Error(`load threshold failed: ${res.status}`);
+  const t = await res.json();
+  return t ? { mm: t.threshold_mm_per_day, source: t.source, verified: t.verified_against_primary_text } : null;
+}
+
 export async function getRainfallTrend(state) {
   const zones = await getJSON(zonesPath(state));
-  if (zones.length === 0) return [];
+  if (zones.length === 0) return { readings: [], threshold: null };
   const found = await findZoneWithRainfall(zones);
-  if (!found) return [];
+  if (!found) return { readings: [], threshold: null };
 
   let readings = found.readings;
   const newest = readings.reduce((a, b) => (new Date(a.timestamp) > new Date(b.timestamp) ? a : b));
@@ -270,19 +310,16 @@ export async function getRainfallTrend(state) {
     }
   }
 
-  // GET /rainfall/{id} returns newest-first, POST .../fetch returns
-  // whatever order Open-Meteo's response was in -- sort explicitly rather
-  // than trust either implicit order, then take the most recent 7 days.
-  const ascending = readings.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  return ascending.slice(-7).map((r) => ({
-    day: new Date(r.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-    mm: Math.round(r.intensity_mm),
-    // See app/schemas.py RainfallReadingOut.is_forecast -- open_meteo's
-    // forecast_days window is stored the same as real past_days readings,
-    // so the chart needs this to avoid showing an unconfirmed forecast day
-    // as if it were observed rainfall.
-    isForecast: Boolean(r.is_forecast),
-  }));
+  let threshold = null;
+  try {
+    threshold = await getRainfallThreshold(found.zone.id);
+  } catch {
+    // Threshold lookup failing shouldn't take down the whole rainfall
+    // card -- the chart just skips the reference line (same as "no
+    // threshold configured"), same fallback posture as the fetch above.
+  }
+
+  return { readings: shapeRainfallReadings(readings, { limit: 7 }), threshold };
 }
 
 /* ----------------------------------------------------------------------- *
@@ -299,7 +336,13 @@ export async function getRiskZones(state) {
     lat: z.centroid_lat,
     lng: z.centroid_lng,
     level: capitalizeTier(z.risk_tier),
-    susceptibility: z.susceptibility_score ?? 0,
+    // Preserved as null, not coerced to 0 -- an unscored zone (no ML result
+    // yet) is not the same claim as "confirmed 0% risk," and RiskMap.jsx
+    // renders the two states differently (a real 0% zone gets the smallest
+    // real marker; an unscored zone gets an explicit "not yet scored"
+    // marker/tooltip instead of silently looking like the safest zone on
+    // the map).
+    susceptibility: z.susceptibility_score,
   }));
 }
 
@@ -375,6 +418,18 @@ function shapeReport(r) {
   return {
     id: r.id,
     reporter: r.reporter_name || "Anonymous",
+    // CitizenReportModal reads reporterName/reporterPhone/area -- these were
+    // previously missing here (a leftover mismatch from mockData.js's mock
+    // shape, which had different field names), so every real report showed
+    // blank Area/Submitted By/Contact rows despite the data existing in
+    // CitizenReport.reporter_name/reporter_phone/place_name. reporterType
+    // and weatherAtReport have no real backend field (CitizenReportOut has
+    // no such columns) -- left undefined/"Not recorded" rather than
+    // inventing a value, matching this project's honesty rule.
+    reporterName: r.reporter_name || "Anonymous",
+    reporterPhone: r.reporter_phone || "Not recorded",
+    area: r.place_name || "Not recorded",
+    weatherAtReport: "Not recorded",
     location: r.place_name || (hasCoords ? `${r.geo_lat.toFixed(5)}, ${r.geo_lng.toFixed(5)}` : "Unknown location"),
     lat: hasCoords ? r.geo_lat.toFixed(5) : "",
     lng: hasCoords ? r.geo_lng.toFixed(5) : "",
@@ -435,14 +490,14 @@ export async function getZoneById(zoneId) {
 
 export async function getRainfallForZone(zoneId) {
   const readings = await getJSON(`/rainfall/${zoneId}`);
-  // Same ordering caveat as getRainfallTrend -- newest-first from the
-  // backend isn't a guaranteed contract, sort explicitly rather than trust it.
-  const ascending = readings.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  return ascending.map((r) => ({
-    day: new Date(r.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-    mm: Math.round(r.intensity_mm),
-    isForecast: Boolean(r.is_forecast),
-  }));
+  let threshold = null;
+  try {
+    threshold = await getRainfallThreshold(zoneId);
+  } catch {
+    // Same fallback posture as getRainfallTrend -- a threshold-lookup
+    // failure shouldn't take down the whole rainfall history panel.
+  }
+  return { readings: shapeRainfallReadings(readings), threshold };
 }
 
 export async function getAlertsForZone(zoneId) {

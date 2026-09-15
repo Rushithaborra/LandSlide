@@ -50,6 +50,29 @@ def test_trigger_zone_alert_sends_to_all_subscribers():
     mock_log.assert_called_once_with(None, "z1", "high", 2, channel="sms")
 
 
+def test_escalate_critical_alert_sms_bypasses_the_automatic_engine_cooldown():
+    """Regression test: escalate_critical_alert's SMS leg used to share
+    trigger_zone_alert's cooldown gate unconditionally, so a recent
+    *automatic* SMS for a zone (from alert_engine.check_and_trigger) could
+    silently swallow an operator's later, deliberate Broadcast composer
+    send -- contradicting COOLDOWN_MINUTES's own comment that the composer
+    path is never silently dropped. Simulates exactly that: an SMS sent 5
+    minutes ago (well within the 30-minute cooldown), then a composer send
+    for the same zone."""
+    recent = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=5)
+    with patch.object(sms_alerts, "get_last_alert_time_by_channel", return_value=recent), \
+         patch.object(sms_alerts, "get_subscribers_for_zone", return_value=["+911"]), \
+         patch.object(sms_alerts, "send_sms", return_value={"to": "+911", "success": True, "sid": "SM1"}), \
+         patch.object(sms_alerts, "get_authority_contacts", return_value=[]), \
+         patch.object(sms_alerts, "log_alert_sent"):
+        result = sms_alerts.escalate_critical_alert(
+            db=None, zone_id="z1", zone_name="Ranipool", severity="critical", message="Deliberate operator alert",
+        )
+
+    assert result["sms"]["skipped"] is False
+    assert result["sms"]["sent"] == 1
+
+
 def test_escalate_critical_alert_never_calls_below_critical_severity():
     with patch.object(sms_alerts, "trigger_zone_alert", return_value={"skipped": True, "reason": "no subscribers"}), \
          patch.object(sms_alerts, "get_authority_contacts") as mock_contacts:

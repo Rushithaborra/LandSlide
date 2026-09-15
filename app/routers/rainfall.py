@@ -4,11 +4,12 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.config import get_rainfall_threshold
 from app.database import get_db
 from app.models import RainfallReading, Zone
-from app.schemas import RainfallReadingOut
+from app.schemas import RainfallReadingOut, RainfallThresholdOut
 from app.services import open_meteo
-from app.services.alert_engine import check_and_trigger
+from app.services.alert_engine import intensity_duration_threshold, check_and_trigger
 
 router = APIRouter(prefix="/rainfall", tags=["rainfall"])
 
@@ -68,4 +69,31 @@ def list_readings(zone_id: uuid.UUID, db: Session = Depends(get_db)):
         .filter(RainfallReading.zone_id == zone_id)
         .order_by(RainfallReading.timestamp.desc())
         .all()
+    )
+
+
+@router.get("/{zone_id}/threshold", response_model=RainfallThresholdOut | None)
+def get_zone_threshold(zone_id: uuid.UUID, db: Session = Depends(get_db)):
+    """The real threshold the dashboard's rainfall chart should draw its
+    reference line against -- previously the chart used a hardcoded, fake
+    100mm constant (dashboard-app/src/data/mockData.js) that had no
+    relationship to what actually fires an alert (app.services.alert_engine,
+    scaled by this zone's own risk_tier). Returns null, not an invented
+    number, when this zone's state has no configured threshold (e.g.
+    Mizoram today) -- same "don't guess" rule the alert engine itself
+    already follows in check_and_trigger."""
+    zone = db.get(Zone, zone_id)
+    if zone is None:
+        raise HTTPException(status_code=404, detail="Zone not found")
+
+    config = get_rainfall_threshold(zone.state)
+    if config is None:
+        return None
+
+    risk_tier = zone.risk_tier or "moderate"
+    return RainfallThresholdOut(
+        threshold_mm_per_day=intensity_duration_threshold(1, config, risk_tier),
+        risk_tier=risk_tier,
+        source=config.source,
+        verified_against_primary_text=config.verified_against_primary_text,
     )

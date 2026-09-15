@@ -13,7 +13,7 @@ import {
   getRainfallTrend,
   getRiskZones,
 } from "../services/api";
-import { mapCenter, rainfallThresholdMm } from "../data/mockData";
+import { mapCenter } from "../data/mockData";
 import { useRegion } from "../context/RegionContext";
 import { useAlertStream } from "../hooks/useAlertStream";
 
@@ -25,8 +25,14 @@ export default function Overview() {
   const [stats, setStats] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [rainfall, setRainfall] = useState([]);
+  const [rainfallThreshold, setRainfallThreshold] = useState(null);
   const [zones, setZones] = useState([]);
   const [loadError, setLoadError] = useState(null);
+  // Separate from loadError: getSummaryStats succeeding doesn't mean the
+  // other 3 parallel fetches did too -- previously only stats' rejection
+  // was ever surfaced, so a failed getRiskZones (say) silently left the map
+  // empty/stale with no indication anything had gone wrong.
+  const [partialError, setPartialError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const { state: selectedState } = useRegion();
   // Tracks which state this effect last actually fetched for, so a
@@ -57,6 +63,8 @@ export default function Overview() {
     }
     lastFetchedState.current = selectedState;
 
+    setPartialError(null);
+
     Promise.allSettled([
       getSummaryStats(selectedState),
       getActiveAlerts(selectedState),
@@ -64,12 +72,23 @@ export default function Overview() {
       getRiskZones(selectedState),
     ]).then(([statsR, alertsR, rainfallR, zonesR]) => {
       if (cancelled) return;
-      if (statsR.status === "fulfilled") setStats(statsR.value);
-      if (alertsR.status === "fulfilled") setAlerts(alertsR.value);
-      if (rainfallR.status === "fulfilled") setRainfall(rainfallR.value);
-      if (zonesR.status === "fulfilled") setZones(zonesR.value);
+      const failedNames = [];
+      if (statsR.status === "fulfilled") setStats(statsR.value); else failedNames.push(t("overview.statCards"));
+      if (alertsR.status === "fulfilled") setAlerts(alertsR.value); else failedNames.push(t("overview.activeAlerts"));
+      if (rainfallR.status === "fulfilled") {
+        setRainfall(rainfallR.value.readings);
+        setRainfallThreshold(rainfallR.value.threshold);
+      } else {
+        failedNames.push(t("overview.rainfallTrend"));
+      }
+      if (zonesR.status === "fulfilled") setZones(zonesR.value); else failedNames.push(t("overview.riskMap"));
       if (statsR.status === "rejected") {
         setLoadError(statsR.reason?.message || "Could not reach the backend");
+      } else if (failedNames.length > 0) {
+        // stats loaded fine (so the page itself renders), but at least one
+        // of the other 3 independent fetches didn't -- surface it instead
+        // of silently leaving that section empty/stale.
+        setPartialError(failedNames.join(", "));
       }
     });
 
@@ -104,6 +123,11 @@ export default function Overview() {
         <p className="text-sm text-paper-500">{t("overview.loading")}</p>
       ) : (
         <div className="space-y-6">
+          {partialError && (
+            <div className="rounded-lg border border-risk-moderate/30 bg-risk-moderateSoft dark:bg-risk-moderate/10 px-4 py-2.5 text-xs text-risk-moderate dark:text-risk-moderateOn">
+              {t("overview.partialErrorNote", { sections: partialError })}
+            </div>
+          )}
           {/* Top stat cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
             <StatCard
@@ -184,10 +208,12 @@ export default function Overview() {
                 {t("overview.rainfallTrend")}
               </h2>
               <span className="text-xs text-paper-500">
-                {t("overview.dangerThreshold", { value: rainfallThresholdMm })}
+                {rainfallThreshold
+                  ? t("overview.dangerThreshold", { value: rainfallThreshold.mm.toFixed(1) })
+                  : t("overview.noThresholdConfigured")}
               </span>
             </div>
-            <RainfallChart data={rainfall} thresholdMm={rainfallThresholdMm} height={340} />
+            <RainfallChart data={rainfall} thresholdMm={rainfallThreshold?.mm ?? null} height={340} />
           </div>
         </div>
       )}

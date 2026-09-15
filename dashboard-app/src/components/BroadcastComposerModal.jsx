@@ -117,7 +117,11 @@ export default function BroadcastComposerModal({ alert, onClose }) {
     } catch {
       // Clipboard API unavailable/blocked (older browser, no HTTPS, no
       // permission) -- fall back to showing the text selected for a manual
-      // copy instead of silently failing.
+      // copy instead of silently failing. Also clears waCopied: without
+      // this, a copy that succeeds and then immediately fails on a retry
+      // (before the 2s timeout below clears it) could show the "copied"
+      // checkmark and this fallback textarea at the same time.
+      setWaCopied(false);
       setWaFallback(text);
     }
   };

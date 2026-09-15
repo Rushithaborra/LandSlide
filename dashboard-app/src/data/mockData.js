@@ -67,7 +67,6 @@ export const rainfallTrend = [
   { day: "May 19", mm: 118 },
   { day: "May 20", mm: 40 },
 ];
-export const rainfallThresholdMm = 100;
 
 // ---- E. Risk zones for the heatmap on the Live Map / Overview map ----
 // lat/lng are rough Sikkim-area placeholders. Replace with the real GeoJSON

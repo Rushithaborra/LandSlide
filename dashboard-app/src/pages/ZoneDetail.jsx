@@ -8,12 +8,14 @@ import RecentAlertsTable from "../components/RecentAlertsTable";
 import RiskMap from "../components/RiskMap";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { getZoneById, getRainfallForZone, getAlertsForZone, getNearestSafeZone } from "../services/api";
-import { rainfallThresholdMm } from "../data/mockData";
 
 const severityStyle = {
   High: "bg-risk-highSoft dark:bg-risk-high/20 text-risk-high dark:text-risk-highOn",
   Moderate: "bg-risk-moderateSoft dark:bg-risk-moderate/20 text-risk-moderate dark:text-risk-moderateOn",
   Low: "bg-risk-lowSoft dark:bg-risk-low/20 text-risk-low dark:text-risk-lowOn",
+  // No real tier match -- deliberately neutral, never the same styling as
+  // a real risk level (see api.js capitalizeTier).
+  Unscored: "bg-paper-100 dark:bg-night-800 text-paper-600 dark:text-paper-400",
 };
 
 /**
@@ -64,7 +66,7 @@ export default function ZoneDetail() {
                 </p>
               </div>
               <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${severityStyle[zone.level] || severityStyle.Moderate}`}>
-                {t("zoneDetail.risk", { level: zone.level })}
+                {zone.level === "Unscored" ? t("zoneDetail.notYetScored") : t("zoneDetail.risk", { level: zone.level })}
               </span>
             </div>
 
@@ -129,10 +131,10 @@ export default function ZoneDetail() {
               </h3>
               {!rainfall ? (
                 <p className="text-sm text-paper-500">{t("common.loading")}</p>
-              ) : rainfall.length === 0 ? (
+              ) : rainfall.readings.length === 0 ? (
                 <p className="text-sm text-paper-500">{t("zoneDetail.noRainfallData")}</p>
               ) : (
-                <RainfallChart data={rainfall} thresholdMm={rainfallThresholdMm} height={260} />
+                <RainfallChart data={rainfall.readings} thresholdMm={rainfall.threshold?.mm ?? null} height={260} />
               )}
             </div>
 

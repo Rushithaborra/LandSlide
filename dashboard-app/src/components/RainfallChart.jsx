@@ -45,12 +45,14 @@ export default function RainfallChart({ data, thresholdMm, height = 256 }) {
             ]}
             contentStyle={{ borderRadius: 8, border: `1px solid ${tooltipBorder}`, background: tooltipBg, color: tooltipText, fontSize: 12 }}
           />
-          <ReferenceLine
-            y={thresholdMm}
-            stroke="#b4472f"
-            strokeDasharray="4 4"
-            label={{ value: `Threshold ${thresholdMm} mm`, position: "insideTopRight", fill: "#b4472f", fontSize: 11 }}
-          />
+          {thresholdMm != null && (
+            <ReferenceLine
+              y={thresholdMm}
+              stroke="#b4472f"
+              strokeDasharray="4 4"
+              label={{ value: `Threshold ${thresholdMm} mm`, position: "insideTopRight", fill: "#b4472f", fontSize: 11 }}
+            />
+          )}
           <Bar dataKey="mm" radius={[4, 4, 0, 0]}>
             {data.map((entry, i) => (
               <Cell key={i} fill={entry.isForecast ? forecastColor : observedColor} />
