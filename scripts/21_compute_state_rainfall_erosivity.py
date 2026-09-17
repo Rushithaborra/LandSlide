@@ -143,6 +143,12 @@ def run(slug):
             continue
         if cached:
             print("  (cached)")
+        # Open-Meteo returns a bare dict (not a list) when the batch has
+        # exactly one point, vs. a list of per-location dicts for 2+ --
+        # crashed Arunachal Pradesh's final 1-point batch with "string
+        # indices must be integers" (zip() iterated the dict's own keys).
+        if isinstance(data, dict):
+            data = [data]
         for (lat, lon), entry in zip(batch, data):
             mfi, r, annual = monthly_r_factor(entry["daily"]["time"], entry["daily"]["precipitation_sum"])
             if r is not None:
@@ -169,17 +175,35 @@ def run(slug):
         dem_meta = src.meta.copy()
         dem_arr = src.read(1)
         transform = src.transform
-    rows, cols = np.meshgrid(np.arange(dem_meta["height"]), np.arange(dem_meta["width"]), indexing="ij")
-    xs, ys = rasterio.transform.xy(transform, rows.ravel(), cols.ravel())
-    grid_xy = np.column_stack([xs, ys])
+    height, width = dem_meta["height"], dem_meta["width"]
     valid = dem_arr != NODATA
 
+    # A single-shot meshgrid + griddata call over the whole raster needs
+    # several arrays sized height*width at once (Assam: 14982x22441 =
+    # ~336M cells) -- that's what silently SIGKILLed Assam's run on a 16GB
+    # machine (no Python traceback, just an OS-level OOM kill). Process
+    # row-chunks instead, and build each interpolator ONCE (not per chunk,
+    # which would rebuild the expensive Delaunay triangulation every time)
+    # via the object form of griddata's two methods.
+    ROW_CHUNK = 500
+    from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
+
     def interp_and_write(vals, out_name):
-        interp = griddata(pts_utm, vals, grid_xy, method="linear")
-        interp_nn = griddata(pts_utm, vals, grid_xy, method="nearest")
-        interp = np.where(np.isnan(interp), interp_nn, interp)
-        grid = interp.reshape(dem_meta["height"], dem_meta["width"])
-        out = np.where(valid, grid, NODATA).astype(np.float32)
+        linear_interp = LinearNDInterpolator(pts_utm, vals)
+        nearest_interp = NearestNDInterpolator(pts_utm, vals)
+        out = np.full((height, width), NODATA, dtype=np.float32)
+        for row0 in range(0, height, ROW_CHUNK):
+            row1 = min(row0 + ROW_CHUNK, height)
+            rows, cols = np.meshgrid(np.arange(row0, row1), np.arange(width), indexing="ij")
+            xs, ys = rasterio.transform.xy(transform, rows.ravel(), cols.ravel())
+            chunk_xy = np.column_stack([xs, ys])
+            chunk_interp = linear_interp(chunk_xy)
+            nan_mask = np.isnan(chunk_interp)
+            if nan_mask.any():
+                chunk_interp[nan_mask] = nearest_interp(chunk_xy[nan_mask])
+            chunk_grid = chunk_interp.reshape(row1 - row0, width)
+            chunk_valid = valid[row0:row1, :]
+            out[row0:row1, :] = np.where(chunk_valid, chunk_grid, NODATA).astype(np.float32)
         out_meta = dem_meta.copy()
         out_meta.update(dtype="float32", nodata=NODATA, compress="deflate")
         path = PROCESSED / out_name

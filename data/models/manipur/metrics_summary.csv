@@ -1,0 +1,3 @@
+state,model,mean_roc_auc,std_roc_auc,mean_f1,n_folds_evaluated
+manipur,random_forest,0.8198546016556512,0.019721853505341672,0.7520519717612272,5
+manipur,logistic_regression,0.8124698367656599,0.016249973628194875,0.7418332110743266,5

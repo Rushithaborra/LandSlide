@@ -1,0 +1,3 @@
+state,model,mean_roc_auc,std_roc_auc,mean_f1,n_folds_evaluated
+arunachal_pradesh,random_forest,0.8231157254011002,0.03608893550426309,0.7488416907407875,5
+arunachal_pradesh,logistic_regression,0.7762297005729699,0.022985985996795747,0.7050301944221002,5

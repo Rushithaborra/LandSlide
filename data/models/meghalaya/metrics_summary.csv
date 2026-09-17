@@ -1,0 +1,3 @@
+state,model,mean_roc_auc,std_roc_auc,mean_f1,n_folds_evaluated
+meghalaya,random_forest,0.8619644138959173,0.029531102613389298,0.8005337376438778,5
+meghalaya,logistic_regression,0.8508396644692077,0.03418225816121704,0.7822229332549276,5

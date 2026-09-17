@@ -1,0 +1,3 @@
+state,model,mean_roc_auc,std_roc_auc,mean_f1,n_folds_evaluated
+nagaland,random_forest,0.7390473667799639,0.029797026316839777,0.6817313125924954,5
+nagaland,logistic_regression,0.7112234165147938,0.02163111844911963,0.6548732726095103,5
