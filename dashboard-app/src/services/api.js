@@ -73,8 +73,8 @@ function cacheTtlFor(path) {
 // implicit silently truncated Sikkim's real 3,921 zones to 2000 on the map.
 // Passing an explicit limit matching the backend's own ceiling
 // (MAX_ZONE_LIMIT) fixes that for any state sized like Sikkim's today,
-// without reopening the original unbounded-response bug -- same
-// intentional cap /corridors already accepts (CORRIDOR_ZONE_LIMIT).
+// without reopening the original unbounded-response bug. Larger states
+// are covered by getAllZones() below, which pages through this limit.
 const ZONE_FETCH_LIMIT = 5000;
 
 // offset is omitted for page 0 so the first page's path is identical to what

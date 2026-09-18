@@ -22,7 +22,10 @@ class Zone(Base):
     susceptibility_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     risk_tier: Mapped[str | None] = mapped_column(String, nullable=True)
     model_version: Mapped[str | None] = mapped_column(String, nullable=True)
-    last_updated: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    # onupdate: PUT /zones/{id}/susceptibility re-scores an existing row, and
+    # without this last_updated kept its original insert time forever, so
+    # /zones reported a stale date for a zone whose score had just changed.
+    last_updated: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
     # NER expansion, phase 1 (migrations/004_zone_state.sql), widened to all
     # 8 real NER states in migrations/008_ner_all_states.sql so a future
     # state's real zones don't need another schema migration to land. Sikkim

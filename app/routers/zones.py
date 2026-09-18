@@ -51,7 +51,11 @@ def list_zones(
     query = db.query(Zone).options(ZONE_LIST_COLUMNS)
     if state:
         query = query.filter(Zone.state == state)
-    query = query.order_by(Zone.susceptibility_score.desc().nulls_last())
+    # Zone.id as a tiebreaker: offset paging over a non-unique sort key can
+    # repeat one row on two pages and skip another when scores tie (782
+    # zones share a score with another today), since Postgres doesn't
+    # promise a stable order among equal keys between separate requests.
+    query = query.order_by(Zone.susceptibility_score.desc().nulls_last(), Zone.id)
     return query.offset(offset).limit(limit).all()
 
 
