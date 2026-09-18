@@ -58,6 +58,20 @@ function createClusterIcon(cluster) {
 }
 
 export default function RiskMap({ center, zones, height = 420 }) {
+  // `center` was a fixed Sikkim-area constant passed down from Overview.jsx
+  // regardless of the selected state -- invisible while Sikkim was the
+  // only populated state, but once a second state (Meghalaya) went live,
+  // switching to it left the map centered on Sikkim/Nepal with Meghalaya's
+  // real markers rendered far off-screen to the southeast. Computing the
+  // center from the actual zones being shown fixes this for any future
+  // state too, without a per-state coordinate table to maintain.
+  const effectiveCenter =
+    zones.length > 0
+      ? {
+          lat: zones.reduce((sum, z) => sum + z.lat, 0) / zones.length,
+          lng: zones.reduce((sum, z) => sum + z.lng, 0) / zones.length,
+        }
+      : center;
   // Light theme keeps the original free OpenStreetMap tiles. Dark theme uses
   // Esri's free "World Dark Gray Base" basemap so the map is not a glaring
   // white block on a dark page. CARTO's basemaps.cartocdn.com tiles (the
@@ -78,7 +92,14 @@ export default function RiskMap({ center, zones, height = 420 }) {
   return (
     <div style={{ height }} className="rounded-xl overflow-hidden border border-paper-200 dark:border-night-700">
       <MapContainer
-        center={[center.lat, center.lng]}
+        // react-leaflet's MapContainer only applies center/zoom at initial
+        // mount -- changing the prop on a re-render does NOT recenter an
+        // already-mounted map. Keying on the computed center forces a
+        // remount (same pattern MarkerClusterGroup below already uses,
+        // keyed on zones.length) whenever the underlying data's location
+        // actually changes, e.g. switching the selected state.
+        key={`${effectiveCenter.lat.toFixed(2)},${effectiveCenter.lng.toFixed(2)}`}
+        center={[effectiveCenter.lat, effectiveCenter.lng]}
         zoom={9}
         scrollWheelZoom={false}
         style={{ height: "100%", width: "100%" }}

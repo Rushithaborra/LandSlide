@@ -177,8 +177,15 @@ async function findZoneWithRainfall(zones, tryCount = 15) {
  * rather than invented.
  * ----------------------------------------------------------------------- */
 export async function getSummaryStats(state) {
-  const [allZones, allAlerts] = await Promise.all([getJSON(zonesPath()), getJSON("/alerts")]);
-  const zones = state ? allZones.filter((z) => z.state === state) : allZones;
+  // Was fetching zonesPath() unfiltered (top 5000 across ALL states by
+  // score) then filtering client-side by state -- fine while Sikkim was
+  // the only populated state, but once a second large, fully-scored state
+  // (Meghalaya) went live, both states' zones competed for the same
+  // shared 5000-row cap, silently truncating whichever state ranked
+  // lower overall. Passing state straight to zonesPath() does the
+  // filtering server-side, before any cap is applied -- same fix already
+  // used by getRiskZones/getActiveAlerts, just missed here.
+  const [zones, allAlerts] = await Promise.all([getJSON(zonesPath(state)), getJSON("/alerts")]);
   // Alert has no state field of its own (it's a property of the zone it
   // belongs to) -- filter by checking membership in the already-filtered
   // zone set rather than adding a second backend round trip.
