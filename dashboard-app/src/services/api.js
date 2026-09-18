@@ -77,10 +77,42 @@ function cacheTtlFor(path) {
 // intentional cap /corridors already accepts (CORRIDOR_ZONE_LIMIT).
 const ZONE_FETCH_LIMIT = 5000;
 
-function zonesPath(state) {
+// offset is omitted for page 0 so the first page's path is identical to what
+// a plain single-page call would use -- both share one cache entry.
+function zonesPath(state, offset = 0) {
   const params = new URLSearchParams({ limit: ZONE_FETCH_LIMIT });
   if (state) params.set("state", state);
+  if (offset > 0) params.set("offset", offset);
   return `/zones?${params.toString()}`;
+}
+
+// A single /zones page is capped at 5000 rows, but Sikkim (3,921) +
+// Meghalaya (10,691) is 14,612 -- so "All States" got only the top 5000 by
+// score across both, showing ~half of each (and a big state on its own, e.g.
+// Meghalaya, lost its lowest-risk 5,691). Walks the pages until a short one
+// comes back, fetching PAGE_BATCH pages in parallel to keep load time down.
+// MAX_ZONE_PAGES is a safety ceiling (30,000 zones), not a target: once
+// another very large state (Assam is ~66k) is live, "All States" needs
+// server-side clustering/tiling rather than shipping every row to the map.
+const PAGE_BATCH = 2;
+const MAX_ZONE_PAGES = 6;
+
+async function getAllZones(state) {
+  // Copy: page 0 is the cached array itself, and pushing onto it would
+  // grow the cache with duplicates on every later call.
+  const zones = [...(await getJSON(zonesPath(state)))];
+  let page = 1;
+  let lastPageFull = zones.length === ZONE_FETCH_LIMIT;
+  while (lastPageFull && page < MAX_ZONE_PAGES) {
+    const batchSize = Math.min(PAGE_BATCH, MAX_ZONE_PAGES - page);
+    const batch = await Promise.all(
+      Array.from({ length: batchSize }, (_, i) => getJSON(zonesPath(state, (page + i) * ZONE_FETCH_LIMIT))),
+    );
+    for (const rows of batch) zones.push(...rows);
+    lastPageFull = batch[batch.length - 1].length === ZONE_FETCH_LIMIT;
+    page += batchSize;
+  }
+  return zones;
 }
 
 async function getJSON(path) {
@@ -185,7 +217,7 @@ export async function getSummaryStats(state) {
   // lower overall. Passing state straight to zonesPath() does the
   // filtering server-side, before any cap is applied -- same fix already
   // used by getRiskZones/getActiveAlerts, just missed here.
-  const [zones, allAlerts] = await Promise.all([getJSON(zonesPath(state)), getJSON("/alerts")]);
+  const [zones, allAlerts] = await Promise.all([getAllZones(state), getJSON("/alerts")]);
   // Alert has no state field of its own (it's a property of the zone it
   // belongs to) -- filter by checking membership in the already-filtered
   // zone set rather than adding a second backend round trip.
@@ -236,7 +268,7 @@ export async function getActiveAlerts(state) {
   const shaped = await fetchAndShapeAlerts();
   const active = shaped.filter((a) => a.status === "active");
   if (!state) return active;
-  const zones = await getJSON(zonesPath(state));
+  const zones = await getAllZones(state);
   const zoneIds = new Set(zones.map((z) => z.id));
   return active.filter((a) => zoneIds.has(a.zoneId));
 }
@@ -290,7 +322,7 @@ export async function getRainfallThreshold(zoneId) {
 }
 
 export async function getRainfallTrend(state) {
-  const zones = await getJSON(zonesPath(state));
+  const zones = await getAllZones(state);
   if (zones.length === 0) return { readings: [], threshold: null };
   const found = await findZoneWithRainfall(zones);
   if (!found) return { readings: [], threshold: null };
@@ -335,7 +367,7 @@ export async function getRainfallTrend(state) {
  * stored polygon, since the map needs one point per zone, not the full shape.
  * ----------------------------------------------------------------------- */
 export async function getRiskZones(state) {
-  const zones = await getJSON(zonesPath(state));
+  const zones = await getAllZones(state);
   return zones.map((z) => ({
     id: z.id,
     name: z.name,
@@ -660,7 +692,7 @@ export async function searchAll(query) {
   if (!q) return [];
 
   const [zones, alerts, reports] = await Promise.all([
-    getJSON(zonesPath()),
+    getAllZones(),
     fetchAndShapeAlerts(),
     getCitizenReports(),
   ]);
