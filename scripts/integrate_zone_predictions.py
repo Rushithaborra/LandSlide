@@ -154,7 +154,9 @@ if __name__ == "__main__":
     # bare invocation is unchanged from before this script was generalized.
     state_arg = sys.argv[1] if len(sys.argv) > 1 else "sikkim"
     limit = int(sys.argv[2]) if len(sys.argv) > 2 else None
-    state = state_arg.capitalize()
+    # "arunachal_pradesh" -> "Arunachal Pradesh": plain .capitalize() gave
+    # "Arunachal_pradesh", which zones.state's CHECK constraint rejects.
+    state = state_arg.replace("_", " ").title()
 
     geojson_path = OUTPUT_DIR / f"{state_arg.lower()}_road_susceptibility.geojson"
     with open(geojson_path) as f:
