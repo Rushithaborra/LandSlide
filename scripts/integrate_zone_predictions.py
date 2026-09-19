@@ -74,14 +74,19 @@ def create_or_get_zones(features: list[dict], state: str = "Sikkim", limit: int 
     db = SessionLocal()
     mapping = []
     try:
-        existing = {name: str(zid) for name, zid in db.query(Zone.name, Zone.id).all()}
+        # Keyed by (name, state), not name alone: a road crossing a state border
+        # yields the same zone name in both states (57 Nagaland names collided
+        # with live Manipur zones), and a name-only match would have skipped
+        # creating the Nagaland zone and then overwritten the Manipur zone's
+        # score with Nagaland's.
+        existing = {(name, st): str(zid) for name, st, zid in db.query(Zone.name, Zone.state, Zone.id).all()}
         selected = features[:limit] if limit else features
 
         to_insert = []
         for feat in selected:
             props = feat["properties"]
             name = zone_name_for(props)
-            if name not in existing:
+            if (name, state) not in existing:
                 new_id = str(uuid.uuid4())
                 polygon = shape(feat["geometry"])
                 centroid = polygon.centroid
@@ -90,7 +95,7 @@ def create_or_get_zones(features: list[dict], state: str = "Sikkim", limit: int 
                     "geometry": from_shape(polygon, srid=4326),
                     "centroid_lat": centroid.y, "centroid_lng": centroid.x,
                 })
-                existing[name] = new_id
+                existing[(name, state)] = new_id
 
         for i in range(0, len(to_insert), chunk_size):
             chunk = to_insert[i:i + chunk_size]
@@ -101,7 +106,7 @@ def create_or_get_zones(features: list[dict], state: str = "Sikkim", limit: int 
         for feat in selected:
             props = feat["properties"]
             name = zone_name_for(props)
-            mapping.append((props["segment_id"], existing[name], props["susceptibility_score"],
+            mapping.append((props["segment_id"], existing[(name, state)], props["susceptibility_score"],
                              props["risk_tier"], props["model_version"]))
     finally:
         db.close()
@@ -142,6 +147,34 @@ def push_susceptibility(mapping: list[tuple], base_url: str = BACKEND_BASE_URL) 
     return asyncio.run(push_susceptibility_async(mapping, base_url))
 
 
+def push_susceptibility_bulk(mapping: list[tuple], chunk_size: int = 2000) -> int:
+    """Writes score/tier/model_version for every mapped zone with a few
+    set-based UPDATE ... FROM (VALUES ...) statements (same three fields the
+    PUT endpoint writes; the table's CHECK constraints still apply). Default
+    path because the HTTP route needs a local API on BACKEND_BASE_URL -- with
+    none running, every PUT failed ("All connection attempts failed") and the
+    freshly inserted zones sat unscored in production. This is also ~50x
+    faster (8,458 zones in ~26s vs ~22 min of PUTs)."""
+    from psycopg2.extras import execute_values
+    from app.database import engine
+
+    rows = [(zid, score, tier, version) for _, zid, score, tier, version in mapping]
+    conn = engine.raw_connection()
+    try:
+        cur = conn.cursor()
+        for i in range(0, len(rows), chunk_size):
+            execute_values(
+                cur,
+                "UPDATE zones z SET susceptibility_score = v.s::float8, risk_tier = v.t, model_version = v.m, "
+                "last_updated = now() FROM (VALUES %s) AS v(id, s, t, m) WHERE z.id = v.id::uuid",
+                rows[i:i + chunk_size], page_size=chunk_size,
+            )
+            conn.commit()
+        return len(rows)
+    finally:
+        conn.close()
+
+
 def verify_readback(zone_id: str, base_url: str = BACKEND_BASE_URL) -> dict:
     with httpx.Client(timeout=10.0) as client:
         resp = client.get(f"{base_url}/zones/{zone_id}")
@@ -152,8 +185,12 @@ if __name__ == "__main__":
     # e.g. `python scripts/integrate_zone_predictions.py assam` or with a
     # row limit for a smoke test: `... assam 5`. Defaults to Sikkim so a
     # bare invocation is unchanged from before this script was generalized.
-    state_arg = sys.argv[1] if len(sys.argv) > 1 else "sikkim"
-    limit = int(sys.argv[2]) if len(sys.argv) > 2 else None
+    # `--http` sends scores through PUT /zones/{id}/susceptibility instead of
+    # the direct bulk write (needs an API running at BACKEND_BASE_URL).
+    use_http = "--http" in sys.argv
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    state_arg = args[0] if args else "sikkim"
+    limit = int(args[1]) if len(args) > 1 else None
     # "arunachal_pradesh" -> "Arunachal Pradesh": plain .capitalize() gave
     # "Arunachal_pradesh", which zones.state's CHECK constraint rejects.
     state = state_arg.replace("_", " ").title()
@@ -171,14 +208,24 @@ if __name__ == "__main__":
     print(f"zones created/matched: {len(mapping)} in {time.time()-t0:.1f}s")
 
     t0 = time.time()
-    result = push_susceptibility(mapping)
-    print(f"PUT /zones/{{id}}/susceptibility: {result['ok']} succeeded, {len(result['failed'])} failed, "
-          f"in {time.time()-t0:.1f}s")
-    if result["failed"]:
-        print("failures (first 5):", result["failed"][:5])
-
-    if mapping:
-        sample_zone_id = mapping[0][1]
-        readback = verify_readback(sample_zone_id)
-        print(f"\nGET readback verification for zone {sample_zone_id}: HTTP {readback['status_code']}")
-        print(readback["body"])
+    if use_http:
+        result = push_susceptibility(mapping)
+        print(f"PUT /zones/{{id}}/susceptibility: {result['ok']} succeeded, {len(result['failed'])} failed, "
+              f"in {time.time()-t0:.1f}s")
+        if result["failed"]:
+            print("failures (first 5):", result["failed"][:5])
+        if mapping:
+            sample_zone_id = mapping[0][1]
+            readback = verify_readback(sample_zone_id)
+            print(f"\nGET readback verification for zone {sample_zone_id}: HTTP {readback['status_code']}")
+            print(readback["body"])
+    else:
+        n = push_susceptibility_bulk(mapping)
+        print(f"bulk score write: {n} zones in {time.time()-t0:.1f}s")
+        db = SessionLocal()
+        try:
+            total = db.query(Zone).filter(Zone.state == state).count()
+            unscored = db.query(Zone).filter(Zone.state == state, Zone.risk_tier.is_(None)).count()
+        finally:
+            db.close()
+        print(f"{state} in database: {total} zones, {unscored} unscored")
