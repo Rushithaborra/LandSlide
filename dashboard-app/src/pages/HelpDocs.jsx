@@ -25,7 +25,7 @@ const SECTIONS = [
     faqs: [
       {
         q: "What am I supposed to check first thing in the morning?",
-        a: "Open the Overview page. Read the five cards across the top, then the map, then the Active Alerts panel. If High Risk Zones or Active Alerts has gone up since yesterday, the card says so underneath the number. That takes about a minute and tells you whether today is a normal day or not.",
+        a: "Open the Overview page. Read the five cards across the top, then the map, then the Active Alerts panel. High Risk Zones counts the highest-scoring zones within each state (risk levels are relative to the other zones in the same state), so use it to see where to look first, not to compare one state's danger with another's. If Active Alerts is higher than you expect, open the Alerts page. That takes about a minute and tells you whether today is a normal day or not.",
       },
       {
         q: "How do I find one particular village, alert or incident quickly?",
