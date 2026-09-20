@@ -5,12 +5,27 @@ Backend scope only: API, DB schema, rainfall ingestion, rule-based alert
 trigger, citizen report intake. See `CLAUDE.md` for the full project brief,
 and `docs/` for the team roadmap, the internal 4-day plan, and the pitch deck.
 
-**Multi-state, as of the NER expansion (phase 1):** `zones.state` and a
-per-state rainfall threshold mean the architecture is no longer Sikkim-only
-by construction. **Sikkim is still the only state with real, populated data**
-— Assam and Mizoram are valid, plannable next states (see CLAUDE.md's "NER
-expansion" section) with zero zones until their own GSI-inventory-to-model
-pipeline actually runs, same as Sikkim's did.
+**Multi-state (NER expansion), as of 2026-09-20:** seven states now have real,
+scored zones live -- **104,308 in total**: Sikkim 3,921, Meghalaya 10,691,
+Manipur 8,458, Nagaland 10,233, Mizoram 8,312, Arunachal Pradesh 14,851 and
+Assam 47,842. Each of the six newer states has its own Random Forest (never
+pooled across states) trained on real GSI landslide records plus terrain,
+soil, RUSLE-erosion and rainfall-erosivity features, validated with spatial
+block cross-validation (ROC-AUC: Assam 0.95, Meghalaya 0.86, Manipur 0.82,
+Arunachal Pradesh 0.82, Nagaland 0.74, Mizoram 0.71; Sikkim 0.74), and
+scored on ~500 m OSM road corridors. Tripura is **not** modeled (only 66 public
+landslide records). Three limits to state plainly if asked:
+- **Risk tiers are per-state thirds**, so "high" means the top third of that
+  state's own scores, not a common absolute level. Assam's "high" tier starts at
+  a score of 0.047 (most of it is flat floodplain), so cross-state high-risk
+  counts overstate risk: 33,934 tagged high vs 21,739 with score >= 0.5.
+- **Rainfall alerting is configured only for Sikkim and Assam** in this repo's
+  config (Assam's is the unverified Guwahati equation; whether it is also set on
+  Render has not been checked). Every other state shows the static ML layer
+  only: `check_and_trigger` skips a state with no threshold rather than borrow
+  another state's number.
+- **163 border road stretches exist as a zone in each of two neighbouring
+  states** (same place, each state's own score), so they are counted twice.
 
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /
