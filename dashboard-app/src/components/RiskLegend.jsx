@@ -1,5 +1,7 @@
 // Must stay in sync with `levelColor` in RiskMap.jsx and the `risk`
 // scale in tailwind.config.js.
+import { useTranslation } from "react-i18next";
+
 const items = [
   { label: "High", color: "#b4472f" },
   { label: "Moderate", color: "#c8871d" },
@@ -8,9 +10,11 @@ const items = [
 ];
 
 export default function RiskLegend() {
+  const { t } = useTranslation();
   return (
     <div className="bg-white dark:bg-night-900 rounded-lg border border-paper-200 dark:border-night-700 shadow-sm px-3 py-2 text-xs w-fit">
-      <p className="text-paper-600 dark:text-paper-400 mb-1.5">Risk Level</p>
+      <p className="text-paper-600 dark:text-paper-400">{t("legend.title")}</p>
+      <p className="text-[10px] italic text-paper-500 mb-1.5">{t("legend.note")}</p>
       <div className="space-y-1">
         {items.map((it) => (
           <div key={it.label} className="flex items-center gap-2">

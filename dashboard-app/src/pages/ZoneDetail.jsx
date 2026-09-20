@@ -64,9 +64,14 @@ export default function ZoneDetail() {
                   {zone.state} · {zone.lat.toFixed(4)}, {zone.lng.toFixed(4)}
                 </p>
               </div>
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${severityStyle[zone.level] || severityStyle.Moderate}`}>
-                {zone.level === "Unscored" ? t("zoneDetail.notYetScored") : t("zoneDetail.risk", { level: zone.level })}
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${severityStyle[zone.level] || severityStyle.Moderate}`}>
+                  {zone.level === "Unscored" ? t("zoneDetail.notYetScored") : t("zoneDetail.risk", { level: zone.level })}
+                </span>
+                {zone.level !== "Unscored" && (
+                  <span className="text-[11px] text-paper-500">{t("zoneDetail.relativeNote", { state: zone.state })}</span>
+                )}
+              </div>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">

@@ -69,7 +69,9 @@
     "dangerThreshold": "Danger threshold {{value}} mm",
     "statCards": "summary stats",
     "partialErrorNote": "Couldn't refresh: {{sections}}. Showing the last data that loaded.",
-    "noThresholdConfigured": "No official threshold configured for this region"
+    "noThresholdConfigured": "No official threshold configured for this region",
+    "highRiskDeltaAll": "Highest-scoring in each state · {{total}} zones",
+    "highRiskDeltaState": "Highest-scoring in {{state}} · {{total}} zones"
   },
   "alerts": {
     "title": "Alerts",
@@ -154,7 +156,8 @@
     "nearestSafer": "Nearest lower-risk zone",
     "alreadyLowest": "Already lowest risk in this state",
     "noSaferNearby": "No lower-risk zone found nearby",
-    "saferZoneLink": "{{name}} ({{level}}) — {{km}} km, get directions"
+    "saferZoneLink": "{{name}} ({{level}}) — {{km}} km, get directions",
+    "relativeNote": "Ranked against other {{state}} zones"
   },
   "broadcastModal": {
     "ariaLabel": "Issue alert broadcast",
@@ -186,5 +189,9 @@
     "channelCap": "Govt CAP XML gateway",
     "transmitting": "Transmitting…",
     "transmit": "Transmit alert broadcast"
+  },
+  "legend": {
+    "title": "Risk level",
+    "note": "Relative within each state"
   }
 }

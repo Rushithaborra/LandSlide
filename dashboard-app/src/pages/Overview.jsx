@@ -133,7 +133,10 @@ export default function Overview() {
               iconColor="#b4472f"
               label={t("overview.highRiskZones")}
               value={stats.highRiskZones.value}
-              deltaLabel={stats.highRiskZones.deltaLabel}
+              deltaLabel={t(selectedState ? "overview.highRiskDeltaState" : "overview.highRiskDeltaAll", {
+                state: selectedState,
+                total: stats.highRiskZones.total.toLocaleString(),
+              })}
               trend={stats.highRiskZones.trend}
             />
             <StatCard

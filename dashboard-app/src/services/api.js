@@ -213,7 +213,7 @@ export async function getSummaryStats(state) {
   }
 
   return {
-    highRiskZones: { value: stats.high, deltaLabel: `${stats.total} zone(s) total`, trend: "flat" },
+    highRiskZones: { value: stats.high, total: stats.total, trend: "flat" },
     activeAlerts: { value: activeAlerts.length, deltaLabel: `${affectedZoneIds.size} zone(s) affected`, trend: activeAlerts.length > 0 ? "up" : "flat" },
     affectedVillages: { value: affectedZoneIds.size, deltaLabel: "Zones with an active alert", trend: "flat" },
     rainfall24h: { value: rainfall24hLabel, deltaLabel: rainfallZoneName, trend: "flat" },

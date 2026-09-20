@@ -69,7 +69,9 @@
     "dangerThreshold": "खतरे की सीमा {{value}} मिमी",
     "statCards": "सारांश आँकड़े",
     "partialErrorNote": "रिफ्रेश नहीं हो सका: {{sections}}। अंतिम लोड किया गया डेटा दिखाया जा रहा है।",
-    "noThresholdConfigured": "इस क्षेत्र के लिए कोई आधिकारिक सीमा निर्धारित नहीं है"
+    "noThresholdConfigured": "इस क्षेत्र के लिए कोई आधिकारिक सीमा निर्धारित नहीं है",
+    "highRiskDeltaAll": "हर राज्य में सबसे अधिक स्कोर वाले · {{total}} क्षेत्र",
+    "highRiskDeltaState": "{{state}} में सबसे अधिक स्कोर वाले · {{total}} क्षेत्र"
   },
   "alerts": {
     "title": "अलर्ट",
@@ -154,7 +156,8 @@
     "nearestSafer": "निकटतम कम-जोखिम क्षेत्र",
     "alreadyLowest": "इस राज्य में पहले से ही सबसे कम जोखिम",
     "noSaferNearby": "आस-पास कोई कम-जोखिम क्षेत्र नहीं मिला",
-    "saferZoneLink": "{{name}} ({{level}}) — {{km}} किमी, दिशा-निर्देश पाएं"
+    "saferZoneLink": "{{name}} ({{level}}) — {{km}} किमी, दिशा-निर्देश पाएं",
+    "relativeNote": "{{state}} के अन्य क्षेत्रों की तुलना में"
   },
   "broadcastModal": {
     "ariaLabel": "अलर्ट प्रसारण जारी करें",
@@ -186,5 +189,9 @@
     "channelCap": "सरकारी सीएपी एक्सएमएल गेटवे",
     "transmitting": "प्रेषित किया जा रहा है…",
     "transmit": "अलर्ट प्रसारण भेजें"
+  },
+  "legend": {
+    "title": "जोखिम स्तर",
+    "note": "हर राज्य के भीतर की तुलना में"
   }
 }

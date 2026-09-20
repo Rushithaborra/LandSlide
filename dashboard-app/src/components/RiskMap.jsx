@@ -91,6 +91,7 @@ function ZoneMarker({ zone }) {
         <strong>{zone.name}</strong>
         <br />
         Risk: {zone.level}
+        {zone.level !== "Unscored" && ` (relative to other ${zone.state} zones)`}
         {zone.susceptibility != null && ` · Susceptibility: ${(zone.susceptibility * 100).toFixed(0)}%`}
         <br />
         <em>Click for details</em>

@@ -58,7 +58,7 @@ const SECTIONS = [
     faqs: [
       {
         q: "What do the coloured circles on the map mean?",
-        a: "Each circle is one monitored zone. The colour is its current risk level — terracotta for High, turmeric for Moderate, moss green for Low. The size of the circle is how landslide-prone that terrain is, so a big red circle is the most serious combination.",
+        a: "Each circle is one monitored zone. The colour is its current risk level — terracotta for High, turmeric for Moderate, moss green for Low. The size of the circle is how landslide-prone that terrain is, so a big red circle is the most serious combination. Risk levels are relative: each colour ranks a zone against the other zones in the same state (High is roughly the highest-scoring third), so compare zones within a state — a High zone in one state is not necessarily as dangerous as a High zone in another. The susceptibility percentage is the model's own score.",
       },
       {
         q: "What is 'susceptibility', and how is it different from risk?",
