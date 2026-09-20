@@ -17,14 +17,8 @@ import {
 } from "../services/api";
 import { mapCenter } from "../data/mockData";
 import { useRegion } from "../context/RegionContext";
+import { agoFromMinutes } from "../utils/localizedText";
 import { useAlertStream } from "../hooks/useAlertStream";
-
-function formatAge(minutes) {
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  return hours < 24 ? `${hours} h ago` : `${Math.floor(hours / 24)} d ago`;
-}
 
 // A place-name search that hands off to the "Check my area" page -- so a
 // visitor's first action on the dashboard can be "is MY village safe?".
@@ -62,7 +56,7 @@ function CheckAreaCard() {
 }
 
 export default function Overview() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // All of this state is populated through src/services/api.js, which today
   // returns mock data and later will call the real backend. See
   // LINKING_GUIDE.md for the full hookup list.
@@ -278,7 +272,7 @@ export default function Overview() {
                 {rainfallThreshold
                   ? t("overview.dangerThreshold", { value: rainfallThreshold.mm.toFixed(1) })
                   : t("overview.noThresholdConfigured")}
-                {rainfallAge !== null && ` · ${t("overview.rainfallUpdated", { age: formatAge(rainfallAge) })}`}
+                {rainfallAge !== null && ` · ${t("overview.rainfallUpdated", { age: agoFromMinutes(rainfallAge, t) })}`}
               </span>
             </div>
             <RainfallChart data={rainfall} thresholdMm={rainfallThreshold?.mm ?? null} height={340} />

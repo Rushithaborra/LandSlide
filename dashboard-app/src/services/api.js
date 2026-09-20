@@ -241,6 +241,10 @@ function shapeAlert(a) {
     location: a.zone_name || "Unknown zone",
     severity: capitalizeTier(a.risk_tier),
     timeAgo: timeAgo(a.triggered_at),
+    // Raw values, so components can format the time and rainfall day in the
+    // viewer's language at render time (timeAgo above is English, kept for search).
+    triggeredAt: a.triggered_at,
+    resolvedAt: a.resolved_at || null,
     status: a.status,
     // "system" = closed automatically because the rainfall cleared;
     // "officer" = closed by a person; null = resolved before this was recorded.
@@ -249,7 +253,7 @@ function shapeAlert(a) {
     // The alert text above is frozen at the moment it was raised; this is what
     // the zone's rain is doing now (latest observed day, never a forecast).
     rainNowMm: a.latest_rainfall_mm ?? null,
-    rainNowDay: a.latest_rainfall_date ? dayLabel(`${a.latest_rainfall_date}T00:00:00Z`) : null,
+    rainNowDate: a.latest_rainfall_date ? `${a.latest_rainfall_date}T00:00:00Z` : null,
   };
 }
 
@@ -801,9 +805,9 @@ export async function getTickerBulletins() {
     id: a.id,
     kind: "alert",
     severity: capitalizeTier(a.risk_tier),
-    // "<zone> — <what was crossed>": drop the alert's own leading tier phrase, which the severity tag already says.
-    text: `${a.zone_name}: ${a.threshold_crossed.split(" — ").pop()}`,
-    issuedAt: timeAgo(a.triggered_at),
+    zone: a.zone_name,
+    sentence: a.threshold_crossed, // wording is produced per language in AlertTicker
+    triggeredAt: a.triggered_at,
   }));
   if (alerts.length > TICKER_MAX_ALERTS) {
     items.push({ id: "more", kind: "more", count: alerts.length - TICKER_MAX_ALERTS });

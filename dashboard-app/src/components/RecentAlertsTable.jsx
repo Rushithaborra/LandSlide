@@ -1,5 +1,6 @@
 import { CheckCircle2, Radio } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { agoLabel, alertSentence, dayWord } from "../utils/localizedText";
 
 const severityStyle = {
   High: "bg-risk-highSoft dark:bg-risk-high/20 text-risk-high dark:text-risk-highOn",
@@ -8,7 +9,7 @@ const severityStyle = {
 };
 
 export default function RecentAlertsTable({ alerts, onBroadcast }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -25,18 +26,18 @@ export default function RecentAlertsTable({ alerts, onBroadcast }) {
         <tbody>
           {alerts.map((a) => (
             <tr key={a.id} className={`border-t border-paper-200 dark:border-night-700 ${a.status === "resolved" ? "opacity-60" : ""}`}>
-              <td className="py-2.5 pr-3 text-paper-700 dark:text-paper-300">{a.title}</td>
+              <td className="py-2.5 pr-3 text-paper-700 dark:text-paper-300">{alertSentence(a.title, t)}</td>
               <td className="py-2.5 pr-3 text-paper-600 dark:text-paper-400">
                 {a.location}
                 {a.rainNowMm !== null && (
                   <span className="block text-[11px] text-paper-500">
-                    {t("table.rainNow", { mm: a.rainNowMm.toFixed(1), day: a.rainNowDay })}
+                    {t("table.rainNow", { mm: a.rainNowMm.toFixed(1), day: dayWord(a.rainNowDate, t, i18n.language) })}
                   </span>
                 )}
               </td>
               <td className="py-2.5 pr-3">
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${severityStyle[a.severity]}`}>
-                  {a.severity}
+                  {t(`severity.${a.severity}`, { defaultValue: a.severity })}
                 </span>
               </td>
               <td className="py-2.5 pr-3 whitespace-nowrap">
@@ -47,13 +48,13 @@ export default function RecentAlertsTable({ alerts, onBroadcast }) {
                   >
                     <CheckCircle2 size={13} />
                     {t("table.statusResolved")}
-                    {a.resolvedAgo ? ` · ${a.resolvedAgo}` : ""}
+                    {a.resolvedAt ? ` · ${agoLabel(a.resolvedAt, t)}` : ""}
                   </span>
                 ) : (
                   <span className="text-xs font-medium text-risk-high dark:text-risk-highOn">{t("table.statusActive")}</span>
                 )}
               </td>
-              <td className="py-2.5 pr-3 text-paper-500 whitespace-nowrap">{a.timeAgo}</td>
+              <td className="py-2.5 pr-3 text-paper-500 whitespace-nowrap">{agoLabel(a.triggeredAt, t)}</td>
               {onBroadcast && (
                 <td className="py-2.5">
                   <button

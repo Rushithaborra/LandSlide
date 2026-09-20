@@ -573,5 +573,31 @@
     "more": "+{{count}} more active alerts — see the Alerts page",
     "none": "No active rain alerts right now.",
     "noneStates": "Rain alerts are switched on for: {{states}}."
+  },
+  "alertText": {
+    "tier": {
+      "high": "High-risk zone",
+      "moderate": "Moderate-risk zone",
+      "low": "Low-risk zone"
+    },
+    "rain": "rain over {{days}} days averaged {{mean}} mm/day, above this zone's danger level of {{threshold}} mm/day",
+    "full": "{{tier}} — {{rain}}"
+  },
+  "ago": {
+    "now": "just now",
+    "minutes_one": "{{count}} minute ago",
+    "minutes_other": "{{count}} minutes ago",
+    "hours_one": "{{count}} hour ago",
+    "hours_other": "{{count}} hours ago",
+    "days_one": "{{count}} day ago",
+    "days_other": "{{count}} days ago",
+    "today": "today",
+    "yesterday": "yesterday"
+  },
+  "severity": {
+    "High": "High",
+    "Moderate": "Moderate",
+    "Low": "Low",
+    "Unscored": "Not rated"
   }
 }

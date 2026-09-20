@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Megaphone, Pause, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { agoLabel, alertSentence } from "../utils/localizedText";
 
 /**
  * ============================================================================
@@ -41,7 +42,7 @@ function bulletinText(b, t) {
     const states = b.states.map(titleCase).join(", ");
     return states ? `${t("ticker.none")} ${t("ticker.noneStates", { states })}` : t("ticker.none");
   }
-  return b.text;
+  return `${b.zone}: ${alertSentence(b.sentence, t, { short: true })}`;
 }
 
 function BulletinRun({ bulletins, ariaHidden }) {
@@ -60,8 +61,8 @@ function BulletinRun({ bulletins, ariaHidden }) {
               </span>
             )}
             {bulletinText(b, t)}
-            {b.issuedAt && (
-              <span className="ml-2 not-italic text-paper-600 dark:text-paper-400">— {b.issuedAt}</span>
+            {b.triggeredAt && (
+              <span className="ml-2 not-italic text-paper-600 dark:text-paper-400">— {agoLabel(b.triggeredAt, t)}</span>
             )}
           </span>
           <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-paper-300 dark:bg-night-700" />
@@ -78,7 +79,7 @@ export default function AlertTicker({ bulletins = [] }) {
   // Longer bulletins should scroll for longer, otherwise a big batch flies
   // past unreadably. Roughly 55 characters per second of screen time.
   const duration = useMemo(() => {
-    const chars = bulletins.reduce((n, b) => n + (b.text?.length ?? 90) + 24, 0);
+    const chars = bulletins.reduce((n, b) => n + (b.sentence ? 110 : 90) + 24, 0);
     return `${Math.max(30, Math.round(chars / 5.5))}s`;
   }, [bulletins]);
 

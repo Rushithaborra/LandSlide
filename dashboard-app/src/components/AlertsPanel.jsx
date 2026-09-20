@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { agoLabel, alertSentence, dayWord } from "../utils/localizedText";
 
 const severityStyle = {
   High: "bg-risk-highSoft dark:bg-risk-high/20 text-risk-high dark:text-risk-highOn",
@@ -17,7 +18,7 @@ const severityStyle = {
 const VISIBLE_COUNT = 5;
 
 export default function AlertsPanel({ alerts }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const visible = alerts.slice(0, VISIBLE_COUNT);
   const remaining = alerts.length - visible.length;
 
@@ -38,13 +39,13 @@ export default function AlertsPanel({ alerts }) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-medium text-ink-800 dark:text-paper-200 leading-snug">{a.title}</p>
-                <span className="text-[11px] text-paper-500 whitespace-nowrap">{a.timeAgo}</span>
+                <p className="text-sm font-medium text-ink-800 dark:text-paper-200 leading-snug">{alertSentence(a.title, t)}</p>
+                <span className="text-[11px] text-paper-500 whitespace-nowrap">{agoLabel(a.triggeredAt, t)}</span>
               </div>
               <p className="text-xs text-paper-600 dark:text-paper-400 mt-0.5">{a.location}</p>
               {a.rainNowMm !== null && (
                 <p className="text-[11px] text-paper-500 mt-0.5">
-                  {t("table.rainNow", { mm: a.rainNowMm.toFixed(1), day: a.rainNowDay })}
+                  {t("table.rainNow", { mm: a.rainNowMm.toFixed(1), day: dayWord(a.rainNowDate, t, i18n.language) })}
                 </p>
               )}
               <span
@@ -52,7 +53,7 @@ export default function AlertsPanel({ alerts }) {
                   severityStyle[a.severity] || "bg-paper-100 text-paper-600"
                 }`}
               >
-                {a.severity}
+                {t(`severity.${a.severity}`, { defaultValue: a.severity })}
               </span>
             </div>
           </div>

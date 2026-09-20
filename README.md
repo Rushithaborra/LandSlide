@@ -132,8 +132,12 @@ line, a "48-hour threshold" and an IMD-fed ticker that do not match the system.
 speaker; have someone from Sikkim read them before public use. The scrolling
 warning strip at the top now shows the newest **real active alerts** (plus a count of
 the rest, or a "none active" message naming the states alerting is on for); its
-old made-up IMD-style text was removed. An alert's sentence is written in English
-by the backend when it is raised, so only the strip's fixed wording is translated.
+old made-up IMD-style text was removed. An alert's sentence is stored in English by
+the backend when it is raised; the dashboard takes that one known format apart
+(`src/utils/localizedText.js`) and words it in the chosen language, so alerts, the
+strip and "x days ago" all follow the language switcher. A sentence in any other
+format is shown untouched in English rather than mangled. (The Broadcast composer's
+pre-filled SMS text is still English -- an officer edits it before sending.)
 The Incidents list, Data & Observations status and profile panel are still
 **sample data** (Help says so).
 
