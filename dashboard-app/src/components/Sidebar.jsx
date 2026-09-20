@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
+  MapPinned,
   Bell,
   AlertTriangle,
   Route as RouteIcon,
@@ -21,6 +22,7 @@ import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { to: "/", key: "overview", icon: LayoutDashboard, end: true },
+  { to: "/check-area", key: "checkArea", icon: MapPinned },
   { to: "/alerts", key: "alerts", icon: Bell },
   { to: "/incidents", key: "incidents", icon: AlertTriangle },
   { to: "/highway-corridors", key: "highwayCorridors", icon: RouteIcon },

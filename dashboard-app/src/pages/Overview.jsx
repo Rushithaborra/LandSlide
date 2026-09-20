@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Bell, Users, CloudRain, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Bell, Users, CloudRain, ShieldCheck, Search } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import StatCard from "../components/StatCard";
 import RiskMap from "../components/RiskMap";
@@ -23,6 +24,41 @@ function formatAge(minutes) {
   if (minutes < 60) return `${minutes} min ago`;
   const hours = Math.floor(minutes / 60);
   return hours < 24 ? `${hours} h ago` : `${Math.floor(hours / 24)} d ago`;
+}
+
+// A place-name search that hands off to the "Check my area" page -- so a
+// visitor's first action on the dashboard can be "is MY village safe?".
+function CheckAreaCard() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [text, setText] = useState("");
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (text.trim().length >= 2) navigate(`/check-area?q=${encodeURIComponent(text.trim())}`);
+      }}
+      className="rounded-xl border border-paper-200 bg-white p-4 dark:border-night-700 dark:bg-night-900"
+    >
+      <p className="mb-2 text-sm font-medium text-ink-900 dark:text-paper-100">{t("overview.checkAreaTitle")}</p>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-paper-500" />
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={t("checkArea.placeholder")}
+            aria-label={t("checkArea.label")}
+            className="w-full rounded-lg border border-paper-200 bg-paper-50 py-2.5 pl-9 pr-3 text-sm text-paper-700 placeholder:text-paper-500 focus:outline-none focus:ring-2 focus:ring-teal-600/30 dark:border-night-700 dark:bg-night-800 dark:text-paper-300"
+          />
+        </div>
+        <button type="submit" disabled={text.trim().length < 2} className="rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50">
+          {t("checkArea.search")}
+        </button>
+      </div>
+    </form>
+  );
 }
 
 export default function Overview() {
@@ -155,6 +191,8 @@ export default function Overview() {
             </div>
           )}
           {/* Top stat cards */}
+          <CheckAreaCard />
+
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
             <StatCard
               icon={AlertTriangle}

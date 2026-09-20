@@ -12,6 +12,7 @@ import DataObservations from "./pages/DataObservations";
 import DataMethodology from "./pages/DataMethodology";
 import CitizenReports from "./pages/CitizenReports";
 import HelpDocs from "./pages/HelpDocs";
+import CheckArea from "./pages/CheckArea";
 
 /**
  * All page routes live here. Match this list against the sidebar links in
@@ -34,6 +35,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Overview />} />
+            <Route path="/check-area" element={<CheckArea />} />
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/incidents" element={<Incidents />} />
             <Route path="/highway-corridors" element={<HighwayCorridors />} />

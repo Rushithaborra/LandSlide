@@ -624,8 +624,93 @@ export async function getZoneById(zoneId) {
   };
 }
 
+/* ----------------------------------------------------------------------- *
+ * Live rainfall for ANY place. Only ~77 zones (the highest-risk ones) have
+ * rainfall stored by the hourly job; every other zone used to say "no
+ * rainfall data". The browser can ask Open-Meteo directly for any point --
+ * from the visitor's own IP, so the throttling that blocks the shared backend
+ * host doesn't apply. Same source and same fields as the stored readings, just
+ * not stored (labelled "live" in the UI).
+ * ----------------------------------------------------------------------- */
+const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
+
+export async function fetchLiveRainfall(lat, lng, { pastDays = 10, forecastDays = 3 } = {}) {
+  const params = new URLSearchParams({
+    latitude: lat,
+    longitude: lng,
+    daily: "precipitation_sum",
+    past_days: pastDays,
+    forecast_days: forecastDays,
+    timezone: "UTC",
+  });
+  const res = await fetch(`${OPEN_METEO_URL}?${params}`);
+  if (!res.ok) throw new Error(`live rainfall failed: ${res.status}`);
+  const { daily } = await res.json();
+  const today = new Date().toISOString().slice(0, 10);
+  // Same shape the backend serves, so shapeRainfallReadings handles both.
+  return daily.time
+    .map((day, i) => ({ timestamp: `${day}T00:00:00Z`, intensity_mm: daily.precipitation_sum[i], is_forecast: day > today }))
+    .filter((r) => r.intensity_mm !== null);
+}
+
+/* ----------------------------------------------------------------------- *
+ * "Check my area": a typed place name -> coordinates -> the risk around them.
+ * Geocoding is OpenStreetMap's public Nominatim service, restricted to the
+ * north-east (a village name elsewhere in India must not match), called only
+ * when the user presses Search -- its usage policy asks for no as-you-type
+ * traffic. Names are matched and returned in the dashboard's language.
+ * ----------------------------------------------------------------------- */
+const NER_VIEWBOX = "88.0,29.6,97.5,21.9"; // left,top,right,bottom -- all eight NER states
+
+export async function geocodePlace(query, language = "en") {
+  const params = new URLSearchParams({
+    q: query,
+    format: "jsonv2",
+    countrycodes: "in",
+    viewbox: NER_VIEWBOX,
+    bounded: "1",
+    limit: "6",
+    "accept-language": language,
+  });
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
+  if (!res.ok) throw new Error(`place search failed: ${res.status}`);
+  const places = await res.json();
+  return places.map((p) => {
+    const [name, ...rest] = p.display_name.split(", ");
+    return { name, detail: rest.slice(0, 3).join(", "), lat: Number(p.lat), lng: Number(p.lon) };
+  });
+}
+
+// What the model says about the road stretches around a point (GET /zones/near).
+export async function getAreaRisk(lat, lng, radiusKm = 3) {
+  const nearby = await getJSON(`/zones/near?lat=${lat}&lng=${lng}&radius_km=${radiusKm}`);
+  return {
+    radiusKm: nearby.radius_km,
+    zone: nearby.zone && {
+      id: nearby.zone.id,
+      name: nearby.zone.name,
+      state: nearby.zone.state,
+      tier: nearby.zone.risk_tier, // "high" | "moderate" | "low" | null (unscored)
+    },
+    distanceKm: nearby.distance_km,
+    counts: nearby.counts,
+    activeAlerts: nearby.active_alerts,
+  };
+}
+
 export async function getRainfallForZone(zoneId) {
-  const readings = await getJSON(`/rainfall/${zoneId}`);
+  let readings = await getJSON(`/rainfall/${zoneId}`);
+  let source = "stored";
+  if (readings.length === 0) {
+    // Not one of the zones the hourly job keeps: get it live for this spot.
+    try {
+      const zone = await getZoneById(zoneId);
+      readings = await fetchLiveRainfall(zone.lat, zone.lng);
+      source = "live";
+    } catch {
+      // Open-Meteo unreachable -- fall through to the honest "no data" state.
+    }
+  }
   let threshold = null;
   try {
     threshold = await getRainfallThreshold(zoneId);
@@ -633,7 +718,7 @@ export async function getRainfallForZone(zoneId) {
     // Same fallback posture as getRainfallTrend -- a threshold-lookup
     // failure shouldn't take down the whole rainfall history panel.
   }
-  return { readings: shapeRainfallReadings(readings), threshold };
+  return { readings: shapeRainfallReadings(readings), threshold, source };
 }
 
 export async function getAlertsForZone(zoneId) {

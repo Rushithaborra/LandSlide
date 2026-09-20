@@ -138,7 +138,10 @@ export default function ZoneDetail() {
               ) : rainfall.readings.length === 0 ? (
                 <p className="text-sm text-paper-500">{t("zoneDetail.noRainfallData")}</p>
               ) : (
-                <RainfallChart data={rainfall.readings} thresholdMm={rainfall.threshold?.mm ?? null} height={260} />
+                <>
+                  <RainfallChart data={rainfall.readings} thresholdMm={rainfall.threshold?.mm ?? null} height={260} />
+                  {rainfall.source === "live" && <p className="mt-2 text-[11px] text-paper-500">{t("zoneDetail.rainfallLive")}</p>}
+                </>
               )}
             </div>
 

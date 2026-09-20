@@ -6,9 +6,10 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, load_only
 
 from app.database import get_db
-from app.models import Zone
+from app.models import Alert, Zone
 from app.security import require_officer_key
 from app.schemas import (
+    AreaRiskOut,
     MapClusterOut,
     MapViewOut,
     MapZoneOut,
@@ -90,6 +91,61 @@ def list_zones(
     # promise a stable order among equal keys between separate requests.
     query = query.order_by(Zone.susceptibility_score.desc().nulls_last(), Zone.id)
     return query.offset(offset).limit(limit).all()
+
+
+KM_PER_DEGREE = 111.32
+
+
+@router.get("/near", response_model=AreaRiskOut)
+def area_risk(
+    lat: float = Query(ge=-90, le=90),
+    lng: float = Query(ge=-180, le=180),
+    radius_km: float = Query(3.0, gt=0, le=10),
+    db: Session = Depends(get_db),
+):
+    """The risk picture around a point (a village, a searched place, or the
+    visitor's own GPS position). Public on purpose -- it is what a resident
+    needs. One indexed-box query: a bounding box first (cheap), then the exact
+    distance, so it stays fast with 100k zones."""
+    dlat = radius_km / KM_PER_DEGREE
+    dlng = radius_km / (KM_PER_DEGREE * max(math.cos(math.radians(lat)), 0.01))
+    # Equirectangular distance in km -- plenty accurate over a few km.
+    dist_km = func.sqrt(
+        func.power((Zone.centroid_lat - lat) * KM_PER_DEGREE, 2)
+        + func.power((Zone.centroid_lng - lng) * KM_PER_DEGREE * math.cos(math.radians(lat)), 2)
+    )
+    rows = db.execute(
+        select(Zone, dist_km.label("dist"))
+        .options(ZONE_LIST_COLUMNS)
+        .where(
+            Zone.centroid_lat.between(lat - dlat, lat + dlat),
+            Zone.centroid_lng.between(lng - dlng, lng + dlng),
+            dist_km <= radius_km,
+        )
+        .order_by("dist")
+        .limit(1000)
+    ).all()
+
+    counts = {"high": 0, "moderate": 0, "low": 0, "unscored": 0}
+    for zone, _ in rows:
+        counts[zone.risk_tier if zone.risk_tier in counts else "unscored"] += 1
+    active = 0
+    if rows:
+        active = db.scalar(
+            select(func.count(func.distinct(Alert.zone_id))).where(
+                Alert.status == "active", Alert.zone_id.in_([z.id for z, _ in rows])
+            )
+        )
+    nearest = rows[0] if rows else None
+    return AreaRiskOut(
+        lat=lat,
+        lng=lng,
+        radius_km=radius_km,
+        zone=ZoneOut.model_validate(nearest[0]) if nearest else None,
+        distance_km=round(nearest[1], 2) if nearest else None,
+        counts=counts,
+        active_alerts=active or 0,
+    )
 
 
 @router.get("/map", response_model=MapViewOut)

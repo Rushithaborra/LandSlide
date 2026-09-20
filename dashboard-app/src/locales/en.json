@@ -47,7 +47,8 @@
     "help": "Help",
     "systemStatus": "System Status",
     "operational": "Operational",
-    "systemsNormal": "All systems are running normally"
+    "systemsNormal": "All systems are running normally",
+    "checkArea": "Check my area"
   },
   "topbar": {
     "sos": "SOS 112",
@@ -78,7 +79,8 @@
     "partialErrorNote": "Couldn't refresh: {{sections}}. Showing the last data that loaded.",
     "noThresholdConfigured": "No official threshold configured for this region",
     "highRiskDeltaAll": "Highest-scoring in each state · {{total}} zones",
-    "highRiskDeltaState": "Highest-scoring in {{state}} · {{total}} zones"
+    "highRiskDeltaState": "Highest-scoring in {{state}} · {{total}} zones",
+    "checkAreaTitle": "Check your village's landslide risk"
   },
   "alerts": {
     "title": "Alerts",
@@ -157,14 +159,15 @@
     "modelVersion": "Model version",
     "lastUpdated": "Last updated",
     "rainfallHistory": "Rainfall history & forecast",
-    "noRainfallData": "No rainfall data fetched for this zone yet.",
+    "noRainfallData": "Rainfall could not be loaded right now.",
     "alertsForZone": "Alerts for this zone",
     "noAlerts": "No alerts have fired for this zone yet.",
     "nearestSafer": "Nearest lower-risk zone",
     "alreadyLowest": "Already lowest risk in this state",
     "noSaferNearby": "No lower-risk zone found nearby",
     "saferZoneLink": "{{name}} ({{level}}) — {{km}} km, get directions",
-    "relativeNote": "Ranked against other {{state}} zones"
+    "relativeNote": "Ranked against other {{state}} zones",
+    "rainfallLive": "Live from Open-Meteo for this spot — not stored by the system."
   },
   "broadcastModal": {
     "ariaLabel": "Issue alert broadcast",
@@ -214,5 +217,79 @@
     "throttled": "Too many attempts — wait a minute and try again.",
     "error": "Could not reach the server. Try again.",
     "checking": "Checking…"
+  },
+  "checkArea": {
+    "title": "Check my area",
+    "subtitle": "Type a village, town or road name to see its landslide risk",
+    "label": "Which village or town are you in?",
+    "placeholder": "Type your village or town, for example Pelling",
+    "search": "Search",
+    "useMyLocation": "Use my location",
+    "didYouMean": "Which place do you mean?",
+    "yourLocation": "Your location",
+    "noPlaces": "We could not find that place. Check the spelling or try a bigger town nearby.",
+    "searchError": "Place search is not working right now. Please try again in a little while.",
+    "loadError": "We could not load the information right now. Please try again in a little while.",
+    "locationDenied": "We could not get your location. Please type your village name instead.",
+    "risk": {
+      "high": "HIGH RISK",
+      "moderate": "MODERATE RISK",
+      "low": "LOW RISK",
+      "unscored": "NOT ASSESSED YET"
+    },
+    "meaning": {
+      "high": "Landslides are more likely here than in most places in {{state}}.",
+      "moderate": "Landslides are possible here. Be careful, especially in heavy rain.",
+      "low": "Landslides are less likely here than in most places in {{state}}, but still possible.",
+      "unscored": "This place has no risk level yet."
+    },
+    "nearestRoad": "Nearest assessed road: {{km}} km away",
+    "nearby": "Within {{radius}} km: {{high}} high, {{moderate}} moderate, {{low}} low-risk road stretches",
+    "adviceTitle": "What to do",
+    "advice": {
+      "high": [
+        "In heavy rain, do not walk or drive on steep slopes or on roads below cliffs.",
+        "If you see cracks in the ground, leaning trees or poles, or a stream turning muddy suddenly, move away at once and tell your local authority.",
+        "If heavy rain goes on for many hours, move to safer, flatter ground away from the slope.",
+        "Keep a torch, a charged phone and important papers ready."
+      ],
+      "moderate": [
+        "Be careful on steep roads and slopes, especially in heavy rain.",
+        "If you see cracks, leaning trees or muddy water, report it.",
+        "Follow warnings from your local authority."
+      ],
+      "low": [
+        "Risk is lower here, but heavy rain can still cause landslides.",
+        "In heavy rain, stay away from steep cut slopes and road edges.",
+        "Report any cracks or small slips you see."
+      ],
+      "unscored": [
+        "This stretch has no risk level yet. Be careful in heavy rain.",
+        "If you see cracks or a slide, tell your local authority."
+      ]
+    },
+    "emergency": "In danger? Call 112 (emergency) or 1077 (disaster helpline).",
+    "rainTitle": "Rain here",
+    "rainToday": "Today: {{mm}} mm ({{label}})",
+    "rainLast3": "Last 3 days: {{mm}} mm",
+    "rainForecast": "Forecast for the next 2 days: {{mm}} mm",
+    "rainUnavailable": "Rainfall could not be loaded right now.",
+    "rainLabels": {
+      "none": "little or no rain",
+      "light": "light",
+      "moderate": "moderate",
+      "heavy": "heavy",
+      "veryHeavy": "very heavy",
+      "extreme": "extremely heavy"
+    },
+    "alertActive": "A rain alert is active near here right now.",
+    "noAlert": "No rain alert is active near here right now.",
+    "alertsOff": "Rain alerts are not switched on for {{state}} yet.",
+    "viewDetails": "See full details",
+    "listen": "Listen",
+    "stop": "Stop",
+    "notFoundTitle": "This place is not assessed yet",
+    "notFoundBody": "Our map covers road stretches in Sikkim and the other north-east states where we have data. Try a bigger town nearby or a main road.",
+    "disclaimer": "The risk level is estimated from the shape of the land by a computer model, and compared with other places in the same state. It does not predict a particular landslide. Always follow warnings from your local authority."
   }
 }

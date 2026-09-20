@@ -28,6 +28,23 @@ class NearestSaferOut(ZoneOut):
     distance_km: float
 
 
+class AreaRiskOut(BaseModel):
+    """GET /zones/near -- what we can honestly say about a place. The model
+    scores ROAD-CORRIDOR segments, not arbitrary points, so this reports the
+    nearest assessed segment and how far away it is; `zone` is null when there
+    is none within the radius (the place is outside what was assessed)."""
+
+    lat: float
+    lng: float
+    radius_km: float
+    zone: ZoneOut | None
+    distance_km: float | None
+    # Assessed segments within the radius, by risk tier -- the nearest one alone
+    # can mislead when a high-risk stretch is just past it.
+    counts: dict[str, int]
+    active_alerts: int  # active rainfall alerts on segments within the radius
+
+
 class MapZoneOut(BaseModel):
     """One zone as a map pin -- only what a marker + tooltip need."""
 
