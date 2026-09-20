@@ -20,6 +20,66 @@ class ZoneOut(BaseModel):
     centroid_lng: float
 
 
+class NearestSaferOut(ZoneOut):
+    """GET /zones/{id}/nearest-safer -- the closest zone in the same state
+    with a lower risk tier. Great-circle distance from centroid to centroid,
+    not a road route (the dashboard hands real routing off to Google Maps)."""
+
+    distance_km: float
+
+
+class MapZoneOut(BaseModel):
+    """One zone as a map pin -- only what a marker + tooltip need."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    name: str
+    state: str
+    susceptibility_score: float | None
+    risk_tier: str | None
+    centroid_lat: float
+    centroid_lng: float
+
+
+class MapClusterOut(BaseModel):
+    """A grid cell of zones for a zoomed-out map. `bounds` (min_lat, min_lng,
+    max_lat, max_lng of the member zones) lets the dashboard zoom straight
+    into the cell when it's clicked."""
+
+    lat: float
+    lng: float
+    count: int
+    high: int
+    moderate: int
+    low: int
+    unscored: int
+    bounds: list[float]
+
+
+class MapViewOut(BaseModel):
+    """GET /zones/map: individual zones when few enough are in view, grid
+    clusters otherwise -- so the payload stays small no matter how many
+    zones the database holds."""
+
+    mode: Literal["zones", "clusters"]
+    total: int
+    zones: list[MapZoneOut] = []
+    clusters: list[MapClusterOut] = []
+
+
+class ZoneStatsOut(BaseModel):
+    """GET /zones/stats -- real counts over every zone (not a capped page)
+    plus the extent of the zones, for the Overview cards and initial map fit."""
+
+    total: int
+    high: int
+    moderate: int
+    low: int
+    unscored: int
+    bounds: list[float] | None  # min_lat, min_lng, max_lat, max_lng; None if no zones
+
+
 class CorridorOut(BaseModel):
     """Zones grouped by their real highway/road code (GET /corridors) --
     not a stored table, computed from existing zones + alerts."""

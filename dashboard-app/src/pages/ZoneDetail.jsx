@@ -32,12 +32,11 @@ export default function ZoneDetail() {
   const { data: zone, error: zoneError, retry: retryZone } = useAsyncData(() => getZoneById(zoneId), [zoneId]);
   const { data: rainfall } = useAsyncData(() => getRainfallForZone(zoneId), [zoneId]);
   const { data: alerts } = useAsyncData(() => getAlertsForZone(zoneId), [zoneId]);
-  // null while loading, undefined-safe "no safer zone found" is represented
-  // as an explicit null result from getNearestSafeZone itself, not this.
-  const { data: nearestSafe } = useAsyncData(
-    () => (zone ? getNearestSafeZone(zone) : Promise.resolve(null)),
-    [zone?.id],
-  );
+  // undefined while loading; "no safer zone found" is an explicit null from
+  // the backend. Keyed on the id from the URL, not on the loaded zone: waiting
+  // for `zone` made the first (zone-less) call resolve to null, so the page
+  // briefly claimed "no lower-risk zone nearby" before the real answer arrived.
+  const { data: nearestSafe } = useAsyncData(() => getNearestSafeZone(zoneId), [zoneId]);
 
   return (
     <DashboardLayout title={t("zoneDetail.title")} subtitle={t("zoneDetail.subtitle")}>

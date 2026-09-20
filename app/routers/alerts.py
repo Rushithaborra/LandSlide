@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from starlette.concurrency import run_in_threadpool
 
 from app.database import SessionLocal, get_db
-from app.models import Alert, AlertBroadcast
+from app.models import Alert, AlertBroadcast, Zone
 from app.schemas import AlertOut, BroadcastIn, BroadcastOut, GenerateBulletinIn, GenerateBulletinOut
 from app.services.bulletin import generate_bulletin
 from app.services.sms_alerts import escalate_critical_alert, twilio_configured
@@ -75,12 +75,17 @@ async def stream_alerts():
 
 
 @router.get("", response_model=list[AlertOut])
-def list_alerts(status: str | None = None, db: Session = Depends(get_db)):
+def list_alerts(status: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
     # joinedload avoids an N+1 query -- AlertOut reads zone_name/risk_tier
     # through the zone relationship for every row.
     query = db.query(Alert).options(joinedload(Alert.zone))
     if status:
         query = query.filter(Alert.status == status)
+    if state:
+        # An alert belongs to a state through its zone. Filtering here (an
+        # EXISTS on the zone) replaces the dashboard downloading every zone
+        # of the state just to work out which alerts are its own.
+        query = query.filter(Alert.zone.has(Zone.state == state))
     return query.order_by(Alert.triggered_at.desc()).all()
 
 

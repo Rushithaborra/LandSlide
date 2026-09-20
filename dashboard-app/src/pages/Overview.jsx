@@ -11,7 +11,6 @@ import {
   getSummaryStats,
   getActiveAlerts,
   getRainfallTrend,
-  getRiskZones,
 } from "../services/api";
 import { mapCenter } from "../data/mockData";
 import { useRegion } from "../context/RegionContext";
@@ -26,12 +25,12 @@ export default function Overview() {
   const [alerts, setAlerts] = useState([]);
   const [rainfall, setRainfall] = useState([]);
   const [rainfallThreshold, setRainfallThreshold] = useState(null);
-  const [zones, setZones] = useState([]);
   const [loadError, setLoadError] = useState(null);
   // Separate from loadError: getSummaryStats succeeding doesn't mean the
-  // other 3 parallel fetches did too -- previously only stats' rejection
-  // was ever surfaced, so a failed getRiskZones (say) silently left the map
-  // empty/stale with no indication anything had gone wrong.
+  // other parallel fetches did too -- previously only stats' rejection was
+  // ever surfaced, so a failed rainfall fetch (say) silently left that card
+  // empty/stale with no indication anything had gone wrong. (The map loads
+  // its own data and shows its own retry.)
   const [partialError, setPartialError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const { state: selectedState } = useRegion();
@@ -69,8 +68,7 @@ export default function Overview() {
       getSummaryStats(selectedState),
       getActiveAlerts(selectedState),
       getRainfallTrend(selectedState),
-      getRiskZones(selectedState),
-    ]).then(([statsR, alertsR, rainfallR, zonesR]) => {
+    ]).then(([statsR, alertsR, rainfallR]) => {
       if (cancelled) return;
       const failedNames = [];
       if (statsR.status === "fulfilled") setStats(statsR.value); else failedNames.push(t("overview.statCards"));
@@ -81,12 +79,11 @@ export default function Overview() {
       } else {
         failedNames.push(t("overview.rainfallTrend"));
       }
-      if (zonesR.status === "fulfilled") setZones(zonesR.value); else failedNames.push(t("overview.riskMap"));
       if (statsR.status === "rejected") {
         setLoadError(statsR.reason?.message || "Could not reach the backend");
       } else if (failedNames.length > 0) {
         // stats loaded fine (so the page itself renders), but at least one
-        // of the other 3 independent fetches didn't -- surface it instead
+        // of the other independent fetches didn't -- surface it instead
         // of silently leaving that section empty/stale.
         setPartialError(failedNames.join(", "));
       }
@@ -189,7 +186,7 @@ export default function Overview() {
                   420px map, but never shrinks below a usable size when the
                   alerts panel happens to be short. */}
               <div className="relative z-0 flex-1 min-h-[420px]">
-                <RiskMap center={mapCenter} zones={zones} height="100%" />
+                <RiskMap center={mapCenter} state={selectedState} height="100%" />
                 <div className="absolute left-3 bottom-3 z-[400]">
                   <RiskLegend />
                 </div>

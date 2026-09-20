@@ -66,53 +66,21 @@ function cacheTtlFor(path) {
   return hit ? hit[1] : 3000;
 }
 
-// GET /zones now defaults to a small page (DEFAULT_ZONE_LIMIT=2000 in
-// app/routers/zones.py) so an unbounded request can never time out the API
-// again the way it did once Assam's 66,677 real zones landed -- but every
-// call here was written when "no limit" meant "everything," so leaving it
-// implicit silently truncated Sikkim's real 3,921 zones to 2000 on the map.
-// Passing an explicit limit matching the backend's own ceiling
-// (MAX_ZONE_LIMIT) fixes that for any state sized like Sikkim's today,
-// without reopening the original unbounded-response bug. Larger states
-// are covered by getAllZones() below, which pages through this limit.
-const ZONE_FETCH_LIMIT = 5000;
-
-// offset is omitted for page 0 so the first page's path is identical to what
-// a plain single-page call would use -- both share one cache entry.
-function zonesPath(state, offset = 0) {
-  const params = new URLSearchParams({ limit: ZONE_FETCH_LIMIT });
+// GET /zones is a capped, paged list (DEFAULT_ZONE_LIMIT=2000, max 5000 in
+// app/routers/zones.py) -- an unbounded response once timed out the API
+// completely at Assam's 66,677 zones. Nothing here downloads "all the zones"
+// any more: the map asks /zones/map for just what's in view, the cards ask
+// /zones/stats for counts, and search/nearest-safer are answered by the
+// backend. What's left is "the highest-risk N zones" for the few features
+// that only need a handful of candidates.
+function topZonesPath(state, limit = 15) {
+  const params = new URLSearchParams({ limit });
   if (state) params.set("state", state);
-  if (offset > 0) params.set("offset", offset);
   return `/zones?${params.toString()}`;
 }
 
-// A single /zones page is capped at 5000 rows, but Sikkim (3,921) +
-// Meghalaya (10,691) is 14,612 -- so "All States" got only the top 5000 by
-// score across both, showing ~half of each (and a big state on its own, e.g.
-// Meghalaya, lost its lowest-risk 5,691). Walks the pages until a short one
-// comes back, fetching PAGE_BATCH pages in parallel to keep load time down.
-// MAX_ZONE_PAGES is a safety ceiling (30,000 zones), not a target: once
-// another very large state (Assam is ~66k) is live, "All States" needs
-// server-side clustering/tiling rather than shipping every row to the map.
-const PAGE_BATCH = 2;
-const MAX_ZONE_PAGES = 6;
-
-async function getAllZones(state) {
-  // Copy: page 0 is the cached array itself, and pushing onto it would
-  // grow the cache with duplicates on every later call.
-  const zones = [...(await getJSON(zonesPath(state)))];
-  let page = 1;
-  let lastPageFull = zones.length === ZONE_FETCH_LIMIT;
-  while (lastPageFull && page < MAX_ZONE_PAGES) {
-    const batchSize = Math.min(PAGE_BATCH, MAX_ZONE_PAGES - page);
-    const batch = await Promise.all(
-      Array.from({ length: batchSize }, (_, i) => getJSON(zonesPath(state, (page + i) * ZONE_FETCH_LIMIT))),
-    );
-    for (const rows of batch) zones.push(...rows);
-    lastPageFull = batch[batch.length - 1].length === ZONE_FETCH_LIMIT;
-    page += batchSize;
-  }
-  return zones;
+function alertsPath(state) {
+  return state ? `/alerts?state=${encodeURIComponent(state)}` : "/alerts";
 }
 
 async function getJSON(path) {
@@ -161,8 +129,8 @@ function timeAgo(isoString) {
 // server-side), so this no longer needs a separate full /zones fetch just to
 // label each alert -- that used to mean pulling all 3921 zones for a handful
 // of alerts.
-async function fetchAndShapeAlerts() {
-  const alerts = await getJSON("/alerts");
+async function fetchAndShapeAlerts(state) {
+  const alerts = await getJSON(alertsPath(state));
   return alerts
     .slice()
     .sort((a, b) => new Date(b.triggered_at) - new Date(a.triggered_at))
@@ -209,27 +177,21 @@ async function findZoneWithRainfall(zones, tryCount = 15) {
  * rather than invented.
  * ----------------------------------------------------------------------- */
 export async function getSummaryStats(state) {
-  // Was fetching zonesPath() unfiltered (top 5000 across ALL states by
-  // score) then filtering client-side by state -- fine while Sikkim was
-  // the only populated state, but once a second large, fully-scored state
-  // (Meghalaya) went live, both states' zones competed for the same
-  // shared 5000-row cap, silently truncating whichever state ranked
-  // lower overall. Passing state straight to zonesPath() does the
-  // filtering server-side, before any cap is applied -- same fix already
-  // used by getRiskZones/getActiveAlerts, just missed here.
-  const [zones, allAlerts] = await Promise.all([getAllZones(state), getJSON("/alerts")]);
-  // Alert has no state field of its own (it's a property of the zone it
-  // belongs to) -- filter by checking membership in the already-filtered
-  // zone set rather than adding a second backend round trip.
-  const zoneIds = new Set(zones.map((z) => z.id));
-  const alerts = state ? allAlerts.filter((a) => zoneIds.has(a.zone_id)) : allAlerts;
-  const highRisk = zones.filter((z) => z.risk_tier === "high").length;
+  // Counts come from /zones/stats (computed over every zone in the database)
+  // and alerts are filtered by state server-side. Both used to be derived by
+  // downloading every zone of the state, which capped out at a few thousand
+  // and stops working entirely at tens of thousands.
+  const [stats, alerts, topZones] = await Promise.all([
+    getZoneStats(state),
+    getJSON(alertsPath(state)),
+    getJSON(topZonesPath(state)),
+  ]);
   const activeAlerts = alerts.filter((a) => a.status === "active");
   const affectedZoneIds = new Set(activeAlerts.map((a) => a.zone_id));
 
   let rainfall24hLabel = "No data yet";
   let rainfallZoneName = "No zone yet";
-  const found = await findZoneWithRainfall(zones);
+  const found = await findZoneWithRainfall(topZones);
   if (found) {
     // GET /rainfall/{id} returns newest-first, but that ordering isn't
     // guaranteed by contract -- picking by an explicit timestamp comparison
@@ -250,7 +212,7 @@ export async function getSummaryStats(state) {
   }
 
   return {
-    highRiskZones: { value: highRisk, deltaLabel: `${zones.length} zone(s) total`, trend: "flat" },
+    highRiskZones: { value: stats.high, deltaLabel: `${stats.total} zone(s) total`, trend: "flat" },
     activeAlerts: { value: activeAlerts.length, deltaLabel: `${affectedZoneIds.size} zone(s) affected`, trend: activeAlerts.length > 0 ? "up" : "flat" },
     affectedVillages: { value: affectedZoneIds.size, deltaLabel: "Zones with an active alert", trend: "flat" },
     rainfall24h: { value: rainfall24hLabel, deltaLabel: rainfallZoneName, trend: "flat" },
@@ -259,18 +221,13 @@ export async function getSummaryStats(state) {
 }
 
 /* LINK SPOT B / C — alerts. `state`, when given, scopes this to the
- * currently selected NER state (Overview's AlertsPanel) -- Alert has no
- * state field of its own, so this filters by membership in that state's
- * zone set, same technique getSummaryStats already uses. getRecentAlerts
- * (the standalone Alerts page) stays intentionally global across all
- * regions, unaffected. */
+ * currently selected NER state (Overview's AlertsPanel) -- filtered by the
+ * backend (GET /alerts?state=), since an alert belongs to a state through
+ * its zone. getRecentAlerts (the standalone Alerts page) stays
+ * intentionally global across all regions, unaffected. */
 export async function getActiveAlerts(state) {
-  const shaped = await fetchAndShapeAlerts();
-  const active = shaped.filter((a) => a.status === "active");
-  if (!state) return active;
-  const zones = await getAllZones(state);
-  const zoneIds = new Set(zones.map((z) => z.id));
-  return active.filter((a) => zoneIds.has(a.zoneId));
+  const shaped = await fetchAndShapeAlerts(state);
+  return shaped.filter((a) => a.status === "active");
 }
 
 export async function getRecentAlerts() {
@@ -322,7 +279,7 @@ export async function getRainfallThreshold(zoneId) {
 }
 
 export async function getRainfallTrend(state) {
-  const zones = await getAllZones(state);
+  const zones = await getJSON(topZonesPath(state));
   if (zones.length === 0) return { readings: [], threshold: null };
   const found = await findZoneWithRainfall(zones);
   if (!found) return { readings: [], threshold: null };
@@ -362,13 +319,22 @@ export async function getRainfallTrend(state) {
 }
 
 /* ----------------------------------------------------------------------- *
- * LINK SPOT E — Risk zones for the map. centroid_lat/centroid_lng are
+ * LINK SPOT E — Risk zones for the map. The map never holds every zone: it
+ * asks GET /zones/map for what's in the current viewport, and the backend
+ * answers with individual zones when few are in view or grid clusters
+ * (count + per-tier counts) when many are. centroid_lat/centroid_lng are
  * computed server-side (see app/models.py Zone.centroid_lat/lng) from the
  * stored polygon, since the map needs one point per zone, not the full shape.
  * ----------------------------------------------------------------------- */
-export async function getRiskZones(state) {
-  const zones = await getAllZones(state);
-  return zones.map((z) => ({
+
+// Counts over EVERY zone, plus the extent to fit the map to.
+export async function getZoneStats(state) {
+  const path = state ? `/zones/stats?state=${encodeURIComponent(state)}` : "/zones/stats";
+  return getJSON(path);
+}
+
+function shapeZone(z) {
+  return {
     id: z.id,
     name: z.name,
     state: z.state,
@@ -382,49 +348,46 @@ export async function getRiskZones(state) {
     // marker/tooltip instead of silently looking like the safest zone on
     // the map).
     susceptibility: z.susceptibility_score,
-  }));
+  };
 }
 
-// Great-circle distance, not a real driving/walking route -- this is meant
-// to answer "roughly which direction and how far to safety," with the
-// actual routing handed off to Google Maps (see ZoneDetail.jsx) rather than
-// reimplementing turn-by-turn navigation for a hackathon prototype.
-function haversineKm(lat1, lng1, lat2, lng2) {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(a));
+// Rounded to 4 decimals (~11 m) so two nearly identical viewports share one
+// cached response instead of each panning pixel being a new request.
+const r4 = (n) => Math.round(n * 1e4) / 1e4;
+
+export async function getMapView(state, { minLat, minLng, maxLat, maxLng }) {
+  const params = new URLSearchParams({
+    min_lat: r4(minLat),
+    min_lng: r4(minLng),
+    max_lat: r4(maxLat),
+    max_lng: r4(maxLng),
+  });
+  if (state) params.set("state", state);
+  const view = await getJSON(`/zones/map?${params.toString()}`);
+  return {
+    mode: view.mode,
+    total: view.total,
+    zones: view.zones.map(shapeZone),
+    clusters: view.clusters,
+  };
 }
 
 /* ----------------------------------------------------------------------- *
  * Nearest lower-risk zone -- an officer/citizen on Zone Detail needs "which
- * way is safer," not just a susceptibility number. Real data only: searches
- * this zone's own state (a "safe" zone in a different state isn't
- * reachable-by-road information this system has), among zones that are
- * actually scored (unscored zones default to "Moderate" on the map --
- * excluding null-tier zones here so this never recommends fleeing toward an
- * unassessed area under the guise of it being safer). No route/ETA is
- * computed -- see haversineKm's note -- so this hands off to Google Maps
- * for real turn-by-turn directions instead of pretending to have them.
+ * way is safer," not just a susceptibility number. Real data only: the
+ * backend (GET /zones/{id}/nearest-safer) searches this zone's own state (a
+ * "safe" zone in a different state isn't reachable-by-road information this
+ * system has), among zones that are actually scored -- unscored zones are
+ * never offered as the safer option, so this never recommends fleeing toward
+ * an unassessed area. Distance is great-circle, not a road route: this hands
+ * off to Google Maps for real turn-by-turn directions (see ZoneDetail.jsx)
+ * instead of pretending to have them. null when nothing is safer.
  * ----------------------------------------------------------------------- */
-export async function getNearestSafeZone(zone) {
-  const zones = await getRiskZones(zone.state);
-  const safer = { High: ["Moderate", "Low"], Moderate: ["Low"], Low: [] }[zone.level] || ["Low"];
-  const candidates = zones.filter((z) => z.id !== zone.id && safer.includes(z.level));
-  if (candidates.length === 0) return null;
-  let nearest = null;
-  let nearestKm = Infinity;
-  for (const c of candidates) {
-    const km = haversineKm(zone.lat, zone.lng, c.lat, c.lng);
-    if (km < nearestKm) {
-      nearestKm = km;
-      nearest = c;
-    }
-  }
-  return { ...nearest, distanceKm: nearestKm };
+export async function getNearestSafeZone(zoneId) {
+  const res = await fetch(`${BASE_URL}/zones/${zoneId}/nearest-safer`);
+  if (!res.ok) throw new Error(`load nearest safer zone failed: ${res.status}`);
+  const nearest = await res.json();
+  return nearest ? { ...shapeZone(nearest), distanceKm: nearest.distance_km } : null;
 }
 
 /* ----------------------------------------------------------------------- *
@@ -691,8 +654,10 @@ export async function searchAll(query) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
+  // Zone names are searched by the backend (min 2 characters there) rather
+  // than downloading every zone and filtering in the browser.
   const [zones, alerts, reports] = await Promise.all([
-    getAllZones(),
+    q.length >= 2 ? getJSON(`/zones?q=${encodeURIComponent(q)}&limit=20`) : Promise.resolve([]),
     fetchAndShapeAlerts(),
     getCitizenReports(),
   ]);
@@ -701,7 +666,7 @@ export async function searchAll(query) {
 
   for (const z of zones) {
     if (z.name.toLowerCase().includes(q)) {
-      results.push({ id: z.id, type: "Zone", title: z.name, subtitle: `${capitalizeTier(z.risk_tier)} risk`, to: "/" });
+      results.push({ id: z.id, type: "Zone", title: z.name, subtitle: `${capitalizeTier(z.risk_tier)} risk`, to: `/zones/${z.id}` });
     }
   }
   for (const a of alerts) {
