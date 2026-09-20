@@ -2,11 +2,12 @@
 // scale in tailwind.config.js.
 import { useTranslation } from "react-i18next";
 
+// `key` is a translation key (severity.* / legend.unscored).
 const items = [
-  { label: "High", color: "#b4472f" },
-  { label: "Moderate", color: "#c8871d" },
-  { label: "Low", color: "#5b8c4f" },
-  { label: "Not yet scored", color: "#8b8474" },
+  { key: "severity.High", color: "#b4472f" },
+  { key: "severity.Moderate", color: "#c8871d" },
+  { key: "severity.Low", color: "#5b8c4f" },
+  { key: "legend.unscored", color: "#8b8474" },
 ];
 
 export default function RiskLegend() {
@@ -17,9 +18,9 @@ export default function RiskLegend() {
       <p className="text-[10px] italic text-paper-500 mb-1.5">{t("legend.note")}</p>
       <div className="space-y-1">
         {items.map((it) => (
-          <div key={it.label} className="flex items-center gap-2">
+          <div key={it.key} className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full" style={{ background: it.color }} />
-            <span className="text-paper-700 dark:text-paper-300">{it.label}</span>
+            <span className="text-paper-700 dark:text-paper-300">{t(it.key)}</span>
           </div>
         ))}
       </div>

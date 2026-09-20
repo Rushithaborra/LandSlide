@@ -195,18 +195,6 @@ function timeAgo(isoString) {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
-// "today" / "yesterday" / "Sep 19" for a rainfall day. Daily rainfall is stored
-// per UTC day, so compare UTC dates, not the viewer's local ones.
-export function dayLabel(isoTimestamp) {
-  const day = new Date(isoTimestamp).toISOString().slice(0, 10);
-  const today = new Date();
-  const utcToday = today.toISOString().slice(0, 10);
-  const utcYesterday = new Date(today.getTime() - 86400000).toISOString().slice(0, 10);
-  if (day === utcToday) return "today";
-  if (day === utcYesterday) return "yesterday";
-  return new Date(`${day}T00:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
-}
-
 // Rainfall is kept current by the backend, not by anyone clicking anything:
 // the dashboard just tells it "someone is looking", and the backend refreshes
 // only if the stored data is older than an hour (never more often, however many
@@ -332,8 +320,8 @@ export async function getSummaryStats(state) {
   const activeAlerts = alerts.filter((a) => a.status === "active");
   const affectedZoneIds = new Set(activeAlerts.map((a) => a.zone_id));
 
-  let rainfall24hLabel = "No data yet";
-  let rainfallZoneName = "No zone yet";
+  // Raw values only (no English wording): Overview words them in the chosen language.
+  let rainfall = { mm: null, zone: null, day: null };
   const found = await findZoneWithRainfall(topZones);
   if (found) {
     // GET /rainfall/{id} returns newest-first, but that ordering isn't
@@ -349,8 +337,7 @@ export async function getSummaryStats(state) {
     const observed = found.readings.filter((r) => !r.is_forecast);
     if (observed.length > 0) {
       const latest = observed.reduce((a, b) => (new Date(a.timestamp) > new Date(b.timestamp) ? a : b));
-      rainfall24hLabel = `${latest.intensity_mm.toFixed(0)} mm`;
-      rainfallZoneName = `${found.zone.name} · ${dayLabel(latest.timestamp)}`;
+      rainfall = { mm: Math.round(latest.intensity_mm), zone: found.zone.name, day: latest.timestamp };
     }
   }
 
@@ -364,14 +351,15 @@ export async function getSummaryStats(state) {
 
   return {
     highRiskZones: { value: stats.high, total: stats.total, trend: "flat" },
+    // `note` = { key, params } for a translation string; `state` is the raw state name.
     activeAlerts: alertingOff
-      ? { value: "—", deltaLabel: `Alerting not enabled for ${state}`, trend: "flat" }
-      : { value: activeAlerts.length, deltaLabel: `${affectedZoneIds.size} zone(s) affected`, trend: activeAlerts.length > 0 ? "up" : "flat" },
+      ? { value: "—", note: { key: "overview.alertingOff", params: { state } }, trend: "flat" }
+      : { value: activeAlerts.length, note: { key: "overview.zonesAffected", params: { count: affectedZoneIds.size } }, trend: activeAlerts.length > 0 ? "up" : "flat" },
     affectedVillages: alertingOff
-      ? { value: "—", deltaLabel: `Alerting not enabled for ${state}`, trend: "flat" }
-      : { value: affectedZoneIds.size, deltaLabel: "Zones with an active alert", trend: "flat" },
-    rainfall24h: { value: rainfall24hLabel, deltaLabel: rainfallZoneName, trend: "flat" },
-    systemHealth: { value: systemHealthy ? "100%" : "Down", deltaLabel: systemHealthy ? "Backend responding" : "Backend unreachable", trend: systemHealthy ? "good" : "down" },
+      ? { value: "—", note: { key: "overview.alertingOff", params: { state } }, trend: "flat" }
+      : { value: affectedZoneIds.size, note: { key: "overview.zonesWithAlert" }, trend: "flat" },
+    rainfall24h: { ...rainfall, trend: "flat" },
+    systemHealth: { healthy: systemHealthy, trend: systemHealthy ? "good" : "down" },
   };
 }
 
@@ -906,12 +894,12 @@ export async function searchAll(query) {
 
   for (const z of zones) {
     if (z.name.toLowerCase().includes(q)) {
-      results.push({ id: z.id, type: "Zone", title: z.name, subtitle: `${capitalizeTier(z.risk_tier)} risk`, to: `/zones/${z.id}` });
+      results.push({ id: z.id, type: "Zone", title: z.name, tier: capitalizeTier(z.risk_tier), to: `/zones/${z.id}` });
     }
   }
   for (const a of alerts) {
     if (a.title.toLowerCase().includes(q) || a.location.toLowerCase().includes(q)) {
-      results.push({ id: a.id, type: "Alert", title: a.location, subtitle: a.title, to: "/alerts" });
+      results.push({ id: a.id, type: "Alert", title: a.location, sentence: a.title, to: "/alerts" });
     }
   }
   for (const r of reports) {

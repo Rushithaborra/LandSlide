@@ -17,7 +17,7 @@ import {
 } from "../services/api";
 import { mapCenter } from "../data/mockData";
 import { useRegion } from "../context/RegionContext";
-import { agoFromMinutes } from "../utils/localizedText";
+import { agoFromMinutes, dayWord } from "../utils/localizedText";
 import { useAlertStream } from "../hooks/useAlertStream";
 
 // A place-name search that hands off to the "Check my area" page -- so a
@@ -159,6 +159,10 @@ export default function Overview() {
     };
   }, []);
 
+  // Card sublines arrive as { key, params } (api.js getSummaryStats); word them here.
+  const stateName = (s) => (s ? t(`states.${s}`, { defaultValue: s }) : s);
+  const noteText = (note) => t(note.key, { ...note.params, state: stateName(note.params?.state) });
+
   return (
     <DashboardLayout
       title={t("overview.title")}
@@ -195,7 +199,7 @@ export default function Overview() {
               label={t("overview.highRiskZones")}
               value={stats.highRiskZones.value}
               deltaLabel={t(selectedState ? "overview.highRiskDeltaState" : "overview.highRiskDeltaAll", {
-                state: selectedState,
+                state: stateName(selectedState),
                 total: stats.highRiskZones.total.toLocaleString(),
               })}
               trend={stats.highRiskZones.trend}
@@ -206,7 +210,7 @@ export default function Overview() {
               iconColor="#c8871d"
               label={t("overview.activeAlerts")}
               value={stats.activeAlerts.value}
-              deltaLabel={stats.activeAlerts.deltaLabel}
+              deltaLabel={noteText(stats.activeAlerts.note)}
               trend={stats.activeAlerts.trend}
             />
             <StatCard
@@ -215,7 +219,7 @@ export default function Overview() {
               iconColor="#3a6b82"
               label={t("overview.affectedVillages")}
               value={stats.affectedVillages.value}
-              deltaLabel={stats.affectedVillages.deltaLabel}
+              deltaLabel={noteText(stats.affectedVillages.note)}
               trend={stats.affectedVillages.trend}
             />
             <StatCard
@@ -223,8 +227,10 @@ export default function Overview() {
               iconBg="#e9f2f2"
               iconColor="#15606b"
               label={t("overview.rainfall24h")}
-              value={stats.rainfall24h.value}
-              deltaLabel={stats.rainfall24h.deltaLabel}
+              value={stats.rainfall24h.mm === null ? t("overview.noDataYet") : t("overview.mm", { mm: stats.rainfall24h.mm })}
+              deltaLabel={
+                stats.rainfall24h.zone ? `${stats.rainfall24h.zone} · ${dayWord(stats.rainfall24h.day, t, i18n.language)}` : t("overview.noZoneYet")
+              }
               trend={stats.rainfall24h.trend}
             />
             <StatCard
@@ -232,8 +238,8 @@ export default function Overview() {
               iconBg="#ecf2e8"
               iconColor="#5b8c4f"
               label={t("overview.systemHealth")}
-              value={stats.systemHealth.value}
-              deltaLabel={stats.systemHealth.deltaLabel}
+              value={stats.systemHealth.healthy ? "100%" : t("overview.healthDown")}
+              deltaLabel={t(stats.systemHealth.healthy ? "overview.healthOk" : "overview.healthBad")}
               trend={stats.systemHealth.trend}
             />
           </div>

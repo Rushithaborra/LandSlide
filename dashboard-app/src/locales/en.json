@@ -80,7 +80,17 @@
     "noThresholdConfigured": "No official threshold configured for this region",
     "highRiskDeltaAll": "Highest-scoring in each state · {{total}} zones",
     "highRiskDeltaState": "Highest-scoring in {{state}} · {{total}} zones",
-    "checkAreaTitle": "Check your village's landslide risk"
+    "checkAreaTitle": "Check your village's landslide risk",
+    "zonesAffected_one": "{{count}} zone affected",
+    "zonesAffected_other": "{{count}} zones affected",
+    "zonesWithAlert": "Zones with an active alert",
+    "alertingOff": "Alerting not enabled for {{state}}",
+    "noDataYet": "No data yet",
+    "noZoneYet": "No zone yet",
+    "mm": "{{mm}} mm",
+    "healthOk": "Backend responding",
+    "healthBad": "Backend unreachable",
+    "healthDown": "Down"
   },
   "alerts": {
     "title": "Alerts",
@@ -202,7 +212,8 @@
   },
   "legend": {
     "title": "Risk level",
-    "note": "Relative within each state"
+    "note": "Relative within each state",
+    "unscored": "Not yet scored"
   },
   "officer": {
     "button": "Officer access",
@@ -609,5 +620,221 @@
     "ariaNone": "Notifications, none unread",
     "viewAll": "Showing the newest {{shown}} of {{total}} active alerts — view all",
     "note": "These are the real active alerts. Which ones you have read is remembered on this device only (there is no officer login yet)."
+  },
+  "states": {
+    "all": "All States",
+    "Sikkim": "Sikkim",
+    "Assam": "Assam",
+    "Arunachal Pradesh": "Arunachal Pradesh",
+    "Manipur": "Manipur",
+    "Meghalaya": "Meghalaya",
+    "Mizoram": "Mizoram",
+    "Nagaland": "Nagaland",
+    "Tripura": "Tripura",
+    "aria": "Filter by NER state"
+  },
+  "map": {
+    "risk": "Risk: {{level}}",
+    "relative": "(relative to other {{state}} zones)",
+    "susceptibility": "Susceptibility: {{pct}}%",
+    "clickDetails": "Click for details",
+    "clusterZones": "{{count}} zones",
+    "clusterCounts": "{{high}} high · {{moderate}} moderate · {{low}} low",
+    "notScored": "{{count}} not yet scored",
+    "clickZoom": "Click to zoom in",
+    "loadFailed": "Couldn't load map data.",
+    "retry": "Retry",
+    "loading": "Loading map…"
+  },
+  "search": {
+    "placeholder": "Search locations, alerts, reports...",
+    "aria": "Search locations, alerts, incidents and citizen reports",
+    "nothing": "Nothing found for “{{query}}”.",
+    "hint": "↑ ↓ to move · Enter to open · Esc to close",
+    "types": {
+      "Zone": "Zone",
+      "Alert": "Alert",
+      "Incident": "Incident",
+      "Citizen report": "Citizen report"
+    },
+    "typesPlural": {
+      "Zone": "Zones",
+      "Alert": "Alerts",
+      "Incident": "Incidents",
+      "Citizen report": "Citizen reports"
+    }
+  },
+  "methodology": {
+    "title": "Data Sources & Methodology",
+    "subtitle": "Every data source, model and AI feature this system uses — real, cited or simulated",
+    "whyTitle": "Why this page exists",
+    "whyBody": "A system that decides when to warn people about a landslide should be able to say, plainly, where every number in it comes from. This page lists each data source, model and AI feature the dashboard relies on, labelled honestly: genuinely live, a real citation not yet independently confirmed, a rule the team designed itself, a real source that is switched off, or a feature that is not wired to a real gateway yet.",
+    "all": "All",
+    "status": {
+      "live": "Real & live",
+      "unverified": "Real — cited source not independently verified",
+      "derived": "Team-derived rule, not literature-sourced",
+      "switchedOff": "Real source — switched off",
+      "simulated": "Simulated — not wired up"
+    },
+    "footer": "This page is maintained by hand alongside the engineering docs (README.md) — if a source's status changes there, it should change here too. Access: the map, alerts, rainfall and 'Check my area' are public by design. Actions and personal data (verifying reports, reporters' phone numbers, broadcasts, contacts, updating risk scores) need an officer key — one shared key, not personal accounts.",
+    "sections": [
+      {
+        "title": "Terrain & geospatial inputs",
+        "items": [
+          {
+            "status": "live",
+            "name": "Copernicus GLO-30 DEM",
+            "detail": "30 m global elevation model from AWS Open Data (no API key). Reprojected to a metre-based map projection before slope, aspect and curvature are worked out — without that step, slope comes out about 90° everywhere."
+          },
+          {
+            "status": "live",
+            "name": "OpenStreetMap road network",
+            "detail": "Each state's road geometry via the Overpass API, cut into corridor segments of about 500 m. Each segment is one prediction unit, so the map covers road corridors, not the whole state. Today: 104,145 segments across 7 states (Tripura is not loaded yet)."
+          },
+          {
+            "status": "live",
+            "name": "ESA WorldCover land cover",
+            "detail": "10 m resolution, 2021 v200 — the dominant land-cover class is taken for each corridor segment."
+          },
+          {
+            "status": "live",
+            "name": "Landslide inventories (Geological Survey of India–linked)",
+            "detail": "Real historical landslide points — the ground truth the models learn from. Sikkim: 765 verified points (777 raw records; 3 duplicate-coordinate points resolved). Each other state uses its own real inventory; see that state's training report."
+          },
+          {
+            "status": "live",
+            "name": "OpenStreetMap Nominatim place search",
+            "detail": "Turns a typed village or town name into coordinates for 'Check my area'. A public service, restricted to the north-east and called only when Search is pressed."
+          }
+        ]
+      },
+      {
+        "title": "Weather & rainfall",
+        "items": [
+          {
+            "status": "live",
+            "name": "Open-Meteo",
+            "detail": "Daily rainfall: the past 20 days plus a 3-day forecast. A GitHub Actions job fetches it every hour for the highest-risk zones and stores it; for any other place it is fetched live in the browser when you look. It is the only rainfall source actually wired up."
+          },
+          {
+            "status": "simulated",
+            "name": "IMD (India Meteorological Department)",
+            "detail": "The pitch deck's tech-stack slide names IMD as the primary rainfall source, with Open-Meteo as the fallback. IMD API access was not reachable in this build's timeframe — Open-Meteo is what is actually live, not IMD."
+          },
+          {
+            "status": "unverified",
+            "name": "Rainfall intensity-duration threshold (Sikkim)",
+            "detail": "Harilal, Madhu, Ramesh & Pullarkatt (2019), Landslides 16(12), DOI 10.1007/s10346-019-01244-1 — a real, Sikkim-specific paper. It is paywalled, so its coefficients have not yet been independently confirmed against the primary text. Sikkim is the only state where rain alerts are switched on."
+          },
+          {
+            "status": "switchedOff",
+            "name": "Rainfall threshold (Assam)",
+            "detail": "From a real Guwahati study (Bhusan et al., 2014), with the coefficient re-derived and checked against the paper. It describes one city, not all of Assam, so rain alerts stay switched off there: applying it statewide would flag ordinary monsoon rain."
+          },
+          {
+            "status": "derived",
+            "name": "Susceptibility × rainfall multiplier table",
+            "detail": "Lowers the rainfall threshold for zones with a higher risk level. This weighting is the team's own explainable rule, not taken from a paper — said plainly here rather than dressed up as literature or as machine learning."
+          },
+          {
+            "status": "derived",
+            "name": "Alert auto-close rule",
+            "detail": "An active alert closes by itself once rainfall has stayed below its danger level, in every duration window, for two days in a row. It is deliberately cautious: missing or old data keeps the alert open. This rule is the team's own."
+          }
+        ]
+      },
+      {
+        "title": "Machine learning models",
+        "items": [
+          {
+            "status": "live",
+            "name": "Per-state susceptibility models — Random Forest",
+            "detail": "One Random Forest per state (Assam, Arunachal Pradesh, Meghalaya, Nagaland, Manipur, Mizoram), trained on that state's real landslide points plus sampled non-landslide points and checked with spatially-buffered block cross-validation, not a naive random split. Reported ROC-AUC: Assam 0.95, Meghalaya 0.86, Manipur 0.82, Mizoram 0.71 (the weakest); the other states' figures are in their training reports. Risk levels are relative within each state."
+          },
+          {
+            "status": "live",
+            "name": "Sikkim susceptibility model — Person B's Random Forest",
+            "detail": "A separate, independently built pipeline (real DEM, real inventory, a RUSLE erosion model) — held-out AUC 0.774–0.782 on a plain 75/25 split, not the spatially-buffered check the other models use, which matters if they are compared side by side. Scores 3,411 of Sikkim's 3,921 zones."
+          },
+          {
+            "status": "live",
+            "name": "Sikkim susceptibility model — Random Forest (extended features)",
+            "detail": "Trained on 774 positive and 774 negative points, checked with 5-fold spatially-buffered block cross-validation. ROC-AUC 0.735. Scores the remaining 510 Sikkim zones — mostly one corridor (NH717A) that extends past the other model's raster coverage."
+          }
+        ]
+      },
+      {
+        "title": "AI assist — Google Gemini (gemini-3.5-flash-lite)",
+        "items": [
+          {
+            "status": "live",
+            "name": "Citizen report triage summary",
+            "detail": "A one-line summary of each citizen report for officers, always in English. Shown labelled \"AI-generated triage summary\" — never presented as the citizen's own words."
+          },
+          {
+            "status": "live",
+            "name": "Alert bulletin draft (\"Draft with AI\")",
+            "detail": "Proposes a headline and message from a zone's real rainfall and risk data in the Broadcast composer. Always reviewable and editable before sending — never sent automatically."
+          },
+          {
+            "status": "live",
+            "name": "Citizen wording assist (\"Clean up wording\")",
+            "detail": "Cleans up grammar and clarity in the citizen's own description before it is submitted — strictly forbidden from adding new facts (temperature 0.1). The citizen chooses \"Use this\" or keeps their own wording; nothing is applied automatically."
+          },
+          {
+            "status": "live",
+            "name": "Citizen report translation",
+            "detail": "Every report's description is translated to English for the dashboard and shown alongside — not instead of — the citizen's original wording."
+          }
+        ]
+      },
+      {
+        "title": "Alerts & delivery",
+        "items": [
+          {
+            "status": "live",
+            "name": "Twilio SMS & voice",
+            "detail": "Real dispatch — a critical broadcast has placed an actual phone call, confirmed by the recipient. It runs on a trial account, so only phone numbers manually verified in the Twilio console currently receive anything."
+          },
+          {
+            "status": "simulated",
+            "name": "WhatsApp-ready alert copy",
+            "detail": "No WhatsApp Business API is integrated. The Broadcast composer instead formats a paste-ready message that an officer copies into a real WhatsApp broadcast list by hand — honest about being a manual step, not an automatic send."
+          },
+          {
+            "status": "simulated",
+            "name": "Mobile app push / community sirens / govt CAP XML gateway",
+            "detail": "Selectable as broadcast channels and logged to the database as a real record, but no push, siren or CAP gateway is actually wired up yet — the confirmation banner says so explicitly at send time."
+          }
+        ]
+      },
+      {
+        "title": "Storage & infrastructure",
+        "items": [
+          {
+            "status": "live",
+            "name": "Supabase (Postgres + PostGIS, Storage)",
+            "detail": "The live database and the storage for citizen-report photos. Photo URLs returned by the API are real, directly viewable Supabase Storage links."
+          },
+          {
+            "status": "live",
+            "name": "Render (FastAPI hosting)",
+            "detail": "The backend API is deployed here through a Blueprint (render.yaml), not run only on a laptop. On the free tier it sleeps when idle, so the first request can take up to a minute."
+          },
+          {
+            "status": "live",
+            "name": "GitHub Actions (hourly rainfall job)",
+            "detail": "Every hour a runner fetches rainfall from Open-Meteo and sends it to the backend, which stores it and raises or closes alerts. It runs outside the backend because Open-Meteo refuses requests from the backend host's shared address, and because the free backend sleeps when idle."
+          }
+        ]
+      }
+    ]
+  },
+  "alertsPanel": {
+    "title": "Active Alerts",
+    "viewAll": "View all",
+    "more_one": "+{{count}} more active alert",
+    "more_other": "+{{count}} more active alerts"
   }
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useRegion, NER_STATES } from "../context/RegionContext";
 
 /**
@@ -7,19 +8,20 @@ import { useRegion, NER_STATES } from "../context/RegionContext";
  * (see CLAUDE.md, NER expansion phase 1).
  */
 export default function StateSelector() {
+  const { t } = useTranslation();
   const { state, setState } = useRegion();
 
   return (
     <select
       value={state}
       onChange={(e) => setState(e.target.value)}
-      aria-label="Filter by NER state"
+      aria-label={t("states.aria")}
       className="w-20 truncate rounded-lg border border-paper-200 bg-white px-2.5 py-1.5 text-xs font-medium text-paper-700 hover:bg-paper-50 sm:w-auto dark:border-night-700 dark:bg-night-800 dark:text-paper-300 dark:hover:bg-night-700"
     >
-      <option value="">All States</option>
+      <option value="">{t("states.all")}</option>
       {NER_STATES.map((s) => (
         <option key={s} value={s}>
-          {s}
+          {t(`states.${s}`, { defaultValue: s })}
         </option>
       ))}
     </select>

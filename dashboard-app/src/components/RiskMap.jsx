@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "leaflet/dist/leaflet.css";
 import { useTheme } from "../context/ThemeContext";
 import { getMapView, getZoneStats } from "../services/api";
@@ -78,6 +79,7 @@ function clusterDivIcon(cluster) {
 
 function ZoneMarker({ zone }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <Marker
       position={[zone.lat, zone.lng]}
@@ -90,11 +92,11 @@ function ZoneMarker({ zone }) {
       <Tooltip direction="top" offset={[0, -4]}>
         <strong>{zone.name}</strong>
         <br />
-        Risk: {zone.level}
-        {zone.level !== "Unscored" && ` (relative to other ${zone.state} zones)`}
-        {zone.susceptibility != null && ` · Susceptibility: ${(zone.susceptibility * 100).toFixed(0)}%`}
+        {t("map.risk", { level: t(`severity.${zone.level}`, { defaultValue: zone.level }) })}
+        {zone.level !== "Unscored" && ` ${t("map.relative", { state: t(`states.${zone.state}`, { defaultValue: zone.state }) })}`}
+        {zone.susceptibility != null && ` · ${t("map.susceptibility", { pct: (zone.susceptibility * 100).toFixed(0) })}`}
         <br />
-        <em>Click for details</em>
+        <em>{t("map.clickDetails")}</em>
       </Tooltip>
     </Marker>
   );
@@ -102,6 +104,7 @@ function ZoneMarker({ zone }) {
 
 function ClusterMarker({ cluster }) {
   const map = useMap();
+  const { t } = useTranslation();
   return (
     <Marker
       position={[cluster.lat, cluster.lng]}
@@ -114,13 +117,16 @@ function ClusterMarker({ cluster }) {
       }}
     >
       <Tooltip direction="top" offset={[0, -8]}>
-        <strong>{cluster.count.toLocaleString()} zones</strong>
+        <strong>{t("map.clusterZones", { count: cluster.count.toLocaleString() })}</strong>
         <br />
-        {cluster.high.toLocaleString()} high · {cluster.moderate.toLocaleString()} moderate ·{" "}
-        {cluster.low.toLocaleString()} low
-        {cluster.unscored > 0 && ` · ${cluster.unscored.toLocaleString()} not yet scored`}
+        {t("map.clusterCounts", {
+          high: cluster.high.toLocaleString(),
+          moderate: cluster.moderate.toLocaleString(),
+          low: cluster.low.toLocaleString(),
+        })}
+        {cluster.unscored > 0 && ` · ${t("map.notScored", { count: cluster.unscored.toLocaleString() })}`}
         <br />
-        <em>Click to zoom in</em>
+        <em>{t("map.clickZoom")}</em>
       </Tooltip>
     </Marker>
   );
@@ -130,6 +136,7 @@ function ClusterMarker({ cluster }) {
 // reloads when the user pans or zooms.
 function ViewportMarkers({ state }) {
   const map = useMap();
+  const { t } = useTranslation();
   const [view, setView] = useState(null);
   const [failed, setFailed] = useState(false);
   // Only the most recent request may update the map: a slow response to an
@@ -162,9 +169,9 @@ function ViewportMarkers({ state }) {
       {failed && (
         <div className="leaflet-top leaflet-right" style={{ pointerEvents: "auto" }}>
           <div className="leaflet-control rounded-lg bg-white/95 dark:bg-night-900/95 px-3 py-2 text-xs text-risk-high shadow">
-            Couldn't load map data.{" "}
+            {t("map.loadFailed")}{" "}
             <button className="underline font-medium" onClick={load}>
-              Retry
+              {t("map.retry")}
             </button>
           </div>
         </div>
@@ -181,6 +188,7 @@ function boundsOf(zones) {
 }
 
 export default function RiskMap({ center, zones, state, height = 420 }) {
+  const { t } = useTranslation();
   const dynamic = zones === undefined;
   const [stats, setStats] = useState(null);
 
@@ -221,7 +229,7 @@ export default function RiskMap({ center, zones, state, height = 420 }) {
   if (dynamic && !stats) {
     return (
       <div style={{ height }} className="rounded-xl border border-paper-200 dark:border-night-700 flex items-center justify-center text-sm text-paper-500">
-        Loading map…
+        {t("map.loading")}
       </div>
     );
   }

@@ -272,24 +272,22 @@ Sidebar, Topbar, Overview, Alerts, Incidents, Highway Corridors, Emergency
 Contacts, Authority Contacts, Data & Observations, Citizen Reports, Zone
 Detail, plus the Broadcast composer and Citizen Report detail modals — all
 UI chrome (titles, table headers, labels, buttons, empty/error states) is
-translated. **Two things deliberately stay English-only**, flagged rather
+translated. **Extended 2026-09-20** to the Help page, Data Sources & Methodology
+page, alert sentences and "x days ago", severity labels, the warning strip,
+notification bell, Overview card sublines, map tooltips and legend, the search box
+and the state names (all in `src/locales/*.json`; helpers in
+`src/utils/localizedText.js`). **What deliberately stays English**, flagged rather
 than silently left half-done:
-- The **Help page** (`HelpDocs.jsx`) — long-form documentation prose, not
-  short UI labels; a quick machine translation risked being sloppy for
-  something judges might read closely, so it's left as a clearly-scoped gap
-  rather than translated hastily.
-- **Data values from the API** (severity levels like "High"/"Moderate"/
-  "Low", statuses like "Verified"/"Connected", zone/location names) are
-  shown as the backend returns them, in English, regardless of the selected
-  language — translating live data consistently everywhere it's rendered is
-  a materially bigger feature (either backend-side localization of enums or
-  a uniform frontend mapping layer) than translating static JSX text, and
-  wasn't attempted here.
-- The **outgoing alert bulletin text itself** (the AI-drafted headline/
-  message in the Broadcast composer) also stays English-only on purpose —
-  CLAUDE.md explicitly scopes "full multilingual SMS" to a later phase, and
-  translating message *content* delivered to citizens is that feature, not
-  UI translation.
+- **Zone and road names** (`NH310A (1224920841_00_000)` etc.) and a citizen's own
+  report text -- they are identifiers / the person's words.
+- **The outgoing alert bulletin text** (the AI-drafted headline/message in the
+  Broadcast composer, and the SMS sent to citizens) stays English-only on purpose --
+  CLAUDE.md scopes "full multilingual SMS" to a later phase, and translating message
+  *content* delivered to citizens is that feature, not UI translation.
+- **Sample data pages** (Incidents list, Data & Observations status, profile panel)
+  carry English sample values.
+- **Two Help/Methodology facts to keep current by hand**: the zone and AUC figures
+  quoted on the Methodology page come from the pipeline reports, not from code.
 
 Hindi/Nepali strings are machine-quality translations, not reviewed by a
 native speaker — say so if asked.

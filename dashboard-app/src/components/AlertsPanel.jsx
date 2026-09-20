@@ -25,9 +25,9 @@ export default function AlertsPanel({ alerts }) {
   return (
     <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4 flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-serif font-semibold text-ink-900 dark:text-paper-100 text-[15px]">Active Alerts</h2>
+        <h2 className="font-serif font-semibold text-ink-900 dark:text-paper-100 text-[15px]">{t("alertsPanel.title")}</h2>
         <Link to="/alerts" className="text-xs font-medium text-teal-600 hover:underline">
-          View all
+          {t("alertsPanel.viewAll")}
         </Link>
       </div>
 
@@ -65,7 +65,7 @@ export default function AlertsPanel({ alerts }) {
           to="/alerts"
           className="mt-3 block text-center text-xs font-medium text-paper-600 hover:text-teal-600 dark:text-paper-400"
         >
-          +{remaining} more active alert{remaining === 1 ? "" : "s"}
+          {t("alertsPanel.more", { count: remaining })}
         </Link>
       )}
 

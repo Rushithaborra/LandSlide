@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Search, Loader2, CornerDownLeft } from "lucide-react";
 import { searchAll } from "../services/api";
+import { alertSentence } from "../utils/localizedText";
 
 /**
  * ============================================================================
@@ -52,6 +54,7 @@ function Highlight({ text, query }) {
 }
 
 export default function SearchBox() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
@@ -113,7 +116,15 @@ export default function SearchBox() {
   }, []);
 
   // Flat list in display order, so the arrow keys move the way the eye does.
-  const ordered = TYPE_ORDER.flatMap((t) => results.filter((r) => r.type === t));
+  const ordered = TYPE_ORDER.flatMap((type) => results.filter((r) => r.type === type));
+
+  // Zone and alert rows carry raw values; word them in the chosen language.
+  // (A report's note and an incident's status are the person's / sample text, shown as-is.)
+  const resultSubtitle = (item) => {
+    if (item.type === "Zone") return t(`ticker.risk.${item.tier}`, { defaultValue: item.tier });
+    if (item.type === "Alert") return alertSentence(item.sentence, t);
+    return item.subtitle;
+  };
 
   const goTo = (item) => {
     if (!item) return;
@@ -154,13 +165,13 @@ export default function SearchBox() {
         role="combobox"
         aria-expanded={open}
         aria-controls="search-results"
-        aria-label="Search locations, alerts, incidents and citizen reports"
+        aria-label={t("search.aria")}
         autoComplete="off"
         value={query}
         onChange={(e) => handleChange(e.target.value)}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        placeholder="Search locations, alerts, reports..."
+        placeholder={t("search.placeholder")}
         className="w-72 rounded-lg border border-paper-200 bg-paper-50 py-2 pl-9 pr-12 text-sm text-paper-700 placeholder:text-paper-500 focus:outline-none focus:ring-2 focus:ring-teal-600/30 dark:border-night-700 dark:bg-night-800 dark:text-paper-300"
       />
       {!query && (
@@ -183,7 +194,7 @@ export default function SearchBox() {
         >
           {!loading && ordered.length === 0 && (
             <p className="px-4 py-6 text-center text-sm text-paper-500">
-              Nothing found for “{query}”.
+              {t("search.nothing", { query })}
             </p>
           )}
 
@@ -193,8 +204,7 @@ export default function SearchBox() {
             return (
               <div key={type} className="pb-1">
                 <p className="px-4 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-paper-500">
-                  {type}
-                  {group.length > 1 ? "s" : ""}
+                  {t(group.length > 1 ? `search.typesPlural.${type}` : `search.types.${type}`)}
                 </p>
                 {group.map((item) => {
                   // Position in the flat `ordered` list, so the arrow-key
@@ -216,14 +226,14 @@ export default function SearchBox() {
                       <span
                         className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${typeStyle[item.type]}`}
                       >
-                        {item.type}
+                        {t(`search.types.${item.type}`)}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm text-ink-800 dark:text-paper-200">
                           <Highlight text={item.title} query={query.trim()} />
                         </span>
                         <span className="block truncate text-xs text-paper-500">
-                          {item.subtitle}
+                          {resultSubtitle(item)}
                         </span>
                       </span>
                       {isActive && (
@@ -241,7 +251,7 @@ export default function SearchBox() {
 
           {ordered.length > 0 && (
             <p className="mt-1 border-t border-paper-200 px-4 pt-2 text-[10px] text-paper-500 dark:border-night-700">
-              ↑ ↓ to move · Enter to open · Esc to close
+              {t("search.hint")}
             </p>
           )}
         </div>
