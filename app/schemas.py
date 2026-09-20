@@ -160,6 +160,30 @@ class RainfallRefreshIfStaleOut(BaseModel):
     first_error: str | None = None  # why zones failed, if any did
 
 
+class RainfallTargetOut(BaseModel):
+    """One zone a rainfall fetcher should get data for (GET /rainfall/targets)."""
+
+    id: uuid.UUID
+    lat: float
+    lng: float
+
+
+class RainfallDayIn(BaseModel):
+    day: date
+    mm: float = Field(ge=0, le=2000, description="daily precipitation total, mm")
+
+
+class RainfallZoneIn(BaseModel):
+    zone_id: uuid.UUID
+    days: list[RainfallDayIn] = Field(max_length=40)
+
+
+class RainfallIngestIn(BaseModel):
+    """POST /rainfall/ingest body: daily rainfall the caller fetched from Open-Meteo."""
+
+    readings: list[RainfallZoneIn] = Field(max_length=500)
+
+
 class RainfallThresholdOut(BaseModel):
     """The real, config-driven 1-day I-D threshold for one zone -- what the
     dashboard's rainfall chart should draw its reference line against,

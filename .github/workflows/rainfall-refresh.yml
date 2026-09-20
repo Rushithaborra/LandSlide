@@ -1,21 +1,25 @@
 # Keeps rainfall current and lets the alert engine run on its own, without
-# anyone opening the dashboard. Calls POST /rainfall/refresh on the backend
-# (see app/services/rainfall_refresh.py) every 3 hours.
+# anyone opening the dashboard. Every hour this runner asks the backend which
+# zones to watch, fetches their rainfall from Open-Meteo, and posts it to the
+# backend (POST /rainfall/ingest), which stores it and fires/clears alerts.
 #
-# Why GitHub and not the backend itself: the free Render service goes to sleep
+# Why the runner fetches and not the backend: Open-Meteo rate-limits (HTTP 429)
+# the shared outgoing IPs of free hosts like Render, so the backend's own fetch
+# was being refused. See scripts/refresh_rainfall_from_runner.py.
+# Why GitHub and not a timer inside the backend: the free Render service sleeps
 # when idle, so a timer running inside it would sleep too. This job wakes it.
 #
 # Needs ONE repository secret (Settings -> Secrets and variables -> Actions):
 #   OFFICER_API_KEY   the same value as API_KEY on Render (the officer key)
 # Until it is set, each run shows a warning and falls back to the public
-# refresh-if-stale endpoint (still keeps rainfall current).
+# refresh-if-stale endpoint (which only works while Open-Meteo allows Render).
 name: Refresh rainfall
 
 on:
   schedule:
-    # Every 3 hours, at :17 (GitHub queues jobs scheduled exactly on the hour
-    # and can delay them by many minutes).
-    - cron: "17 */3 * * *"
+    # Hourly, at :17 (GitHub queues jobs scheduled exactly on the hour and can
+    # delay them by many minutes).
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       alerts:
@@ -26,9 +30,13 @@ on:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Refresh rainfall on the backend
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/refresh_rainfall_from_runner.py
+          sparse-checkout-cone-mode: false
+      - name: Fetch rainfall and send it to the backend
         env:
           OFFICER_KEY: ${{ secrets.OFFICER_API_KEY }}
           BACKEND_URL: ${{ vars.BACKEND_URL || 'https://landslide-ews-backend.onrender.com' }}
@@ -37,19 +45,11 @@ jobs:
           ALERTS: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.alerts) || 'true' }}
         run: |
           if [ -z "$OFFICER_KEY" ]; then
-            # Not silent: this shows as a yellow warning on the run. The public
-            # endpoint still keeps rainfall current (refreshes only when the data
-            # is over an hour old) but cannot be told to skip alert evaluation.
+            # Not silent: this shows as a yellow warning on the run.
             echo "::warning::OFFICER_API_KEY secret is not visible to this repository -- using the public refresh-if-stale endpoint instead."
             curl --fail-with-body --silent --show-error               --max-time 200 --retry 3 --retry-delay 30 --retry-all-errors               -X POST "$BACKEND_URL/rainfall/refresh-if-stale"
             echo
             exit 0
           fi
-          # The free backend can take ~50 s to wake up, so allow a long first
-          # response and retry: a refresh is safe to repeat (it replaces the
-          # same days, and the alert engine never duplicates an active alert).
-          curl --fail-with-body --silent --show-error \
-            --max-time 200 --retry 3 --retry-delay 30 --retry-all-errors \
-            -X POST -H "X-API-Key: $OFFICER_KEY" \
-            "$BACKEND_URL/rainfall/refresh?alerts=$ALERTS"
-          echo
+          if [ "$ALERTS" = "false" ]; then FLAG="--no-alerts"; else FLAG=""; fi
+          python3 scripts/refresh_rainfall_from_runner.py $FLAG

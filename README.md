@@ -53,8 +53,17 @@ read endpoints remain open.
 
 ## Scheduled rainfall refresh
 Alerts only fire when rainfall is fetched, so a timer keeps it current:
-`.github/workflows/rainfall-refresh.yml` calls `POST /rainfall/refresh` every 3
-hours (the free Render server sleeps when idle, so the timer lives outside it).
+`.github/workflows/rainfall-refresh.yml` runs **hourly on a GitHub Actions
+runner**. The runner (`scripts/refresh_rainfall_from_runner.py`, standard library
+only) asks the backend which zones to watch (`GET /rainfall/targets`), fetches
+their rainfall from Open-Meteo itself, and posts it to `POST /rainfall/ingest`,
+which stores it and fires/clears alerts exactly as before. Both endpoints need
+the officer key, and the backend ignores data for any zone outside its own
+target selection, so the runner only ever supplies numbers. **Why the runner
+fetches:** Open-Meteo returns HTTP 429 to the shared outgoing IPs of free hosts,
+and Render's was being refused (seen live 2026-09-20), so the backend's own
+fetch (`POST /rainfall/refresh`) is kept only as a fallback. The free Render
+server also sleeps when idle, so the timer lives outside it.
 Each run refreshes the 25 highest-risk zones (`RAINFALL_REFRESH_ZONES_PER_STATE`)
 of every state that has a rainfall threshold (Sikkim and Assam today; a state
 without one can't alert, so it is skipped), then fires alerts, and SMS if Twilio
@@ -64,19 +73,21 @@ is refreshed but does not alert (see above; with the corrected coefficient, 25 o
 its 25 highest-risk zones were over threshold in mid-September, 14 of them only
 via the 10-20 day windows, which extrapolate past the ~8 days the paper's data
 cover). It reads
-the 20-day Open-Meteo window in one request per 25 zones (~3-8 s per run, ~400
-Open-Meteo calls a day against a 10,000/day free limit). A zone that already
+the 20-day Open-Meteo window in one request per 25 zones (~3-8 s per run, ~72
+Open-Meteo requests a day against a 10,000/day free limit). A zone that already
 has an active alert is not alerted again, and a refresh replaces the same days,
-so repeating a run is safe. To use the full path, add the repository secret
+so repeating a run is safe. The runner needs the repository secret
 `OFFICER_API_KEY` (the same value as `API_KEY` on Render); until then the job
-shows a warning and calls the public `refresh-if-stale` endpoint instead. `POST /rainfall/refresh?alerts=false` stores rainfall without
+shows a warning and calls the public `refresh-if-stale` endpoint instead
+(which only works while Open-Meteo allows the backend's IP). `POST /rainfall/refresh?alerts=false` stores rainfall without
 alerting. Limits: only the top zones per state (plus any zone with an active
 alert) are refreshed, not all 100k.
 
 **Opening the dashboard keeps rainfall current too.** The Overview calls the
 public `POST /rainfall/refresh-if-stale`, which refreshes (and evaluates alerts)
 only when stored rainfall is older than `RAINFALL_REFRESH_MAX_AGE_MINUTES`
-(default 60), however many people are viewing. It takes no input, so it can't be
+(default 150, so the hourly runner normally keeps it fresh and this only
+covers a missed run), however many people are viewing. It takes no input, so it can't be
 abused to pick what gets fetched; a database lease (`job_runs`, migration 013)
 lets one refresh run at a time, and a crashed or empty run never marks stale data
 fresh. `GET /rainfall/status` reports the age shown on the dashboard. The

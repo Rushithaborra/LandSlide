@@ -249,8 +249,31 @@ def refresh_rainfall(db: Session, per_state: int, run_alerts: bool = True) -> di
     summary for the caller (and the scheduler's log)."""
     started = time.monotonic()
     zones = select_zones(db, per_state)
-    fetched = _fetch_all(zones)
+    return _store_and_evaluate(db, zones, _fetch_all(zones), run_alerts, started)
 
+
+def ingest_rainfall(
+    db: Session, per_state: int, supplied: dict[uuid.UUID, list[open_meteo.DailyRainfall]], run_alerts: bool = True
+) -> dict:
+    """Same as refresh_rainfall, but the rainfall was fetched by the CALLER (the
+    GitHub Actions runner -- Open-Meteo rate-limits the shared IPs of free hosts
+    like Render, so the fetch happens elsewhere). The caller only supplies the
+    numbers: which zones are eligible is decided here, exactly as for a normal
+    refresh, and data for any other zone id is ignored -- so a caller can't
+    write rainfall for arbitrary zones or make the engine alert on them."""
+    started = time.monotonic()
+    zones = select_zones(db, per_state)
+    fetched = [supplied.get(z.id, []) for z in zones]
+    return _store_and_evaluate(db, zones, fetched, run_alerts, started)
+
+
+def _store_and_evaluate(
+    db: Session,
+    zones: list[ZoneTarget],
+    fetched: list[list[open_meteo.DailyRainfall] | Exception],
+    run_alerts: bool,
+    started: float,
+) -> dict:
     daily_by_zone: dict[uuid.UUID, list[open_meteo.DailyRainfall]] = {}
     errors: list[str] = []
     per_state_refreshed: dict[str, int] = {}

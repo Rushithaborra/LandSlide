@@ -6,11 +6,27 @@ from sqlalchemy.orm import Session
 from app.config import get_rainfall_threshold, settings
 from app.database import get_db
 from app.models import RainfallReading, Zone
-from app.schemas import RainfallReadingOut, RainfallRefreshIfStaleOut, RainfallRefreshOut, RainfallStatusOut, RainfallThresholdOut
+from app.schemas import (
+    RainfallIngestIn,
+    RainfallReadingOut,
+    RainfallRefreshIfStaleOut,
+    RainfallRefreshOut,
+    RainfallStatusOut,
+    RainfallTargetOut,
+    RainfallThresholdOut,
+)
 from app.security import require_officer_key
 from app.services import open_meteo
 from app.services.alert_engine import can_alert, check_and_trigger, intensity_duration_threshold
-from app.services.rainfall_refresh import record_refresh, refresh_if_stale, refresh_rainfall, refresh_status, store_readings
+from app.services.rainfall_refresh import (
+    ingest_rainfall,
+    record_refresh,
+    refresh_if_stale,
+    refresh_rainfall,
+    refresh_status,
+    select_zones,
+    store_readings,
+)
 
 router = APIRouter(prefix="/rainfall", tags=["rainfall"])
 
@@ -26,10 +42,42 @@ def refresh_all(
     threshold, then fires alerts (and SMS, if Twilio is set up) for any whose
     fresh rainfall crosses it. `alerts=false` is a dry run for the data only."""
     out = refresh_rainfall(db, per_state or settings.rainfall_refresh_zones_per_state, run_alerts=alerts)
+    _record_if_full_run(db, out, per_state, alerts)
+    return out
+
+
+def _record_if_full_run(db: Session, out: dict, per_state: int | None, alerts: bool) -> None:
     # Only a full-size run that also checked alerts counts as "refreshed" for the
     # staleness gate; a data-only or tiny test run must not make the system look fresh.
     if per_state is None and alerts and out["zones_refreshed"] > 0:
         record_refresh(db, {k: out[k] for k in ("zones_refreshed", "zones_failed", "alerts_created", "alerts_resolved", "states")})
+
+
+@router.get("/targets", response_model=list[RainfallTargetOut], dependencies=[Depends(require_officer_key)])
+def refresh_targets(db: Session = Depends(get_db)):
+    """The zones a rainfall fetcher should get data for -- the same selection a
+    normal refresh uses. Step 1 of the GitHub Actions flow (see /ingest)."""
+    return [
+        RainfallTargetOut(id=z.id, lat=z.lat, lng=z.lng)
+        for z in select_zones(db, settings.rainfall_refresh_zones_per_state)
+    ]
+
+
+@router.post("/ingest", response_model=RainfallRefreshOut, dependencies=[Depends(require_officer_key)])
+def ingest(
+    payload: RainfallIngestIn,
+    alerts: bool = Query(True, description="false = store rainfall only, don't trigger alerts/SMS"),
+    db: Session = Depends(get_db),
+):
+    """Step 2 of the GitHub Actions flow: the runner fetched daily rainfall from
+    Open-Meteo (the backend's own fetch gets 429-throttled on Render's shared
+    IPs) and posts it here. Stored and alert-checked exactly like /refresh; data
+    for zones outside the /targets selection is ignored."""
+    supplied = {
+        r.zone_id: [open_meteo.DailyRainfall(day=d.day, intensity_mm=d.mm) for d in r.days] for r in payload.readings
+    }
+    out = ingest_rainfall(db, settings.rainfall_refresh_zones_per_state, supplied, run_alerts=alerts)
+    _record_if_full_run(db, out, None, alerts)
     return out
 
 

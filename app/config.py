@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     # the dashboard can trigger it (POST /rainfall/refresh-if-stale), but never more
     # often than this, so it can't be used to hammer Open-Meteo. Hourly matches how
     # often Open-Meteo itself updates; ~77 zones a run is well inside its free limits.
-    rainfall_refresh_max_age_minutes: int = 60
+    rainfall_refresh_max_age_minutes: int = 150
 
     # Scheduled rainfall refresh (app/services/rainfall_refresh.py): how many of
     # each state's highest-risk zones to refresh per run. Only states with a

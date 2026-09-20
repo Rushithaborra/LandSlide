@@ -125,7 +125,7 @@ def test_refresh_if_stale_needs_no_key_even_when_auth_is_on(client, monkeypatch)
 def test_status_needs_no_key_and_reports_freshness(client, monkeypatch):
     monkeypatch.setattr(rainfall_router, "refresh_status", lambda db, max_age: {"last_refresh_at": NOW, "age_minutes": 7, "max_age_minutes": max_age, "stale": False})
     body = client.get("/rainfall/status").json()
-    assert body["age_minutes"] == 7 and body["stale"] is False and body["max_age_minutes"] == 60
+    assert body["age_minutes"] == 7 and body["stale"] is False and body["max_age_minutes"] == rainfall_router.settings.rainfall_refresh_max_age_minutes
 
 
 def test_the_authenticated_refresh_still_needs_the_key(client):
