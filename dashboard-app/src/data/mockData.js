@@ -237,37 +237,6 @@ export const emergencyContacts = [
   { name: "BRO — NH10 maintenance (Project Swastik)", jurisdiction: "Sikkim highway clearance", phone: "Confirm with BRO before use", verified: false },
 ];
 
-// ---- I. Scrolling warning ticker (NEW IN DRAFT 2) -------------------------
-// Short bulletin lines for the running strip at the top of every page,
-// styled after the warning marquee on mausam.imd.gov.in.
-// Keep each line to roughly one sentence so it stays readable while moving.
-export const tickerBulletins = [
-  {
-    id: "TK-1",
-    severity: "High",
-    text: "Isolated extremely heavy rainfall likely over North Sikkim (Mangan district) during 03rd–05th September; slope failure risk on NH-10 stretches.",
-    issuedAt: "issued 03 Sep, 08:30 IST",
-  },
-  {
-    id: "TK-2",
-    severity: "High",
-    text: "Cumulative 48-hour rainfall has crossed the 100 mm trigger threshold at Geyzing, West Sikkim. Field teams advised to stand by.",
-    issuedAt: "issued 03 Sep, 07:15 IST",
-  },
-  {
-    id: "TK-3",
-    severity: "Moderate",
-    text: "Namchi and Soreng under watch — susceptibility above 0.5 with continuing light to moderate rain.",
-    issuedAt: "issued 03 Sep, 06:00 IST",
-  },
-  {
-    id: "TK-4",
-    severity: "Low",
-    text: "Subdued rainfall activity likely to continue over the eastern districts during the next 24 hours.",
-    issuedAt: "issued 03 Sep, 06:00 IST",
-  },
-];
-
 // ---- J. Admin profile (NEW IN DRAFT 3) -----------------------------------
 // Shown and edited in the side drawer that opens from the avatar in the top
 // bar. Replace with the real signed-in user once authentication exists.

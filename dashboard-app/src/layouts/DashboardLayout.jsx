@@ -11,7 +11,7 @@ import { useAlertStream } from "../hooks/useAlertStream";
  * as a fallback -- useAlertStream below already re-fetches immediately the
  * moment a new alert actually fires, so this interval mostly just covers
  * bulletins that change for other reasons (edited/resolved elsewhere).
- * LINK SPOT I — see src/services/api.js → getTickerBulletins()
+ * See src/services/api.js → getTickerBulletins() (real active alerts)
  */
 const TICKER_REFRESH_MS = 5 * 60 * 1000;
 
@@ -20,7 +20,8 @@ export default function DashboardLayout({ title, subtitle, children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const loadBulletins = useCallback(() => {
-    getTickerBulletins().then(setBulletins);
+    // A failed refresh keeps whatever the strip already shows rather than erroring.
+    getTickerBulletins().then(setBulletins).catch(() => {});
   }, []);
 
   useEffect(() => {

@@ -18,7 +18,6 @@
 import {
   incidents,
   dataSources,
-  tickerBulletins,
   adminProfile,
   citizenReports as mockCitizenReports,
   notifications,
@@ -783,8 +782,33 @@ export async function getEmergencyContacts() {
   return fakeDelay(emergencyContacts);
 }
 
+/* ----------------------------------------------------------------------- *
+ * The scrolling warning strip: REAL active rainfall alerts (newest first),
+ * not a bulletin feed. It used to show made-up, IMD-looking sample text.
+ * Returns structured items; the component words the fixed parts in the
+ * viewer's language. `kind` is "alert" | "more" (how many are not shown) |
+ * "none" (nothing active -- with the states alerting is switched on for, so
+ * an empty strip is never mistaken for "no danger anywhere").
+ * ----------------------------------------------------------------------- */
+const TICKER_MAX_ALERTS = 5;
+
 export async function getTickerBulletins() {
-  return fakeDelay(tickerBulletins);
+  const [alerts, status] = await Promise.all([getJSON("/alerts?status=active"), getRainfallStatus()]);
+  if (alerts.length === 0) {
+    return [{ id: "none", kind: "none", states: status?.alerting_states ?? [] }];
+  }
+  const items = alerts.slice(0, TICKER_MAX_ALERTS).map((a) => ({
+    id: a.id,
+    kind: "alert",
+    severity: capitalizeTier(a.risk_tier),
+    // "<zone> — <what was crossed>": drop the alert's own leading tier phrase, which the severity tag already says.
+    text: `${a.zone_name}: ${a.threshold_crossed.split(" — ").pop()}`,
+    issuedAt: timeAgo(a.triggered_at),
+  }));
+  if (alerts.length > TICKER_MAX_ALERTS) {
+    items.push({ id: "more", kind: "more", count: alerts.length - TICKER_MAX_ALERTS });
+  }
+  return items;
 }
 
 /* ----------------------------------------------------------------------- *

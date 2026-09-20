@@ -440,7 +440,7 @@
           },
           {
             "q": "Where does the scrolling text at the top of the screen come from?",
-            "a": "Right now it is sample text, not a live bulletin — the live bulletin feed is not connected yet, so do not act on it. Real alerts are on the Alerts page and in the Active Alerts panel. Hover over the strip to stop it scrolling."
+            "a": "It shows the newest real active rain alerts from the system (the latest few, then a count of the rest). It is not a weather-service bulletin. Each alert's sentence is written in English when the alert is raised. If nothing is active it says so, and names the states where alerts are switched on. Hover over the strip to stop it scrolling."
           },
           {
             "q": "An alert is showing but the weather here is fine. Is it wrong?",
@@ -518,7 +518,7 @@
           },
           {
             "q": "Which parts of this dashboard are real, and which are sample?",
-            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim, citizen reports, and SMS and phone calls (trial account). Sample for now: the scrolling warning strip, the Incidents list, the Data & Observations status, and the profile panel. IMD data is not connected."
+            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim (also shown in the scrolling strip at the top), citizen reports, and SMS and phone calls (trial account). Sample for now: the Incidents list, the Data & Observations status, and the profile panel. IMD data is not connected."
           },
           {
             "q": "What does the Data & Observations page tell me?",
@@ -557,5 +557,21 @@
         ]
       }
     ]
+  },
+  "ticker": {
+    "label": "Latest Warnings",
+    "pause": "Pause",
+    "play": "Play",
+    "pauseAria": "Pause scrolling warnings",
+    "resumeAria": "Resume scrolling warnings",
+    "risk": {
+      "High": "High risk",
+      "Moderate": "Moderate risk",
+      "Low": "Low risk",
+      "Unscored": "Risk level not set"
+    },
+    "more": "+{{count}} more active alerts — see the Alerts page",
+    "none": "No active rain alerts right now.",
+    "noneStates": "Rain alerts are switched on for: {{states}}."
   }
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Megaphone, Pause, Play } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
  * ============================================================================
@@ -17,13 +18,10 @@ import { Megaphone, Pause, Play } from "lucide-react";
  *   • honours prefers-reduced-motion (see src/index.css)
  *
  * ---------------------------------------------------------------------------
- * LINK SPOT I  (see src/services/api.js → getTickerBulletins)
- * ---------------------------------------------------------------------------
- * `bulletins` is passed in by DashboardLayout, which gets it from
- * `getTickerBulletins()`. That function currently returns mock text from
- * src/data/mockData.js. The backend team should point it at the real
- * warning-bulletin endpoint (Stage 5 — Notification & Alert Dispatch).
- * Nothing in THIS file needs to change when that happens.
+ * `bulletins` comes from DashboardLayout → api.js getTickerBulletins(): the
+ * REAL active rainfall alerts (newest first), a "+N more" item, or a "none
+ * active" item that also names the states alerting is switched on for. It is
+ * not an IMD bulletin feed and never shows made-up text.
  * ============================================================================
  */
 
@@ -33,7 +31,21 @@ const severityTone = {
   Low: "text-risk-low dark:text-risk-lowOn",
 };
 
+const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// The fixed wording is translated here; an alert's own sentence comes from the
+// backend in English (it is generated at the moment the alert is raised).
+function bulletinText(b, t) {
+  if (b.kind === "more") return t("ticker.more", { count: b.count });
+  if (b.kind === "none") {
+    const states = b.states.map(titleCase).join(", ");
+    return states ? `${t("ticker.none")} ${t("ticker.noneStates", { states })}` : t("ticker.none");
+  }
+  return b.text;
+}
+
 function BulletinRun({ bulletins, ariaHidden }) {
+  const { t } = useTranslation();
   return (
     <div
       className="flex shrink-0 items-center"
@@ -42,10 +54,12 @@ function BulletinRun({ bulletins, ariaHidden }) {
       {bulletins.map((b, i) => (
         <span key={`${b.id}-${i}`} className="flex items-center whitespace-nowrap">
           <span className="px-6 text-[13px] italic leading-none text-ink-900 dark:text-paper-100">
-            <span className={`mr-1.5 font-semibold not-italic ${severityTone[b.severity] || "text-ink-800"}`}>
-              ({b.severity} risk)
-            </span>
-            {b.text}
+            {b.severity && (
+              <span className={`mr-1.5 font-semibold not-italic ${severityTone[b.severity] || "text-ink-800"}`}>
+                ({t(`ticker.risk.${b.severity}`, { defaultValue: b.severity })})
+              </span>
+            )}
+            {bulletinText(b, t)}
             {b.issuedAt && (
               <span className="ml-2 not-italic text-paper-600 dark:text-paper-400">— {b.issuedAt}</span>
             )}
@@ -58,12 +72,13 @@ function BulletinRun({ bulletins, ariaHidden }) {
 }
 
 export default function AlertTicker({ bulletins = [] }) {
+  const { t } = useTranslation();
   const [paused, setPaused] = useState(false);
 
   // Longer bulletins should scroll for longer, otherwise a big batch flies
   // past unreadably. Roughly 55 characters per second of screen time.
   const duration = useMemo(() => {
-    const chars = bulletins.reduce((n, b) => n + b.text.length + 24, 0);
+    const chars = bulletins.reduce((n, b) => n + (b.text?.length ?? 90) + 24, 0);
     return `${Math.max(30, Math.round(chars / 5.5))}s`;
   }, [bulletins]);
 
@@ -75,7 +90,7 @@ export default function AlertTicker({ bulletins = [] }) {
       <div className="flex shrink-0 items-center gap-2 bg-risk-high px-4 py-2 text-white">
         <Megaphone size={14} strokeWidth={2.4} />
         <span className="text-[11px] font-semibold uppercase tracking-wider">
-          Latest Warnings
+          {t("ticker.label")}
         </span>
       </div>
 
@@ -101,11 +116,11 @@ export default function AlertTicker({ bulletins = [] }) {
       <button
         type="button"
         onClick={() => setPaused((p) => !p)}
-        aria-label={paused ? "Resume scrolling warnings" : "Pause scrolling warnings"}
+        aria-label={paused ? t("ticker.resumeAria") : t("ticker.pauseAria")}
         className="flex shrink-0 items-center gap-1.5 border-l border-paper-300/70 dark:border-night-700 px-3 text-[11px] font-medium text-ink-800 dark:text-paper-200 hover:bg-paper-200 dark:hover:bg-night-800"
       >
         {paused ? <Play size={12} /> : <Pause size={12} />}
-        <span className="hidden sm:inline">{paused ? "Play" : "Pause"}</span>
+        <span className="hidden sm:inline">{paused ? t("ticker.play") : t("ticker.pause")}</span>
       </button>
     </div>
   );
