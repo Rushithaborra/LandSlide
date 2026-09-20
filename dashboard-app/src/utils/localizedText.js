@@ -4,6 +4,10 @@
 // switching language left them in English -- and stale until the next fetch.
 // Components now format them at render time from the raw values instead.
 
+// Dispatched on window when the live alert stream reports a new alert, so several
+// components can refresh from one connection.
+export const ALERTS_CHANGED_EVENT = "alerts-changed";
+
 // The one sentence the backend writes when it raises an alert
 // (app/services/alert_engine.py check_and_trigger). It is stored as text, so it is
 // taken apart here rather than migrating old rows. Anything that doesn't match

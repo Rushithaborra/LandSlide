@@ -3,11 +3,11 @@
  *  API SERVICE LAYER — wired to the real backend
  * ============================================================================
  * Real backend: FastAPI + PostgreSQL/PostGIS. LINK SPOTS A-F and K call it
- * for real. G, H, I, J, L, N stay on mock data on purpose -- either out of
- * this round's 2-feature scope (incidents, data sources, ticker), require a
- * login system this project doesn't have yet (admin profile, notifications
- * -- matches this frontend's own documented design), or are already
- * client-side only by design (the incident PDF).
+ * for real, as do the warning strip and the notification bell (real active
+ * alerts). G, H, J, L stay on mock data on purpose -- either out of this
+ * round's 2-feature scope (incidents, data sources), require a login system
+ * this project doesn't have yet (admin profile), or are already client-side
+ * only by design (the incident PDF).
  *
  * Set VITE_API_BASE_URL in a .env file (see .env.example) once the backend
  * is deployed. Falls back to localhost for local dev against a locally
@@ -20,7 +20,6 @@ import {
   dataSources,
   adminProfile,
   citizenReports as mockCitizenReports,
-  notifications,
   emergencyContacts,
 } from "../data/mockData";
 
@@ -930,14 +929,24 @@ export async function searchAll(query) {
 }
 
 /* ----------------------------------------------------------------------- *
- * LINK SPOT N — Notifications. Genuinely depends on login ("unread" means
- * unread BY A PARTICULAR OFFICER) -- matches this frontend's own documented
- * design. Stays mocked honestly rather than faked as personal.
+ * The notification bell: the newest REAL active alerts. Which ones a person
+ * has read is remembered in that browser (NotificationsPanel) -- there is no
+ * login, so nothing is stored per officer on the server. `total` is how many
+ * alerts are active in all, beyond the newest few listed.
  * ----------------------------------------------------------------------- */
-export async function getNotifications() {
-  return fakeDelay(notifications, 200);
-}
+const NOTIFICATION_LIMIT = 20;
 
-export async function markNotificationsRead() {
-  return fakeDelay({ ok: true }, 150);
+export async function getNotifications() {
+  const alerts = await getJSON("/alerts?status=active"); // newest first
+  return {
+    total: alerts.length,
+    items: alerts.slice(0, NOTIFICATION_LIMIT).map((a) => ({
+      id: a.id,
+      zone: a.zone_name,
+      severity: capitalizeTier(a.risk_tier),
+      sentence: a.threshold_crossed, // worded per language in NotificationsPanel
+      triggeredAt: a.triggered_at,
+      to: `/zones/${a.zone_id}`,
+    })),
+  };
 }

@@ -5,6 +5,7 @@ import Topbar from "../components/Topbar";
 import AlertTicker from "../components/AlertTicker";
 import { getTickerBulletins } from "../services/api";
 import { useAlertStream } from "../hooks/useAlertStream";
+import { ALERTS_CHANGED_EVENT } from "../utils/localizedText";
 
 /**
  * How often the scrolling warning strip re-fetches its bulletins on its own,
@@ -33,7 +34,13 @@ export default function DashboardLayout({ title, subtitle, children }) {
   // A newly-triggered alert should show up in the scrolling warning strip
   // immediately, not up to 5 minutes later -- this is the "does the
   // dashboard actually update live" moment for a demo.
-  useAlertStream(loadBulletins);
+  // The bell (NotificationsPanel) listens for the same moment, via a window
+  // event, rather than opening a second live connection of its own -- each open
+  // connection makes the server query the database every few seconds.
+  useAlertStream(() => {
+    loadBulletins();
+    window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+  });
 
   return (
     <div className="flex min-h-screen bg-paper-100 dark:bg-night-950">

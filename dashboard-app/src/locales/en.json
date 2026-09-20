@@ -518,7 +518,7 @@
           },
           {
             "q": "Which parts of this dashboard are real, and which are sample?",
-            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim (also shown in the scrolling strip at the top), citizen reports, and SMS and phone calls (trial account). Sample for now: the Incidents list, the Data & Observations status, and the profile panel. IMD data is not connected."
+            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim (also shown in the scrolling strip at the top and in the notification bell), citizen reports, and SMS and phone calls (trial account). Sample for now: the Incidents list, the Data & Observations status, and the profile panel. IMD data is not connected."
           },
           {
             "q": "What does the Data & Observations page tell me?",
@@ -599,5 +599,15 @@
     "Moderate": "Moderate",
     "Low": "Low",
     "Unscored": "Not rated"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAll": "Mark all as read",
+    "empty": "No active alerts right now.",
+    "ariaUnread_one": "Notifications, {{count}} unread",
+    "ariaUnread_other": "Notifications, {{count}} unread",
+    "ariaNone": "Notifications, none unread",
+    "viewAll": "Showing the newest {{shown}} of {{total}} active alerts — view all",
+    "note": "These are the real active alerts. Which ones you have read is remembered on this device only (there is no officer login yet)."
   }
 }

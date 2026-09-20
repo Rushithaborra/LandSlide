@@ -138,8 +138,9 @@ the backend when it is raised; the dashboard takes that one known format apart
 strip and "x days ago" all follow the language switcher. A sentence in any other
 format is shown untouched in English rather than mangled. (The Broadcast composer's
 pre-filled SMS text is still English -- an officer edits it before sending.)
-The Incidents list, Data & Observations status and profile panel are still
-**sample data** (Help says so).
+The notification bell also lists the newest real active alerts (unread is
+remembered per browser -- there is no officer login). The Incidents list, Data &
+Observations status and profile panel are still **sample data** (Help says so).
 
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /
