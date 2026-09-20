@@ -122,6 +122,20 @@ class RainfallReadingOut(BaseModel):
         return self.timestamp.astimezone(timezone.utc).date() > datetime.now(timezone.utc).date()
 
 
+class RainfallRefreshOut(BaseModel):
+    """Summary of one scheduled/manual POST /rainfall/refresh run."""
+
+    zones_selected: int
+    zones_refreshed: int
+    zones_failed: int
+    alerts_enabled: bool
+    alerts_created: int
+    alerting_states: list[str]  # refreshed states whose thresholds are trusted to alert
+    states: dict[str, int]  # zones refreshed per state
+    errors: list[str]  # first few failures, for the scheduler's log
+    duration_seconds: float
+
+
 class RainfallThresholdOut(BaseModel):
     """The real, config-driven 1-day I-D threshold for one zone -- what the
     dashboard's rainfall chart should draw its reference line against,

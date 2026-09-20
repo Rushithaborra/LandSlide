@@ -33,6 +33,21 @@ class Settings(BaseSettings):
     # Officer access key (app/security.py). Unset = not enforced.
     api_key: str | None = None
 
+    # States whose rainfall threshold may fire ALERTS (and SMS). Deliberately an
+    # explicit list, default Sikkim only (what production has always done): a
+    # state can have a threshold configured for display and data refresh without
+    # being trusted to alert. Assam's Guwahati equation, for one, has an
+    # unconfirmed intensity unit -- read as mm/day it says 5.9 mm in a day is
+    # dangerous, which would put every Assam zone on alert on an ordinary
+    # monsoon day. Add a state here (RAINFALL_ALERT_STATES=["sikkim","assam"])
+    # only after its threshold, and its units, are confirmed.
+    rainfall_alert_states: list[str] = ["sikkim"]
+
+    # Scheduled rainfall refresh (app/services/rainfall_refresh.py): how many of
+    # each state's highest-risk zones to refresh per run. Only states with a
+    # configured rainfall threshold are refreshed (others can't alert).
+    rainfall_refresh_zones_per_state: int = 25
+
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
 
     # Citizen report photo upload (app/routers/reports.py) -- stored in

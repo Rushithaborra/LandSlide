@@ -1,0 +1,49 @@
+# Keeps rainfall current and lets the alert engine run on its own, without
+# anyone opening the dashboard. Calls POST /rainfall/refresh on the backend
+# (see app/services/rainfall_refresh.py) every 3 hours.
+#
+# Why GitHub and not the backend itself: the free Render service goes to sleep
+# when idle, so a timer running inside it would sleep too. This job wakes it.
+#
+# Needs ONE repository secret (Settings -> Secrets and variables -> Actions):
+#   OFFICER_API_KEY   the same value as API_KEY on Render (the officer key)
+# Until it is set, each run just prints a notice and succeeds -- nothing breaks.
+name: Refresh rainfall
+
+on:
+  schedule:
+    # Every 3 hours, at :17 (GitHub queues jobs scheduled exactly on the hour
+    # and can delay them by many minutes).
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      alerts:
+        description: "Trigger alerts/SMS for zones over their threshold (false = store rainfall only)"
+        type: boolean
+        default: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Refresh rainfall on the backend
+        env:
+          OFFICER_KEY: ${{ secrets.OFFICER_API_KEY }}
+          BACKEND_URL: ${{ vars.BACKEND_URL || 'https://landslide-ews-backend.onrender.com' }}
+          # format() makes it a string: 'cond && false || x' would wrongly fall through to x,
+          # because a boolean false is falsy in GitHub's expression language but the string 'false' is not.
+          ALERTS: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.alerts) || 'true' }}
+        run: |
+          if [ -z "$OFFICER_KEY" ]; then
+            echo "OFFICER_API_KEY secret is not set -- skipping (see the comment at the top of this file)."
+            exit 0
+          fi
+          # The free backend can take ~50 s to wake up, so allow a long first
+          # response and retry: a refresh is safe to repeat (it replaces the
+          # same days, and the alert engine never duplicates an active alert).
+          curl --fail-with-body --silent --show-error \
+            --max-time 200 --retry 3 --retry-delay 30 --retry-all-errors \
+            -X POST -H "X-API-Key: $OFFICER_KEY" \
+            "$BACKEND_URL/rainfall/refresh?alerts=$ALERTS"
+          echo

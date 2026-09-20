@@ -20,7 +20,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
-from app.config import RainfallThresholdConfig, get_rainfall_threshold
+from app.config import RainfallThresholdConfig, get_rainfall_threshold, settings
 from app.models import Alert, RainfallReading
 
 # How susceptibility tier scales the rainfall threshold: a high-susceptibility
@@ -113,6 +113,13 @@ def drop_forecast_days(daily_totals: dict[date, float]) -> dict[date, float]:
     return {d: mm for d, mm in daily_totals.items() if d <= today}
 
 
+def can_alert(state: str) -> bool:
+    """Whether this state's rainfall threshold is trusted to fire alerts (see
+    Settings.rainfall_alert_states). A state can have a threshold for display
+    and data refresh without being on this list."""
+    return state.lower() in {s.lower() for s in settings.rainfall_alert_states}
+
+
 def check_and_trigger(db: Session, zone_id) -> Alert | None:
     """DB-touching wrapper: pulls this zone's stored daily rainfall and its
     susceptibility tier, runs it through the pure threshold check, and writes
@@ -123,6 +130,10 @@ def check_and_trigger(db: Session, zone_id) -> Alert | None:
     if zone is None:
         raise ValueError(f"zone {zone_id} not found")
     risk_tier = zone.risk_tier or "moderate"  # no ML score yet -> assume moderate, don't silently skip alerting
+
+    if not can_alert(zone.state):
+        print(f"[ALERT] zone={zone_id} state={zone.state!r} is not on the alerting list -- skipping")
+        return None
 
     config = get_rainfall_threshold(zone.state)
     if config is None:

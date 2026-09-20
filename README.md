@@ -42,6 +42,28 @@ icon in the top bar; the key lives only in that browser tab. Limits: one shared
 key (no per-officer accounts, so "who did it" is not recorded), and the public
 read endpoints remain open.
 
+## Scheduled rainfall refresh
+Alerts only fire when rainfall is fetched, so a timer keeps it current:
+`.github/workflows/rainfall-refresh.yml` calls `POST /rainfall/refresh` every 3
+hours (the free Render server sleeps when idle, so the timer lives outside it).
+Each run refreshes the 25 highest-risk zones (`RAINFALL_REFRESH_ZONES_PER_STATE`)
+of every state that has a rainfall threshold (Sikkim and Assam today; a state
+without one can't alert, so it is skipped), then fires alerts, and SMS if Twilio
+is configured, for any zone whose fresh rainfall crosses its threshold **in a
+state on the alerting list** (`RAINFALL_ALERT_STATES`, default Sikkim only). Assam
+is refreshed but does not alert: its Guwahati equation has an unconfirmed
+intensity unit, and read as mm/day it would put every Assam zone on alert on an
+ordinary monsoon day. It reads
+the 20-day Open-Meteo window in one request per 25 zones (~3-8 s per run, ~400
+Open-Meteo calls a day against a 10,000/day free limit). A zone that already
+has an active alert is not alerted again, and a refresh replaces the same days,
+so repeating a run is safe. To switch it on, add the repository secret
+`OFFICER_API_KEY` (the same value as `API_KEY` on Render); until then the job
+does nothing. `POST /rainfall/refresh?alerts=false` stores rainfall without
+alerting. Limits: alerts stay "active" until an officer resolves them (there is
+no auto-resolve when the rain stops), and only the top zones per state are
+refreshed, not all 100k.
+
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /
   `model_version` — written via `PUT /zones/{id}/susceptibility` by the ML

@@ -20,6 +20,7 @@ ALERT = uuid.uuid4()
 PROTECTED = [
     ("put", f"/zones/{ZONE}/susceptibility", {"json": {}}),
     ("post", f"/rainfall/{ZONE}/fetch", {}),
+    ("post", "/rainfall/refresh", {}),
     ("post", f"/alerts/{ALERT}/resolve", {}),
     ("post", f"/alerts/{ALERT}/generate-bulletin", {"json": {}}),
     ("post", f"/alerts/{ALERT}/broadcast", {"json": {}}),
