@@ -144,6 +144,10 @@ class RainfallStatusOut(BaseModel):
     age_minutes: int | None
     max_age_minutes: int
     stale: bool
+    # States whose rainfall alerts are switched on. A state outside this list is
+    # refreshed for display but never alerts, so the dashboard must not present
+    # its "0 alerts" as if it meant "no danger".
+    alerting_states: list[str] = []
 
 
 class RainfallRefreshIfStaleOut(BaseModel):

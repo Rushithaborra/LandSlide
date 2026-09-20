@@ -307,8 +307,8 @@ function newestObservedAgeDays(readings) {
  * No single backend endpoint returns this -- assembled client-side from
  * /zones and /alerts, plus a live /health check for system status.
  * Villages-affected and a 24h rainfall total aren't tracked concepts in the
- * current schema, so those two are honestly approximated (zones with an
- * active alert; latest reading from the highest-risk zone with data)
+ * current schema, so those two are honestly approximated (the card is labelled
+ * "Zones under alert" -- zones with an active alert; latest reading from the highest-risk zone with data)
  * rather than invented.
  * ----------------------------------------------------------------------- */
 export async function getSummaryStats(state) {
@@ -316,11 +316,17 @@ export async function getSummaryStats(state) {
   // and alerts are filtered by state server-side. Both used to be derived by
   // downloading every zone of the state, which capped out at a few thousand
   // and stops working entirely at tens of thousands.
-  const [stats, alerts, topZones] = await Promise.all([
+  const [stats, alerts, topZones, rainStatus] = await Promise.all([
     getZoneStats(state),
     getJSON(alertsPath(state)),
     getJSON(topZonesPath(state)),
+    getRainfallStatus(),
   ]);
+  // A state that is refreshed but not switched on for alerting (Assam today) would
+  // show "0 alerts", which reads as "no danger" when it really means "not
+  // monitored for alerts". Unknown status (backend hiccup) is treated as enabled.
+  const alertingStates = rainStatus?.alerting_states;
+  const alertingOff = Boolean(state) && Array.isArray(alertingStates) && !alertingStates.some((s) => s.toLowerCase() === state.toLowerCase());
   const activeAlerts = alerts.filter((a) => a.status === "active");
   const affectedZoneIds = new Set(activeAlerts.map((a) => a.zone_id));
 
@@ -356,8 +362,12 @@ export async function getSummaryStats(state) {
 
   return {
     highRiskZones: { value: stats.high, total: stats.total, trend: "flat" },
-    activeAlerts: { value: activeAlerts.length, deltaLabel: `${affectedZoneIds.size} zone(s) affected`, trend: activeAlerts.length > 0 ? "up" : "flat" },
-    affectedVillages: { value: affectedZoneIds.size, deltaLabel: "Zones with an active alert", trend: "flat" },
+    activeAlerts: alertingOff
+      ? { value: "—", deltaLabel: `Alerting not enabled for ${state}`, trend: "flat" }
+      : { value: activeAlerts.length, deltaLabel: `${affectedZoneIds.size} zone(s) affected`, trend: activeAlerts.length > 0 ? "up" : "flat" },
+    affectedVillages: alertingOff
+      ? { value: "—", deltaLabel: `Alerting not enabled for ${state}`, trend: "flat" }
+      : { value: affectedZoneIds.size, deltaLabel: "Zones with an active alert", trend: "flat" },
     rainfall24h: { value: rainfall24hLabel, deltaLabel: rainfallZoneName, trend: "flat" },
     systemHealth: { value: systemHealthy ? "100%" : "Down", deltaLabel: systemHealthy ? "Backend responding" : "Backend unreachable", trend: systemHealthy ? "good" : "down" },
   };

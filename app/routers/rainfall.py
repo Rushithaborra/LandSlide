@@ -84,7 +84,7 @@ def ingest(
 @router.get("/status", response_model=RainfallStatusOut)
 def rainfall_status(db: Session = Depends(get_db)):
     """When rainfall was last refreshed (the dashboard shows 'updated 12 min ago')."""
-    return refresh_status(db, settings.rainfall_refresh_max_age_minutes)
+    return {**refresh_status(db, settings.rainfall_refresh_max_age_minutes), "alerting_states": settings.rainfall_alert_states}
 
 
 @router.post("/refresh-if-stale", response_model=RainfallRefreshIfStaleOut)
