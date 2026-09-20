@@ -103,8 +103,13 @@ def osm_to_geojson(osm):
         coords = [[pt["lon"], pt["lat"]] for pt in el["geometry"]]
         if len(coords) < 2:
             continue
+        tags = el.get("tags", {})
+        # name/ref kept (previously only osm_id/highway) so scripts/23's
+        # zone-scoring output can surface a real label per corridor (e.g.
+        # "NH306") instead of a bare osm_id.
         features.append({"type": "Feature", "geometry": {"type": "LineString", "coordinates": coords},
-                          "properties": {"osm_id": el["id"], "highway": el.get("tags", {}).get("highway")}})
+                          "properties": {"osm_id": el["id"], "highway": tags.get("highway"),
+                                         "name": tags.get("name"), "ref": tags.get("ref")}})
     return {"type": "FeatureCollection", "features": features}
 
 

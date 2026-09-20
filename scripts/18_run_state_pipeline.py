@@ -36,6 +36,8 @@ import rasterio
 from rasterio.mask import mask
 from rasterio.merge import merge
 from rasterio.warp import calculate_default_transform, reproject, Resampling
+
+np.in1d = np.isin  # pysheds compatibility shim -- np.in1d was removed in numpy 2.x+ (harmless no-op on numpy versions that still have it)
 from pysheds.grid import Grid
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))

@@ -20,3 +20,4 @@ data/raw/soil_*_0-5cm.tif
 data/processed/*.tif
 data/raw/*_roads.geojson
 data/interim/
+outputs/
