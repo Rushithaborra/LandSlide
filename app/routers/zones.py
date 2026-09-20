@@ -109,7 +109,10 @@ def map_view(
     if state:
         in_view.append(Zone.state == state)
 
-    total = db.query(func.count(Zone.id)).filter(*in_view).scalar()
+    # count(*), not count(id): `id` isn't in idx_zones_map, so count(id) forces a
+    # trip to the table (with its large polygons) for every zone in view --
+    # 6.4 s vs 0.17 s for the whole region. count(*) is answered from the index.
+    total = db.query(func.count()).select_from(Zone).filter(*in_view).scalar()
     if total <= MAP_MAX_INDIVIDUAL_ZONES:
         zones = (
             db.query(Zone).options(MAP_COLUMNS).filter(*in_view)

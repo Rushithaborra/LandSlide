@@ -175,6 +175,23 @@ def push_susceptibility_bulk(mapping: list[tuple], chunk_size: int = 2000) -> in
         conn.close()
 
 
+def vacuum_zones() -> None:
+    """VACUUM ANALYZE after a bulk load. The map/stats/corridor endpoints are
+    answered from covering indexes (migrations/011_zone_map_indexes.sql), which
+    only skip the 220 MB of polygons once the freshly inserted rows are marked
+    visible -- until autovacuum gets around to it, every query quietly falls
+    back to reading the table (counts went from 0.2 s to 6+ s)."""
+    import psycopg2
+    from app.config import settings
+
+    conn = psycopg2.connect(settings.database_url)
+    conn.autocommit = True  # VACUUM cannot run inside a transaction
+    try:
+        conn.cursor().execute("VACUUM (ANALYZE) zones")
+    finally:
+        conn.close()
+
+
 def verify_readback(zone_id: str, base_url: str = BACKEND_BASE_URL) -> dict:
     with httpx.Client(timeout=10.0) as client:
         resp = client.get(f"{base_url}/zones/{zone_id}")
@@ -229,3 +246,7 @@ if __name__ == "__main__":
         finally:
             db.close()
         print(f"{state} in database: {total} zones, {unscored} unscored")
+
+    t0 = time.time()
+    vacuum_zones()
+    print(f"vacuum/analyze zones: {time.time()-t0:.1f}s")
