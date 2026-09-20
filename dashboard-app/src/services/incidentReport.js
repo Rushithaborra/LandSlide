@@ -278,11 +278,17 @@ export function generateIncidentReport(incident, relatedReports = []) {
     doc.setPage(i);
     doc.setDrawColor(...RULE);
     doc.line(M, H - 12, W - M, H - 12);
+    // Incident records are still demonstration data (nothing feeds the Incidents
+    // page yet), so every page of the PDF says so instead of looking official.
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...TERRA);
+    doc.text("SAMPLE DATA - this is a demonstration record, not a real incident report", W / 2, H - 16, { align: "center" });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(...MUTED);
     doc.text(
-      "Landslide Early Warning System · Data sources: IMD, GSI, ISRO, Open-Meteo",
+      "Landslide Early Warning System · Rainfall: Open-Meteo · Incident details: sample data",
       M,
       H - 8
     );

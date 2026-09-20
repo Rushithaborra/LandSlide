@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { X, Pencil, Check, RotateCcw } from "lucide-react";
 import { getAdminProfile, updateAdminProfile } from "../services/api";
+import SampleDataNotice from "./SampleDataNotice";
 
 /**
  * ============================================================================
@@ -98,6 +99,8 @@ export default function AdminDrawer({ open, onClose }) {
             <X size={17} />
           </button>
         </div>
+
+        <SampleDataNotice kind="profile" className="m-4 mb-0" />
 
         {/* Identity block */}
         <div className="flex items-center gap-3 border-b border-paper-200 px-5 py-4 dark:border-night-700">

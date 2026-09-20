@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
+import SampleDataNotice from "../components/SampleDataNotice";
 import { getIncidents, getCitizenReports } from "../services/api";
 import { generateIncidentReport } from "../services/incidentReport";
 
@@ -46,6 +47,7 @@ export default function Incidents() {
 
   return (
     <DashboardLayout title={t("incidents.title")} subtitle={t("incidents.subtitle")}>
+      <SampleDataNotice kind="incidents" className="mb-4" />
       <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>

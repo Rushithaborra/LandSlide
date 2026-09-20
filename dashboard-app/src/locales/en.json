@@ -836,5 +836,11 @@
     "viewAll": "View all",
     "more_one": "+{{count}} more active alert",
     "more_other": "+{{count}} more active alerts"
+  },
+  "sample": {
+    "title": "Sample data",
+    "incidents": "The incidents on this page are demonstration records, not real events. Nothing feeds this page yet (no field-verification system is connected), and the PDF you can download from a row carries the same sample data. Real alerts are on the Alerts page.",
+    "dataObservations": "The sources and status values below are samples, not live monitoring. For real freshness see “Rainfall updated … ago” on the Overview, and the Data Sources & Methodology page for what is real.",
+    "profile": "This profile is sample data — there are no officer accounts yet, and nothing you change here is saved to a server."
   }
 }

@@ -285,7 +285,12 @@ than silently left half-done:
   CLAUDE.md scopes "full multilingual SMS" to a later phase, and translating message
   *content* delivered to citizens is that feature, not UI translation.
 - **Sample data pages** (Incidents list, Data & Observations status, profile panel)
-  carry English sample values.
+  carry English sample values. Each now shows a visible "Sample data" banner
+  (`SampleDataNotice`, translated), and the incident PDF stamps every page "SAMPLE
+  DATA" (its footer used to claim IMD and ISRO as sources, which are not connected).
+  The sample rows are not accurate to the live system (e.g. they list the SMS gateway
+  as not connected while Twilio is live) -- the banner is the safeguard, so wire real
+  data in or remove the page before relying on it.
 - **Two Help/Methodology facts to keep current by hand**: the zone and AUC figures
   quoted on the Methodology page come from the pipeline reports, not from code.
 

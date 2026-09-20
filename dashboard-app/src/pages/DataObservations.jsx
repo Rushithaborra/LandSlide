@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
+import SampleDataNotice from "../components/SampleDataNotice";
 import { getDataSources } from "../services/api";
 
 /**
@@ -18,6 +19,7 @@ export default function DataObservations() {
 
   return (
     <DashboardLayout title={t("dataObservations.title")} subtitle={t("dataObservations.subtitle")}>
+      <SampleDataNotice kind="dataObservations" className="mb-4" />
       <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4 divide-y divide-paper-200 dark:divide-night-700">
         {sources.map((s) => (
           <div key={s.name} className="flex items-center justify-between py-3">
