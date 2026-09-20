@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     # only after its threshold, and its units, are confirmed.
     rainfall_alert_states: list[str] = ["sikkim"]
 
+    # Auto-resolve (app/services/alert_engine.has_cleared): an alert closes itself
+    # only once the rainfall has stayed below its threshold for this many days in
+    # a row. More than one so a brief lull mid-storm doesn't close a live alert
+    # (and re-alert, and re-text people, an hour later).
+    rainfall_alert_clear_days: int = 2
+
     # Scheduled rainfall refresh (app/services/rainfall_refresh.py): how many of
     # each state's highest-risk zones to refresh per run. Only states with a
     # configured rainfall threshold are refreshed (others can't alert).

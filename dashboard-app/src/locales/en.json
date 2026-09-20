@@ -24,7 +24,12 @@
     "zones": "Zones",
     "worstRisk": "Worst risk",
     "highestRiskZone": "Highest-risk zone",
-    "activeAlerts": "Active alerts"
+    "activeAlerts": "Active alerts",
+    "statusActive": "Active",
+    "statusResolved": "Resolved",
+    "resolvedAuto": "Closed automatically: the rainfall stayed below the alert threshold for several days in a row",
+    "resolvedOfficer": "Closed by an officer",
+    "resolvedUnknown": "Resolved"
   },
   "sidebar": {
     "appNameLine1": "Landslide",

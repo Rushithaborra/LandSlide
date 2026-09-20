@@ -83,9 +83,14 @@ class Alert(Base):
     threshold_crossed: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str] = mapped_column(String, default="active")
     delivery_method: Mapped[str] = mapped_column(String, nullable=False)
+    # Set when status becomes 'resolved' (migrations/012_alert_resolution.sql):
+    # 'officer' via the resolve endpoint, 'system' when the rainfall cleared.
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_by: Mapped[str | None] = mapped_column(String, nullable=True)
 
     __table_args__ = (
         CheckConstraint("status IN ('active','resolved')"),
+        CheckConstraint("resolved_by IS NULL OR resolved_by IN ('officer','system')", name="alerts_resolved_by_check"),
         CheckConstraint("delivery_method IN ('sms_mock','sms_twilio','log_only')"),
     )
 

@@ -14,6 +14,10 @@ zones are fetched a chunk per Open-Meteo request (50 single calls took ~33 s,
 the threshold test is done in memory from the fetched data (the 20-day fetch
 covers the longest alert window), so the database is touched a handful of
 times, not once per zone.
+
+It also closes alerts whose rain has cleared (alert_engine.has_cleared) -- without
+that, an alert stayed active forever, since the dashboard has no resolve button
+and a zone with an active alert is never alerted again.
 """
 import time
 import uuid
@@ -21,13 +25,13 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.config import get_rainfall_threshold
-from app.models import RainfallReading, Zone
+from app.models import Alert, RainfallReading, Zone
 from app.services import open_meteo
-from app.services.alert_engine import can_alert, check_and_trigger, drop_forecast_days, evaluate_daily_rainfall
+from app.services.alert_engine import can_alert, check_and_trigger, drop_forecast_days, evaluate_daily_rainfall, has_cleared
 
 FETCH_CHUNK_SIZE = 25  # locations per Open-Meteo request
 MAX_FETCH_WORKERS = 3  # chunks fetched in parallel; well under Open-Meteo's per-minute limit
@@ -80,7 +84,10 @@ def store_readings(db: Session, daily_by_zone: dict[uuid.UUID, list[open_meteo.D
 def select_zones(db: Session, per_state: int) -> list[ZoneTarget]:
     """The `per_state` highest-susceptibility zones of each state that has a
     configured rainfall threshold -- the same "watch the most dangerous
-    corridors first" priority the dashboard's rainfall card already uses."""
+    corridors first" priority the dashboard's rainfall card already uses --
+    plus every zone in an alerting state that currently has an active alert,
+    wherever it ranks: otherwise an alert on a zone outside the top few would
+    never be re-checked, and could never clear."""
     states = [s for (s,) in db.execute(select(Zone.state).distinct()).all() if get_rainfall_threshold(s) is not None]
     targets: list[ZoneTarget] = []
     for state in sorted(states):
@@ -91,7 +98,40 @@ def select_zones(db: Session, per_state: int) -> list[ZoneTarget]:
             .limit(per_state)
         ).all()
         targets.extend(ZoneTarget(*r) for r in rows)
+
+    have = {t.id for t in targets}
+    with_alerts = db.execute(
+        select(Zone.id, Zone.state, Zone.risk_tier, Zone.centroid_lat, Zone.centroid_lng)
+        .join(Alert, Alert.zone_id == Zone.id)
+        .where(Alert.status == "active")
+        .distinct()
+    ).all()
+    targets.extend(
+        ZoneTarget(*r)
+        for r in with_alerts
+        if r.id not in have and can_alert(r.state) and get_rainfall_threshold(r.state) is not None
+    )
     return targets
+
+
+def _active_alert_zone_ids(db: Session, zone_ids: list[uuid.UUID]) -> set[uuid.UUID]:
+    if not zone_ids:
+        return set()
+    rows = db.execute(select(Alert.zone_id).where(Alert.status == "active", Alert.zone_id.in_(zone_ids)).distinct()).all()
+    return {zone_id for (zone_id,) in rows}
+
+
+def resolve_cleared_alerts(db: Session, zone_ids: list[uuid.UUID]) -> int:
+    """Marks these zones' active alerts resolved by the system. Returns how many."""
+    if not zone_ids:
+        return 0
+    result = db.execute(
+        update(Alert)
+        .where(Alert.zone_id.in_(zone_ids), Alert.status == "active")
+        .values(status="resolved", resolved_at=datetime.now(timezone.utc), resolved_by="system")
+    )
+    db.commit()
+    return result.rowcount
 
 
 def _fetch_all(zones: list[ZoneTarget]) -> list[list[open_meteo.DailyRainfall] | Exception]:
@@ -132,25 +172,28 @@ def refresh_rainfall(db: Session, per_state: int, run_alerts: bool = True) -> di
         store_readings(db, daily_by_zone)
 
     alerts_created = 0
+    alerts_resolved = 0
     if run_alerts:
-        for zone in zones:
-            daily = daily_by_zone.get(zone.id)
-            if daily is None or not can_alert(zone.state):
-                continue  # not fetched, or a state whose threshold isn't trusted to alert
+        alerting = [z for z in zones if z.id in daily_by_zone and can_alert(z.state)]
+        has_active_alert = _active_alert_zone_ids(db, [z.id for z in alerting])
+        to_resolve: list[uuid.UUID] = []
+        for zone in alerting:
+            totals = {d.day: d.intensity_mm for d in daily_by_zone[zone.id]}
             config = get_rainfall_threshold(zone.state)
+            tier = zone.risk_tier or "moderate"
             try:
-                crossing = evaluate_daily_rainfall(
-                    drop_forecast_days({d.day: d.intensity_mm for d in daily}),
-                    config=config,
-                    risk_tier=zone.risk_tier or "moderate",
-                )
-                # Only zones that really cross reach the alert engine, which
-                # re-checks from the stored data and skips a zone that already
-                # has an active alert (so no duplicate alerts or SMS).
-                if crossing is not None and check_and_trigger(db, zone.id) is not None:
-                    alerts_created += 1
+                crossing = evaluate_daily_rainfall(drop_forecast_days(totals), config=config, risk_tier=tier)
+                if crossing is not None:
+                    # Only zones that really cross reach the alert engine, which
+                    # re-checks from the stored data and skips a zone that already
+                    # has an active alert (so no duplicate alerts or SMS).
+                    if check_and_trigger(db, zone.id) is not None:
+                        alerts_created += 1
+                elif zone.id in has_active_alert and has_cleared(totals, config, tier):
+                    to_resolve.append(zone.id)
             except Exception as e:
                 errors.append(f"{zone.id}: alert check failed: {e}")
+        alerts_resolved = resolve_cleared_alerts(db, to_resolve)
 
     return {
         "zones_selected": len(zones),
@@ -158,6 +201,7 @@ def refresh_rainfall(db: Session, per_state: int, run_alerts: bool = True) -> di
         "zones_failed": len(zones) - len(daily_by_zone),
         "alerts_enabled": run_alerts,
         "alerts_created": alerts_created,
+        "alerts_resolved": alerts_resolved,
         "alerting_states": sorted({z.state for z in zones if can_alert(z.state)}),
         "states": per_state_refreshed,
         "errors": errors[:5],

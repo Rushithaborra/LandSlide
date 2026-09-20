@@ -60,9 +60,20 @@ has an active alert is not alerted again, and a refresh replaces the same days,
 so repeating a run is safe. To switch it on, add the repository secret
 `OFFICER_API_KEY` (the same value as `API_KEY` on Render); until then the job
 does nothing. `POST /rainfall/refresh?alerts=false` stores rainfall without
-alerting. Limits: alerts stay "active" until an officer resolves them (there is
-no auto-resolve when the rain stops), and only the top zones per state are
-refreshed, not all 100k.
+alerting. Limits: only the top zones per state (plus any zone with an active
+alert) are refreshed, not all 100k.
+
+**Alerts close themselves.** On each refresh, an active alert whose zone is in an
+alerting state is resolved (`resolved_by = "system"`, with a timestamp,
+migration 012) once the rainfall has stayed below its threshold, in every
+duration window, on each of the last `RAINFALL_ALERT_CLEAR_DAYS` days (default 2).
+It is deliberately conservative: it never closes an alert on stale data, a gap in
+the 20-day history, a failed fetch, or forecast rain, and `alerts=false` changes no
+alerts at all. Because the longest window is 20 days, alerts raised in a wet
+spell only clear once the rain has really eased. A resolved zone that later
+crosses again gets a fresh alert. There is no "all clear" SMS. The dashboard has
+no resolve button, so this (or the API) is how an alert closes; the Alerts page
+now shows status and who closed it.
 
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /

@@ -197,24 +197,39 @@ function timeAgo(isoString) {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
+// One place that turns a backend alert into what the UI shows, so the Alerts
+// page and the zone page can't drift apart.
+function shapeAlert(a) {
+  return {
+    id: a.id,
+    zoneId: a.zone_id,
+    title: a.threshold_crossed,
+    location: a.zone_name || "Unknown zone",
+    severity: capitalizeTier(a.risk_tier),
+    timeAgo: timeAgo(a.triggered_at),
+    status: a.status,
+    // "system" = closed automatically because the rainfall cleared;
+    // "officer" = closed by a person; null = resolved before this was recorded.
+    resolvedBy: a.resolved_by || null,
+    resolvedAgo: a.resolved_at ? timeAgo(a.resolved_at) : null,
+  };
+}
+
+// Active alerts first (that's what an officer needs), newest first within each group.
+function byActiveThenNewest(a, b) {
+  return (
+    (a.status === "active" ? 0 : 1) - (b.status === "active" ? 0 : 1) ||
+    new Date(b.triggered_at) - new Date(a.triggered_at)
+  );
+}
+
 // AlertOut now carries zone_name/risk_tier directly (the backend joins them
 // server-side), so this no longer needs a separate full /zones fetch just to
 // label each alert -- that used to mean pulling all 3921 zones for a handful
 // of alerts.
 async function fetchAndShapeAlerts(state) {
   const alerts = await getJSON(alertsPath(state));
-  return alerts
-    .slice()
-    .sort((a, b) => new Date(b.triggered_at) - new Date(a.triggered_at))
-    .map((a) => ({
-      id: a.id,
-      zoneId: a.zone_id,
-      title: a.threshold_crossed,
-      location: a.zone_name || "Unknown zone",
-      severity: capitalizeTier(a.risk_tier),
-      timeAgo: timeAgo(a.triggered_at),
-      status: a.status,
-    }));
+  return alerts.slice().sort(byActiveThenNewest).map(shapeAlert);
 }
 
 // Not every zone has had live rainfall fetched yet (fetching is an explicit,
@@ -583,15 +598,8 @@ export async function getAlertsForZone(zoneId) {
   return alerts
     .filter((a) => a.zone_id === zoneId)
     .slice()
-    .sort((a, b) => new Date(b.triggered_at) - new Date(a.triggered_at))
-    .map((a) => ({
-      id: a.id,
-      title: a.threshold_crossed,
-      location: a.zone_name || "Unknown zone",
-      severity: capitalizeTier(a.risk_tier),
-      timeAgo: timeAgo(a.triggered_at),
-      status: a.status,
-    }));
+    .sort(byActiveThenNewest)
+    .map(shapeAlert);
 }
 
 /* ----------------------------------------------------------------------- *

@@ -130,6 +130,7 @@ class RainfallRefreshOut(BaseModel):
     zones_failed: int
     alerts_enabled: bool
     alerts_created: int
+    alerts_resolved: int  # active alerts closed because the rainfall cleared
     alerting_states: list[str]  # refreshed states whose thresholds are trusted to alert
     states: dict[str, int]  # zones refreshed per state
     errors: list[str]  # first few failures, for the scheduler's log
@@ -162,6 +163,8 @@ class AlertOut(BaseModel):
     threshold_crossed: str
     status: str
     delivery_method: str
+    resolved_at: datetime | None = None
+    resolved_by: str | None = None  # 'officer' | 'system' (rainfall cleared)
 
 
 class GenerateBulletinIn(BaseModel):

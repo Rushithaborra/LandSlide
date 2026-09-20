@@ -95,7 +95,10 @@ def resolve_alert(alert_id: uuid.UUID, db: Session = Depends(get_db)):
     alert = db.get(Alert, alert_id)
     if alert is None:
         raise HTTPException(status_code=404, detail="Alert not found")
-    alert.status = "resolved"
+    if alert.status != "resolved":  # idempotent: don't overwrite who/when it was first resolved
+        alert.status = "resolved"
+        alert.resolved_at = datetime.now(timezone.utc)
+        alert.resolved_by = "officer"
     db.commit()
     db.refresh(alert)
     return alert

@@ -24,7 +24,12 @@
     "zones": "क्षेत्र",
     "worstRisk": "सबसे खराब जोखिम",
     "highestRiskZone": "सर्वाधिक जोखिम वाला क्षेत्र",
-    "activeAlerts": "सक्रिय अलर्ट"
+    "activeAlerts": "सक्रिय अलर्ट",
+    "statusActive": "सक्रिय",
+    "statusResolved": "समाधान",
+    "resolvedAuto": "स्वतः बंद: लगातार कई दिन बारिश अलर्ट सीमा से नीचे रही",
+    "resolvedOfficer": "अधिकारी द्वारा बंद",
+    "resolvedUnknown": "समाधान"
   },
   "sidebar": {
     "appNameLine1": "भूस्खलन",

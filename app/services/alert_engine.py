@@ -113,6 +113,43 @@ def drop_forecast_days(daily_totals: dict[date, float]) -> dict[date, float]:
     return {d: mm for d, mm in daily_totals.items() if d <= today}
 
 
+def has_cleared(
+    daily_totals: dict[date, float],
+    config: RainfallThresholdConfig,
+    risk_tier: str = "moderate",
+    clear_days: int | None = None,
+) -> bool:
+    """Pure: has this zone's rainfall stayed BELOW its threshold, in every
+    duration window, on each of the last `clear_days` days? Only then may an
+    active alert close itself.
+
+    Deliberately conservative -- it answers False (keep the alert) unless it
+    can positively show the rain has cleared:
+    - the data must reach today (stale data can't say "all clear");
+    - each day checked needs a full longest window of history behind it, so a
+      day Open-Meteo returned no value for makes an incomplete window, and
+      evaluate_daily_rainfall would otherwise read "not enough data" as "no
+      crossing" and wrongly close a live alert;
+    - several days in a row (default 2), so a lull mid-storm doesn't close it.
+    Forecast days are ignored, as everywhere in alert evaluation."""
+    clear_days = settings.rainfall_alert_clear_days if clear_days is None else clear_days
+    totals = drop_forecast_days(daily_totals)
+    if not totals or clear_days < 1:
+        return False
+    latest = max(totals)
+    if latest < datetime.now(timezone.utc).date():
+        return False
+    needed_history = max(config.durations_days)
+    for days_back in range(clear_days):
+        as_of = latest - timedelta(days=days_back)
+        window = {d: mm for d, mm in totals.items() if d <= as_of}
+        if len(window) < needed_history:
+            return False
+        if evaluate_daily_rainfall(window, config=config, risk_tier=risk_tier) is not None:
+            return False
+    return True
+
+
 def can_alert(state: str) -> bool:
     """Whether this state's rainfall threshold is trusted to fire alerts (see
     Settings.rainfall_alert_states). A state can have a threshold for display

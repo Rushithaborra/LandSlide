@@ -24,7 +24,12 @@
     "zones": "क्षेत्रहरू",
     "worstRisk": "सबैभन्दा खराब जोखिम",
     "highestRiskZone": "उच्चतम जोखिम क्षेत्र",
-    "activeAlerts": "सक्रिय चेतावनीहरू"
+    "activeAlerts": "सक्रिय चेतावनीहरू",
+    "statusActive": "सक्रिय",
+    "statusResolved": "समाधान",
+    "resolvedAuto": "स्वतः बन्द: लगातार धेरै दिन वर्षा अलर्ट सीमाभन्दा तल रह्यो",
+    "resolvedOfficer": "अधिकारीद्वारा बन्द",
+    "resolvedUnknown": "समाधान"
   },
   "sidebar": {
     "appNameLine1": "पहिरो",
