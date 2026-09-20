@@ -6,8 +6,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import AuthorityContact
 from app.schemas import AuthorityContactIn, AuthorityContactOut
+from app.security import require_officer_key
 
-router = APIRouter(prefix="/authority-contacts", tags=["authority-contacts"])
+router = APIRouter(
+    prefix="/authority-contacts", tags=["authority-contacts"], dependencies=[Depends(require_officer_key)]
+)
 
 
 @router.get("", response_model=list[AuthorityContactOut])

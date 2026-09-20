@@ -14,6 +14,7 @@ from app.services.ai_client import gemini_configured
 from app.services.description_polish import polish_description
 from app.services.translation import translate_to_english
 from app.services.triage_summary import generate_triage_summary
+from app.security import require_officer_key
 
 router = APIRouter(prefix="/reports", tags=["citizen-reports"])
 
@@ -153,15 +154,15 @@ def submit_report(
     return report
 
 
-@router.get("", response_model=list[CitizenReportOut])
+@router.get("", response_model=list[CitizenReportOut], dependencies=[Depends(require_officer_key)])
 def list_reports(db: Session = Depends(get_db)):
     return db.query(CitizenReport).order_by(CitizenReport.submitted_at.desc()).all()
 
 
-@router.post("/{report_id}/verify", response_model=CitizenReportOut)
+@router.post("/{report_id}/verify", response_model=CitizenReportOut, dependencies=[Depends(require_officer_key)])
 def verify_report(report_id: uuid.UUID, db: Session = Depends(get_db)):
     """An officer confirming a citizen report is genuine, from the dashboard's
-    report detail view. No auth yet (matches the rest of this API) -- so
+    report detail view. Officer-key protected, but the key is shared, so
     "who verified it" isn't recorded, only that it was. Does not un-verify or
     reject; that's a separate future action, not this endpoint's job."""
     report = db.get(CitizenReport, report_id)

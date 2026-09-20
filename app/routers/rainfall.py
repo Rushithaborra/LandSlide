@@ -10,11 +10,12 @@ from app.models import RainfallReading, Zone
 from app.schemas import RainfallReadingOut, RainfallThresholdOut
 from app.services import open_meteo
 from app.services.alert_engine import intensity_duration_threshold, check_and_trigger
+from app.security import require_officer_key
 
 router = APIRouter(prefix="/rainfall", tags=["rainfall"])
 
 
-@router.post("/{zone_id}/fetch", response_model=list[RainfallReadingOut])
+@router.post("/{zone_id}/fetch", response_model=list[RainfallReadingOut], dependencies=[Depends(require_officer_key)])
 def fetch_and_store(zone_id: uuid.UUID, db: Session = Depends(get_db)):
     """Pulls live rainfall from Open-Meteo for the zone's centroid, stores it,
     and runs the alert-trigger check on the latest reading.

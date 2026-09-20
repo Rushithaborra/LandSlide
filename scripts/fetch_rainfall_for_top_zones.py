@@ -5,9 +5,13 @@ dashboard's "pick a zone for the rainfall card/chart" logic real data to
 find regardless of which zone happens to be first in the list.
 """
 import asyncio
+import pathlib
 import sys
 
 import httpx
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+from app.security import auth_headers  # noqa: E402  (the officer key, when API_KEY is set)
 
 BACKEND_BASE_URL = "https://landslide-ews-backend.onrender.com"
 
@@ -31,7 +35,7 @@ async def main():
         nonlocal ok
         async with sem:
             try:
-                resp = await client.post(f"{BACKEND_BASE_URL}/rainfall/{zone['id']}/fetch")
+                resp = await client.post(f"{BACKEND_BASE_URL}/rainfall/{zone['id']}/fetch", headers=auth_headers())
                 if resp.status_code == 200:
                     ok += 1
                 else:

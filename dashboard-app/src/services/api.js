@@ -31,6 +31,77 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 // this file stays the one place that knows the backend's base URL.
 export const ALERT_STREAM_URL = `${BASE_URL}/alerts/stream`;
 
+// ---------------------------------------------------------------------------
+// Officer access key. The backend requires it (X-API-Key header) for every
+// write action and for the endpoints that return personal data (citizen
+// reports, authority contacts). It is typed in by the officer and kept only
+// for this browser tab (sessionStorage) -- never baked into the built site,
+// where anyone could read it.
+// ---------------------------------------------------------------------------
+const OFFICER_KEY_STORAGE = "resq_officer_key";
+
+export function getOfficerKey() {
+  try {
+    return sessionStorage.getItem(OFFICER_KEY_STORAGE) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function setOfficerKey(key) {
+  try {
+    if (key) sessionStorage.setItem(OFFICER_KEY_STORAGE, key);
+    else sessionStorage.removeItem(OFFICER_KEY_STORAGE);
+  } catch {
+    // storage blocked (private window etc.) -- the key just won't persist
+  }
+}
+
+export class AuthRequiredError extends Error {
+  constructor(status) {
+    super(
+      status === 429
+        ? "Too many failed attempts -- wait a minute and try again."
+        : "Officer access key required -- enter it with the lock icon in the top bar.",
+    );
+    this.name = "AuthRequiredError";
+    this.status = status;
+  }
+}
+
+function withOfficerKey(headers = {}) {
+  const key = getOfficerKey();
+  return key ? { ...headers, "X-API-Key": key } : headers;
+}
+
+// fetch() for endpoints that need the officer key. A 401/429 becomes an
+// AuthRequiredError, so callers can tell "not signed in" from a real failure.
+async function officerFetch(path, options = {}) {
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers: withOfficerKey(options.headers) });
+  if (res.status === 401 || res.status === 429) throw new AuthRequiredError(res.status);
+  return res;
+}
+
+// Checks a typed-in key against the server (a cheap protected read) so a typo
+// is caught at sign-in instead of failing every later action.
+export async function verifyOfficerKey(key) {
+  try {
+    const res = await fetch(`${BASE_URL}/authority-contacts`, { headers: { "X-API-Key": key } });
+    if (res.status === 401) return "invalid";
+    if (res.status === 429) return "throttled";
+    return res.ok ? "ok" : "error";
+  } catch {
+    return "error";
+  }
+}
+
+// Whether the backend enforces the key at all (GET /health) -- the lock icon
+// is only shown when it does.
+export async function getOfficerAuthMode() {
+  const health = await getJSON("/health");
+  return health.officer_auth === "enabled" ? "enabled" : "disabled";
+}
+
 const fakeDelay = (data, ms = 200) =>
   new Promise((resolve) => setTimeout(() => resolve(data), ms));
 
@@ -83,9 +154,10 @@ function alertsPath(state) {
   return state ? `/alerts?state=${encodeURIComponent(state)}` : "/alerts";
 }
 
-async function getJSON(path) {
+async function getJSON(path, { auth = false } = {}) {
   if (inFlight.has(path)) return inFlight.get(path);
-  const promise = fetch(`${BASE_URL}${path}`).then((res) => {
+  const promise = fetch(`${BASE_URL}${path}`, auth ? { headers: withOfficerKey() } : undefined).then((res) => {
+    if (auth && (res.status === 401 || res.status === 429)) throw new AuthRequiredError(res.status);
     if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
     return res.json();
   });
@@ -296,7 +368,7 @@ export async function getRainfallTrend(state) {
   // same day already finds a "today" reading and skips straight past this.
   if (!isToday(newest.timestamp)) {
     try {
-      const res = await fetch(`${BASE_URL}/rainfall/${found.zone.id}/fetch`, { method: "POST" });
+      const res = await officerFetch(`/rainfall/${found.zone.id}/fetch`, { method: "POST" });
       if (res.ok) {
         const fresh = await res.json();
         if (fresh.length > 0) readings = fresh;
@@ -451,7 +523,7 @@ function shapeReport(r) {
 }
 
 export async function getCitizenReports() {
-  const reports = await getJSON("/reports");
+  const reports = await getJSON("/reports", { auth: true });
   return reports.map(shapeReport);
 }
 
@@ -531,13 +603,13 @@ export async function getAlertsForZone(zoneId) {
  * or delete.
  * ----------------------------------------------------------------------- */
 export async function getAuthorityContacts() {
-  const res = await fetch(`${BASE_URL}/authority-contacts`);
+  const res = await officerFetch("/authority-contacts");
   if (!res.ok) throw new Error(`load authority contacts failed: ${res.status}`);
   return res.json();
 }
 
 export async function addAuthorityContact({ name, role, phoneNumber }) {
-  const res = await fetch(`${BASE_URL}/authority-contacts`, {
+  const res = await officerFetch("/authority-contacts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, role: role || null, phone_number: phoneNumber }),
@@ -547,7 +619,7 @@ export async function addAuthorityContact({ name, role, phoneNumber }) {
 }
 
 export async function deleteAuthorityContact(contactId) {
-  const res = await fetch(`${BASE_URL}/authority-contacts/${contactId}`, { method: "DELETE" });
+  const res = await officerFetch(`/authority-contacts/${contactId}`, { method: "DELETE" });
   if (!res.ok) throw new Error(`delete authority contact failed: ${res.status}`);
 }
 
@@ -598,7 +670,7 @@ export async function updateAdminProfile(profile) {
  * "verified" via the backend's new POST /reports/{id}/verify.
  * ----------------------------------------------------------------------- */
 export async function verifyCitizenReport(reportId) {
-  const res = await fetch(`${BASE_URL}/reports/${reportId}/verify`, { method: "POST" });
+  const res = await officerFetch(`/reports/${reportId}/verify`, { method: "POST" });
   if (!res.ok) throw new Error(`verify report failed: ${res.status}`);
   return res.json();
 }
@@ -616,7 +688,7 @@ export async function verifyCitizenReport(reportId) {
  * writing a headline/message from scratch.
  * ----------------------------------------------------------------------- */
 export async function generateBulletin(alertId, severity) {
-  const res = await fetch(`${BASE_URL}/alerts/${alertId}/generate-bulletin`, {
+  const res = await officerFetch(`/alerts/${alertId}/generate-bulletin`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ severity }),
@@ -626,7 +698,7 @@ export async function generateBulletin(alertId, severity) {
 }
 
 export async function broadcastAlert(alertId, { headline, severity, message, channels }) {
-  const res = await fetch(`${BASE_URL}/alerts/${alertId}/broadcast`, {
+  const res = await officerFetch(`/alerts/${alertId}/broadcast`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ headline, severity, message, channels }),
@@ -663,7 +735,8 @@ export async function searchAll(query) {
   const [zones, alerts, reports] = await Promise.all([
     q.length >= 2 ? getJSON(`/zones?q=${encodeURIComponent(q)}&limit=20`) : Promise.resolve([]),
     fetchAndShapeAlerts(),
-    getCitizenReports(),
+    // Citizen reports need the officer key; without it, search just skips them.
+    getCitizenReports().catch(() => []),
   ]);
 
   const results = [];

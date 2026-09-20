@@ -27,6 +27,21 @@ landslide records). Three limits to state plainly if asked:
 - **163 border road stretches exist as a zone in each of two neighbouring
   states** (same place, each state's own score), so they are counted twice.
 
+## Access control (officer key)
+Every write action, and the two endpoints that return personal data, need a
+shared **officer key** sent as an `X-API-Key` header: alert broadcast / resolve /
+bulletin, rainfall fetch (it can trip the alert engine and send real SMS),
+score updates (`PUT /zones/{id}/susceptibility`), citizen-report list and verify
+(reporters' names and phones), and all of `/authority-contacts` (officials'
+phones). Set it as `API_KEY` on the host (`render.yaml`, `.env.example`); if it is
+unset the key is **not enforced**, and `GET /health` reports `officer_auth:
+"enabled" | "disabled"`. Left public on purpose: the map, counts, alerts list,
+corridors, rainfall history, and citizen report submission. Wrong guesses are
+throttled (20 per minute). In the dashboard an officer signs in with the lock
+icon in the top bar; the key lives only in that browser tab. Limits: one shared
+key (no per-officer accounts, so "who did it" is not recorded), and the public
+read endpoints remain open.
+
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /
   `model_version` — written via `PUT /zones/{id}/susceptibility` by the ML

@@ -5,6 +5,7 @@ import SearchBox from "./SearchBox";
 import StateSelector from "./StateSelector";
 import NotificationsPanel from "./NotificationsPanel";
 import ThemeToggle from "./ThemeToggle";
+import OfficerAccess from "./OfficerAccess";
 import LanguageSwitcher from "./LanguageSwitcher";
 import AdminDrawer from "./AdminDrawer";
 import { getAdminProfile } from "../services/api";
@@ -55,6 +56,9 @@ export default function Topbar({ title, subtitle, onMenuClick }) {
           <PhoneCall size={14} />
           <span className="hidden sm:inline">{t("topbar.sos")}</span>
         </a>
+
+        {/* Officer sign-in — only shown when the server enforces the key */}
+        <OfficerAccess />
 
         {/* Notification bell — LINK SPOT N */}
         <NotificationsPanel />

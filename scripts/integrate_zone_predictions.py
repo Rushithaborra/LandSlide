@@ -33,6 +33,7 @@ from shapely.geometry import shape
 
 from app.database import SessionLocal
 from app.models import Zone
+from app.security import auth_headers
 
 OUTPUT_DIR = pathlib.Path(__file__).resolve().parent.parent / "outputs" / "gis"
 BACKEND_BASE_URL = "http://localhost:8000"
@@ -124,6 +125,7 @@ async def push_susceptibility_async(mapping: list[tuple], base_url: str = BACKEN
                 resp = await client.put(
                     f"{base_url}/zones/{zone_id}/susceptibility",
                     json={"susceptibility_score": score, "risk_tier": tier, "model_version": version},
+                    headers=auth_headers(),  # the officer key, when API_KEY is set
                 )
                 if resp.status_code == 200:
                     ok += 1

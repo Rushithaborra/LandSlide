@@ -193,5 +193,19 @@
   "legend": {
     "title": "Risk level",
     "note": "Relative within each state"
+  },
+  "officer": {
+    "button": "Officer access",
+    "signedIn": "Signed in",
+    "title": "Officer access",
+    "body": "Enter the officer key to send alerts, verify citizen reports and manage authority contacts. It is kept only for this browser tab.",
+    "placeholder": "Officer key",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "cancel": "Cancel",
+    "invalid": "That key was not accepted.",
+    "throttled": "Too many attempts — wait a minute and try again.",
+    "error": "Could not reach the server. Try again.",
+    "checking": "Checking…"
   }
 }

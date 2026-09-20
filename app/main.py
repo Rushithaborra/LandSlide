@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import alerts, authority_contacts, corridors, rainfall, reports, zones
+from app.security import auth_enabled
 
 app = FastAPI(title="Landslide Early Warning System — Backend")
 
@@ -24,4 +25,4 @@ app.include_router(authority_contacts.router)
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "officer_auth": "enabled" if auth_enabled() else "disabled"}

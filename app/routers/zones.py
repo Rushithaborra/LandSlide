@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, load_only
 
 from app.database import get_db
 from app.models import Zone
+from app.security import require_officer_key
 from app.schemas import (
     MapClusterOut,
     MapViewOut,
@@ -224,7 +225,7 @@ def get_zone(zone_id: uuid.UUID, db: Session = Depends(get_db)):
     return zone
 
 
-@router.put("/{zone_id}/susceptibility", response_model=ZoneOut)
+@router.put("/{zone_id}/susceptibility", response_model=ZoneOut, dependencies=[Depends(require_officer_key)])
 def update_susceptibility(zone_id: uuid.UUID, payload: SusceptibilityUpdate, db: Session = Depends(get_db)):
     """Write path for the ML lead's pipeline. Backend does not compute this score."""
     zone = db.get(Zone, zone_id)

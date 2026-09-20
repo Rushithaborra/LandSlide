@@ -10,6 +10,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.database import SessionLocal, get_db
 from app.models import Alert, AlertBroadcast, Zone
+from app.security import require_officer_key
 from app.schemas import AlertOut, BroadcastIn, BroadcastOut, GenerateBulletinIn, GenerateBulletinOut
 from app.services.bulletin import generate_bulletin
 from app.services.sms_alerts import escalate_critical_alert, twilio_configured
@@ -89,7 +90,7 @@ def list_alerts(status: str | None = None, state: str | None = None, db: Session
     return query.order_by(Alert.triggered_at.desc()).all()
 
 
-@router.post("/{alert_id}/resolve", response_model=AlertOut)
+@router.post("/{alert_id}/resolve", response_model=AlertOut, dependencies=[Depends(require_officer_key)])
 def resolve_alert(alert_id: uuid.UUID, db: Session = Depends(get_db)):
     alert = db.get(Alert, alert_id)
     if alert is None:
@@ -100,7 +101,7 @@ def resolve_alert(alert_id: uuid.UUID, db: Session = Depends(get_db)):
     return alert
 
 
-@router.post("/{alert_id}/generate-bulletin", response_model=GenerateBulletinOut)
+@router.post("/{alert_id}/generate-bulletin", response_model=GenerateBulletinOut, dependencies=[Depends(require_officer_key)])
 def generate_bulletin_draft(alert_id: uuid.UUID, payload: GenerateBulletinIn, db: Session = Depends(get_db)):
     """AI-drafted headline+message for the Broadcast composer (Gemini, see
     app.services.bulletin) -- the officer reviews and can edit every word
@@ -116,7 +117,7 @@ def generate_bulletin_draft(alert_id: uuid.UUID, payload: GenerateBulletinIn, db
     return GenerateBulletinOut(headline=draft.headline, message=draft.message)
 
 
-@router.post("/{alert_id}/broadcast", response_model=BroadcastOut)
+@router.post("/{alert_id}/broadcast", response_model=BroadcastOut, dependencies=[Depends(require_officer_key)])
 def broadcast_alert(alert_id: uuid.UUID, payload: BroadcastIn, db: Session = Depends(get_db)):
     """An officer's decision to push an alert out. Real SMS (and, for
     severity='critical', a real phone call to every registered authority) go

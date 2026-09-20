@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="__", extra="ignore")
 
     database_url: str = "postgresql://postgres:postgres@localhost:5432/landslide_ews"
+
+    # Officer access key (app/security.py). Unset = not enforced.
+    api_key: str | None = None
+
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
 
     # Citizen report photo upload (app/routers/reports.py) -- stored in

@@ -27,6 +27,8 @@ services:
         sync: false  # same Supabase project as DATABASE_URL, e.g. https://xxxx.supabase.co
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false  # Project Settings -> API -> service_role key (not anon/public)
+      - key: API_KEY
+        sync: false  # officer access key -- set in the dashboard; generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
       - key: SUPABASE_STORAGE_BUCKET
         value: citizen-reports
       - key: RAINFALL_THRESHOLD__REGION
