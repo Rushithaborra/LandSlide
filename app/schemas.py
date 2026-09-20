@@ -148,6 +148,7 @@ class RainfallRefreshOut(BaseModel):
     alerts_enabled: bool
     alerts_created: int
     alerts_resolved: int  # active alerts closed because the rainfall cleared
+    alerts_worsened: int = 0  # active alerts updated because the rain got clearly worse
     alerting_states: list[str]  # refreshed states whose thresholds are trusted to alert
     states: dict[str, int]  # zones refreshed per state
     errors: list[str]  # first few failures, for the scheduler's log
@@ -177,6 +178,7 @@ class RainfallRefreshIfStaleOut(BaseModel):
     zones_failed: int | None = None
     alerts_created: int | None = None
     alerts_resolved: int | None = None
+    alerts_worsened: int | None = None
     duration_seconds: float | None = None
     first_error: str | None = None  # why zones failed, if any did
 
@@ -238,6 +240,12 @@ class AlertOut(BaseModel):
     # dashboard can show what the rain is doing now next to it.
     latest_rainfall_mm: float | None = None
     latest_rainfall_date: date | None = None
+    # "Rain worsened" updates: when the rain last got clearly worse while this alert
+    # stayed active, how often, and how far above the danger level it peaked at
+    # that point (1.0 = exactly at the level).
+    worsened_at: datetime | None = None
+    worsened_count: int = 0
+    peak_ratio: float | None = None
 
 
 class GenerateBulletinIn(BaseModel):

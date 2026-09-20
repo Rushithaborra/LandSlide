@@ -109,13 +109,15 @@ def _as_daily(by_date: dict) -> list[DailyRainfall]:
 @pytest.fixture
 def wired(monkeypatch):
     h = MagicMock()
-    h.zones, h.fetch, h.active, h.resolved, h.triggered = [], {}, set(), [], []
+    h.zones, h.fetch, h.active, h.resolved, h.triggered, h.escalated = [], {}, set(), [], [], []
+    h.escalate_result = False
     monkeypatch.setattr(rr, "select_zones", lambda db, per_state: h.zones)
     monkeypatch.setattr(rr, "get_rainfall_threshold", lambda state: CONFIG)
     monkeypatch.setattr(rr, "can_alert", lambda state: state != "Assam")
     monkeypatch.setattr(rr, "_fetch_all", lambda zones: [h.fetch[z.id] for z in zones])
     monkeypatch.setattr(rr, "store_readings", lambda db, by_zone: [])
-    monkeypatch.setattr(rr, "_active_alert_zone_ids", lambda db, ids: {i for i in ids if i in h.active})
+    monkeypatch.setattr(rr, "_active_alerts_by_zone", lambda db, ids: {i: MagicMock(zone_id=i) for i in ids if i in h.active})
+    monkeypatch.setattr(rr, "escalate_if_worsened", lambda db, alert, zone, totals, config, tier: h.escalated.append(zone.id) or h.escalate_result)
     monkeypatch.setattr(rr, "resolve_cleared_alerts", lambda db, ids: h.resolved.extend(ids) or len(ids))
     monkeypatch.setattr(rr, "check_and_trigger", lambda db, zid: h.triggered.append(zid) or None)
     monkeypatch.setattr("app.services.alert_engine.settings.rainfall_alert_clear_days", 2)
@@ -249,3 +251,31 @@ def test_resolving_twice_keeps_the_original_resolver_and_time(resolve_client):
     body = client.post(f"/alerts/{alert.id}/resolve").json()
     assert body["resolved_by"] == "system"  # not overwritten by the later call
     assert body["resolved_at"].startswith("2026-09-01")
+
+
+# --- the refresh also updates alerts whose rain got clearly worse ------------
+
+
+def test_an_active_alert_still_crossing_is_checked_for_worsening_and_counted(wired):
+    z = _zone()
+    wired.zones, wired.active, wired.escalate_result = [z], {z.id}, True
+    wired.fetch = {z.id: _as_daily(series({0: 90.0}))}
+    out = rr.refresh_rainfall(MagicMock(), per_state=25)
+    assert wired.escalated == [z.id] and out["alerts_worsened"] == 1
+    assert out["alerts_created"] == 0 and out["alerts_resolved"] == 0
+
+
+def test_no_worsening_check_without_an_active_alert(wired):
+    z = _zone()
+    wired.zones = [z]  # crossing, but no alert yet: check_and_trigger raises one instead
+    wired.fetch = {z.id: _as_daily(series({0: 90.0}))}
+    out = rr.refresh_rainfall(MagicMock(), per_state=25)
+    assert wired.escalated == [] and out["alerts_worsened"] == 0 and wired.triggered == [z.id]
+
+
+def test_no_worsening_check_when_the_rain_has_cleared(wired):
+    z = _zone()
+    wired.zones, wired.active = [z], {z.id}
+    wired.fetch = {z.id: _as_daily(series())}
+    rr.refresh_rainfall(MagicMock(), per_state=25)
+    assert wired.escalated == [] and wired.resolved == [z.id]  # it closes, it does not "escalate"

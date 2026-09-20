@@ -232,6 +232,10 @@ function shapeAlert(a) {
     // viewer's language at render time (timeAgo above is English, kept for search).
     triggeredAt: a.triggered_at,
     resolvedAt: a.resolved_at || null,
+    // Set when the rain got clearly worse while this alert stayed active; peakRatio is
+    // then how far above the danger level the recent rain is (1.0 = exactly at it).
+    worsenedAt: a.worsened_at || null,
+    peakRatio: a.peak_ratio ?? null,
     status: a.status,
     // "system" = closed automatically because the rainfall cleared;
     // "officer" = closed by a person; null = resolved before this was recorded.
@@ -795,6 +799,7 @@ export async function getTickerBulletins() {
     zone: a.zone_name,
     sentence: a.threshold_crossed, // wording is produced per language in AlertTicker
     triggeredAt: a.triggered_at,
+    worsenedAt: a.worsened_at || null,
   }));
   if (alerts.length > TICKER_MAX_ALERTS) {
     items.push({ id: "more", kind: "more", count: alerts.length - TICKER_MAX_ALERTS });
@@ -930,6 +935,10 @@ export async function getNotifications() {
     total: alerts.length,
     items: alerts.slice(0, NOTIFICATION_LIMIT).map((a) => ({
       id: a.id,
+      // A worsened alert is new information: its key changes, so it shows as unread again.
+      key: `${a.id}:${a.worsened_at || ""}`,
+      worsenedAt: a.worsened_at || null,
+      peakRatio: a.peak_ratio ?? null,
       zone: a.zone_name,
       severity: capitalizeTier(a.risk_tier),
       sentence: a.threshold_crossed, // worded per language in NotificationsPanel

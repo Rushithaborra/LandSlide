@@ -42,7 +42,8 @@ function bulletinText(b, t) {
     const states = b.states.map(titleCase).join(", ");
     return states ? `${t("ticker.none")} ${t("ticker.noneStates", { states })}` : t("ticker.none");
   }
-  return `${b.zone}: ${alertSentence(b.sentence, t, { short: true })}`;
+  const text = `${b.zone}: ${alertSentence(b.sentence, t, { short: true })}`;
+  return b.worsenedAt ? `${text} ↑ ${t("alertWorse.short")}` : text;
 }
 
 function BulletinRun({ bulletins, ariaHidden }) {

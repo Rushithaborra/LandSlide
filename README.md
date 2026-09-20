@@ -107,6 +107,28 @@ crosses again gets a fresh alert. There is no "all clear" SMS. The dashboard has
 no resolve button, so this (or the API) is how an alert closes; the Alerts page
 now shows status and who closed it.
 
+**Alerts update when the rain gets worse.** An alert is raised once and used to say
+nothing more while it stayed active. Now, on each refresh, an active alert whose
+zone still crosses its threshold is compared with how bad the recent rain was when
+the alert was last raised or updated (`alerts.peak_ratio` = mean rainfall / danger
+level over the windows up to `RAINFALL_ESCALATION_MAX_WINDOW_DAYS`, default 5;
+1.0 = exactly at the level; migration 014). If it is at least
+`RAINFALL_ESCALATION_STEP` (default 0.5) danger levels higher, the alert records
+`worsened_at` / `worsened_count`, moves to the top of the Alerts list, shows "Rain
+worsened … ago — recent rain is now N× the danger level" (Alerts page, panel, the
+scrolling strip and the bell, where it shows as unread again), and the zone's
+subscribers get an update SMS through the same cooldown-gated Twilio path. At most
+once per `RAINFALL_ESCALATION_MIN_HOURS` (default 6) per alert. Deliberately
+careful: forecast days never count; alerts that predate the feature get a baseline
+at their first refresh and send nothing (so deploying it cannot text everyone at
+once); the baseline does not move while the gap is running, so a real worsening is
+caught right after it; an SMS failure never undoes the recorded update. The step,
+gap and window limit are the team's own choices, not literature-sourced (the
+Methodology page says so). Long windows are left out on purpose: a 15-20 day window
+is dominated by rain already counted when the alert was raised, so a new burst
+barely moves it (a first version that used all windows had a median ratio of 3.7 on
+the live alerts and would almost never have fired).
+
 ## Check my area, and help in three languages
 **Check my area** (`/check-area`, also a search box on the Overview) lets a resident
 type a village or town, or press "Use my location", and see the landslide risk

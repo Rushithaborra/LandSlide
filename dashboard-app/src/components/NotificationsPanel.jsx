@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Bell, AlertTriangle, CheckCheck } from "lucide-react";
 import { getNotifications } from "../services/api";
 import { ALERTS_CHANGED_EVENT, agoLabel, alertSentence } from "../utils/localizedText";
+import WorsenedNote from "./WorsenedNote";
 
 /**
  * The bell in the top bar: the newest REAL active alerts (api.js
@@ -52,7 +53,7 @@ export default function NotificationsPanel() {
         setData(result);
         // Forget ids of alerts that are no longer active, so the stored list can't grow forever.
         setReadIds((prev) => {
-          const live = new Set(result.items.map((n) => n.id));
+          const live = new Set(result.items.map((n) => n.key));
           const kept = new Set([...prev].filter((id) => live.has(id)));
           if (kept.size !== prev.size) saveReadIds(kept);
           return kept.size === prev.size ? prev : kept;
@@ -91,11 +92,11 @@ export default function NotificationsPanel() {
   };
 
   // Counts the newest alerts listed in the panel; older active ones are on the Alerts page.
-  const unread = data.items.filter((n) => !readIds.has(n.id)).length;
+  const unread = data.items.filter((n) => !readIds.has(n.key)).length;
   const badge = unread > 9 ? "9+" : String(unread);
 
   const openItem = (item) => {
-    markRead([item.id]);
+    markRead([item.key]);
     setOpen(false);
     navigate(item.to);
   };
@@ -127,7 +128,7 @@ export default function NotificationsPanel() {
             {unread > 0 && (
               <button
                 type="button"
-                onClick={() => markRead(data.items.map((n) => n.id))}
+                onClick={() => markRead(data.items.map((n) => n.key))}
                 className="flex items-center gap-1 text-xs font-medium text-teal-600 hover:underline"
               >
                 <CheckCheck size={13} />
@@ -142,10 +143,10 @@ export default function NotificationsPanel() {
             )}
 
             {data.items.map((n) => {
-              const read = readIds.has(n.id);
+              const read = readIds.has(n.key);
               return (
                 <button
-                  key={n.id}
+                  key={n.key}
                   type="button"
                   onClick={() => openItem(n)}
                   className={`flex w-full items-start gap-3 border-b border-paper-200 px-4 py-3 text-left last:border-0 hover:bg-paper-50 dark:border-night-700 dark:hover:bg-night-800 ${
@@ -159,6 +160,7 @@ export default function NotificationsPanel() {
                       {!read && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-risk-high" />}
                     </span>
                     <span className="mt-0.5 block text-xs text-paper-600 dark:text-paper-400">{alertSentence(n.sentence, t)}</span>
+                    <WorsenedNote worsenedAt={n.worsenedAt} peakRatio={n.peakRatio} className="mt-0.5 text-[11px]" />
                     <span className="mt-1 block text-[11px] text-paper-500">{agoLabel(n.triggeredAt, t)}</span>
                   </span>
                 </button>

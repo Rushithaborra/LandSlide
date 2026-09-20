@@ -462,6 +462,10 @@
             "a": "Automatically, once the rainfall has stayed below the danger level for two days in a row. The Status column then shows 'Resolved' and how it was closed. It is deliberately cautious: if the data is missing or old, the alert stays open."
           },
           {
+            "q": "What does 'Rain worsened' on an alert mean?",
+            "a": "An alert is raised once and stays active while the rain keeps crossing its danger level. If the recent rain later gets clearly heavier — at least half a danger level higher than when the alert was last raised or updated — the alert is updated: it shows 'Rain worsened … ago' with how far above the danger level the rain is now, moves to the top of the list, shows as unread again in the bell, and the zone's subscribers get an update SMS. This is checked every hour and at most once every 6 hours per alert. The alert's own sentence does not change. Alerts that already existed before this feature start being measured at their next refresh and send nothing at first."
+          },
+          {
             "q": "Why does Assam show no alerts?",
             "a": "Rain alerts are switched on for Sikkim only. Assam's rainfall danger level comes from a study of Guwahati and has not been checked for the whole state, so switching it on now would raise false alarms. The Assam view says 'Alerting not enabled' instead of showing 0, so a blank is not mistaken for safety."
           },
@@ -741,6 +745,11 @@
             "status": "derived",
             "name": "Alert auto-close rule",
             "detail": "An active alert closes by itself once rainfall has stayed below its danger level, in every duration window, for two days in a row. It is deliberately cautious: missing or old data keeps the alert open. This rule is the team's own."
+          },
+          {
+            "status": "derived",
+            "name": "Rain-worsened update rule",
+            "detail": "An active alert is updated, and the zone's subscribers re-texted, when the recent rain (windows up to 5 days) is at least half a danger level higher than when the alert was last raised or updated — at most once every 6 hours per alert, and forecast days never count. The half-level step, the 6-hour gap and the 5-day limit are the team's own choices, not taken from a paper."
           }
         ]
       },
@@ -842,5 +851,9 @@
     "incidents": "The incidents on this page are demonstration records, not real events. Nothing feeds this page yet (no field-verification system is connected), and the PDF you can download from a row carries the same sample data. Real alerts are on the Alerts page.",
     "dataObservations": "The sources and status values below are samples, not live monitoring. For real freshness see “Rainfall updated … ago” on the Overview, and the Data Sources & Methodology page for what is real.",
     "profile": "This profile is sample data — there are no officer accounts yet, and nothing you change here is saved to a server."
+  },
+  "alertWorse": {
+    "line": "Rain worsened {{ago}} — recent rain is now {{ratio}}× the danger level",
+    "short": "rain worsened"
   }
 }

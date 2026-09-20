@@ -29,12 +29,16 @@ router = APIRouter(prefix="/alerts", tags=["alerts"])
 STREAM_POLL_SECONDS = 3
 
 
+# When an alert last changed: raised, or updated because the rain got worse.
+_ACTIVITY = func.coalesce(Alert.worsened_at, Alert.triggered_at)
+
+
 def _fetch_alerts_since(last_seen: datetime | None) -> list[Alert]:
     db = SessionLocal()
     try:
-        query = db.query(Alert).options(joinedload(Alert.zone)).order_by(Alert.triggered_at.asc())
+        query = db.query(Alert).options(joinedload(Alert.zone)).order_by(_ACTIVITY.asc())
         if last_seen is not None:
-            query = query.filter(Alert.triggered_at > last_seen)
+            query = query.filter(_ACTIVITY > last_seen)
         return query.all()
     finally:
         db.close()
@@ -56,7 +60,7 @@ async def stream_alerts():
             await asyncio.sleep(STREAM_POLL_SECONDS)
             new_alerts = await run_in_threadpool(_fetch_alerts_since, last_seen)
             if new_alerts:
-                last_seen = new_alerts[-1].triggered_at
+                last_seen = max(a.worsened_at or a.triggered_at for a in new_alerts)
                 for alert in new_alerts:
                     payload = {
                         "id": str(alert.id),
@@ -64,6 +68,7 @@ async def stream_alerts():
                         "zone_name": alert.zone.name if alert.zone else None,
                         "threshold_crossed": alert.threshold_crossed,
                         "triggered_at": alert.triggered_at.isoformat(),
+                        "worsened": alert.worsened_at is not None and alert.worsened_at > alert.triggered_at,
                     }
                     yield f"data: {json.dumps(payload)}\n\n"
             else:
@@ -88,7 +93,7 @@ def list_alerts(status: str | None = None, state: str | None = None, db: Session
         # EXISTS on the zone) replaces the dashboard downloading every zone
         # of the state just to work out which alerts are its own.
         query = query.filter(Alert.zone.has(Zone.state == state))
-    alerts = query.order_by(Alert.triggered_at.desc()).all()
+    alerts = query.order_by(_ACTIVITY.desc()).all()  # newest activity first: a worsened alert moves up
     _attach_latest_rainfall(db, alerts)
     return alerts
 

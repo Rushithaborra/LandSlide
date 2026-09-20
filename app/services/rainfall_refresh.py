@@ -33,7 +33,14 @@ from app.config import get_rainfall_threshold
 from app.config import settings
 from app.models import Alert, JobRun, RainfallReading, Zone
 from app.services import open_meteo
-from app.services.alert_engine import can_alert, check_and_trigger, drop_forecast_days, evaluate_daily_rainfall, has_cleared
+from app.services.alert_engine import (
+    can_alert,
+    check_and_trigger,
+    drop_forecast_days,
+    escalate_if_worsened,
+    evaluate_daily_rainfall,
+    has_cleared,
+)
 
 FETCH_CHUNK_SIZE = 25  # locations per Open-Meteo request
 MAX_FETCH_WORKERS = 3  # chunks fetched in parallel; well under Open-Meteo's per-minute limit
@@ -116,11 +123,12 @@ def select_zones(db: Session, per_state: int) -> list[ZoneTarget]:
     return targets
 
 
-def _active_alert_zone_ids(db: Session, zone_ids: list[uuid.UUID]) -> set[uuid.UUID]:
+def _active_alerts_by_zone(db: Session, zone_ids: list[uuid.UUID]) -> dict[uuid.UUID, Alert]:
+    """The active alert of each given zone (a zone has at most one), one query."""
     if not zone_ids:
-        return set()
-    rows = db.execute(select(Alert.zone_id).where(Alert.status == "active", Alert.zone_id.in_(zone_ids)).distinct()).all()
-    return {zone_id for (zone_id,) in rows}
+        return {}
+    alerts = db.execute(select(Alert).where(Alert.status == "active", Alert.zone_id.in_(zone_ids))).scalars().all()
+    return {a.zone_id: a for a in alerts}
 
 
 def resolve_cleared_alerts(db: Session, zone_ids: list[uuid.UUID]) -> int:
@@ -289,9 +297,11 @@ def _store_and_evaluate(
 
     alerts_created = 0
     alerts_resolved = 0
+    alerts_worsened = 0
     if run_alerts:
         alerting = [z for z in zones if z.id in daily_by_zone and can_alert(z.state)]
-        has_active_alert = _active_alert_zone_ids(db, [z.id for z in alerting])
+        active_alerts = _active_alerts_by_zone(db, [z.id for z in alerting])
+        has_active_alert = set(active_alerts)
         to_resolve: list[uuid.UUID] = []
         for zone in alerting:
             totals = {d.day: d.intensity_mm for d in daily_by_zone[zone.id]}
@@ -305,6 +315,10 @@ def _store_and_evaluate(
                     # has an active alert (so no duplicate alerts or SMS).
                     if check_and_trigger(db, zone.id) is not None:
                         alerts_created += 1
+                    elif zone.id in active_alerts and escalate_if_worsened(
+                        db, active_alerts[zone.id], zone, totals, config, tier
+                    ):
+                        alerts_worsened += 1  # already alerting, and the rain is now clearly worse
                 elif zone.id in has_active_alert and has_cleared(totals, config, tier):
                     to_resolve.append(zone.id)
             except Exception as e:
@@ -318,6 +332,7 @@ def _store_and_evaluate(
         "alerts_enabled": run_alerts,
         "alerts_created": alerts_created,
         "alerts_resolved": alerts_resolved,
+        "alerts_worsened": alerts_worsened,
         "alerting_states": sorted({z.state for z in zones if can_alert(z.state)}),
         "states": per_state_refreshed,
         "errors": errors[:5],

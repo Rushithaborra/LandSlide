@@ -65,6 +65,20 @@ class Settings(BaseSettings):
     # (and re-alert, and re-text people, an hour later).
     rainfall_alert_clear_days: int = 2
 
+    # "Rain worsened" update (app/services/alert_engine.escalate_if_worsened): an
+    # already-active alert is updated (and citizens re-texted) when its zone's rain
+    # is at least this much further above the danger level than when the alert was
+    # last raised/updated -- measured in multiples of the danger level, so 0.5 means
+    # "half the danger level again". Then at most once per `min_hours` per alert, so
+    # a long storm doesn't text people every hour. The step and gap are the team's
+    # own explainable rule, not literature-sourced.
+    rainfall_escalation_step: float = 0.5
+    rainfall_escalation_min_hours: int = 6
+    # Only windows up to this many days count when judging "worse": a 15-20 day window
+    # is dominated by rain already counted when the alert was raised and barely moves
+    # with a new burst, while a fading storm can make it look worse for no new rain.
+    rainfall_escalation_max_window_days: int = 5
+
     # Rainfall is refreshed automatically when it is older than this. Anyone opening
     # the dashboard can trigger it (POST /rainfall/refresh-if-stale), but never more
     # often than this, so it can't be used to hammer Open-Meteo. Hourly matches how

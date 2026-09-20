@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 from geoalchemy2 import Geometry
-from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, String
+from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -98,6 +98,12 @@ class Alert(Base):
     # 'officer' via the resolve endpoint, 'system' when the rainfall cleared.
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     resolved_by: Mapped[str | None] = mapped_column(String, nullable=True)
+    # "Rain worsened" tracking (migrations/014_alert_worsening.sql): mean rainfall /
+    # danger level (1.0 = exactly at the level) when the alert was last raised or
+    # updated, and when/how often it was updated because the rain got clearly worse.
+    peak_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
+    worsened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    worsened_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
 
     __table_args__ = (
         CheckConstraint("status IN ('active','resolved')"),

@@ -1,6 +1,7 @@
 import { CheckCircle2, Radio } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { agoLabel, alertSentence, dayWord } from "../utils/localizedText";
+import WorsenedNote from "./WorsenedNote";
 
 const severityStyle = {
   High: "bg-risk-highSoft dark:bg-risk-high/20 text-risk-high dark:text-risk-highOn",
@@ -26,7 +27,9 @@ export default function RecentAlertsTable({ alerts, onBroadcast }) {
         <tbody>
           {alerts.map((a) => (
             <tr key={a.id} className={`border-t border-paper-200 dark:border-night-700 ${a.status === "resolved" ? "opacity-60" : ""}`}>
-              <td className="py-2.5 pr-3 text-paper-700 dark:text-paper-300">{alertSentence(a.title, t)}</td>
+              <td className="py-2.5 pr-3 text-paper-700 dark:text-paper-300">{alertSentence(a.title, t)}
+                <WorsenedNote worsenedAt={a.worsenedAt} peakRatio={a.peakRatio} className="mt-0.5 text-[11px]" />
+              </td>
               <td className="py-2.5 pr-3 text-paper-600 dark:text-paper-400">
                 {a.location}
                 {a.rainNowMm !== null && (
