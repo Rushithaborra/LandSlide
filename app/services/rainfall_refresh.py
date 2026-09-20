@@ -230,7 +230,10 @@ def refresh_if_stale(db: Session, max_age_minutes: int, per_state: int, run_aler
         summary = refresh_rainfall(db, per_state, run_alerts)
         if summary["zones_refreshed"] > 0:  # a run that fetched nothing must not look fresh
             record_refresh(db, {k: summary[k] for k in ("zones_refreshed", "zones_failed", "alerts_created", "alerts_resolved", "states")})
-        return {"status": "refreshed", **summary}
+        # First failure reason (zone id stripped) so a run that fetched nothing says why.
+        errors = summary.get("errors")
+        first_error = errors[0].split(": ", 1)[-1][:200] if errors else None
+        return {"status": "refreshed", "first_error": first_error, **summary}
     finally:
         _release_lease(db)
 

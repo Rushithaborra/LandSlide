@@ -157,6 +157,7 @@ class RainfallRefreshIfStaleOut(BaseModel):
     alerts_created: int | None = None
     alerts_resolved: int | None = None
     duration_seconds: float | None = None
+    first_error: str | None = None  # why zones failed, if any did
 
 
 class RainfallThresholdOut(BaseModel):
