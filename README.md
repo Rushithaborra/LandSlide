@@ -107,6 +107,32 @@ crosses again gets a fresh alert. There is no "all clear" SMS. The dashboard has
 no resolve button, so this (or the API) is how an alert closes; the Alerts page
 now shows status and who closed it.
 
+## Check my area, and help in three languages
+**Check my area** (`/check-area`, also a search box on the Overview) lets a resident
+type a village or town, or press "Use my location", and see the landslide risk
+around it: a colour + word + icon (High / Moderate / Low), plain-language advice,
+today's rain, and whether a rain alert is active nearby. The place name is turned
+into coordinates by OpenStreetMap's Nominatim (restricted to the north-east, only
+when Search is pressed, per its usage policy); `GET /zones/near?lat&lng` (public)
+returns the nearest assessed road stretch, its distance, and a tier count for
+everything within 3 km, so a "Low" stretch beside twelve "High" ones is visible.
+**Honest limits:** the model scores road corridors, not arbitrary points, so a place
+far from any assessed road gets "not assessed yet" rather than a guess; tiers are
+relative within each state; states without rain alerts say so instead of "no alert".
+Rain for any point (and for any zone page that has no stored rainfall) is fetched
+live from Open-Meteo by the visitor's browser, labelled "not stored". A "Listen"
+button reads the result aloud when the device has a voice for the chosen language.
+
+**Help** (`/help`) is now fully translated (English, Hindi, Nepali) and reads from
+`src/locales/*.json` (`help.sections`), so it follows the language switcher. It opens
+with a "For everyone" group in short plain sentences, then the officer groups. The
+text was rewritten against the code first: the old answers described a flat "100 mm"
+line, a "48-hour threshold" and an IMD-fed ticker that do not match the system.
+**Translation caveat:** Hindi and Nepali are machine-quality, not reviewed by a native
+speaker; have someone from Sikkim read them before public use. The scrolling
+warning strip, Incidents list, Data & Observations status and profile panel are
+still **sample data** (Help says so).
+
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /
   `model_version` — written via `PUT /zones/{id}/susceptibility` by the ML

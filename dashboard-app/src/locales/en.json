@@ -291,5 +291,271 @@
     "notFoundTitle": "This place is not assessed yet",
     "notFoundBody": "Our map covers road stretches in Sikkim and the other north-east states where we have data. Try a bigger town nearby or a main road.",
     "disclaimer": "The risk level is estimated from the shape of the land by a computer model, and compared with other places in the same state. It does not predict a particular landslide. Always follow warnings from your local authority."
+  },
+  "help": {
+    "title": "Help",
+    "subtitle": "Answers to common questions, for residents and for officers",
+    "emergency": "In danger right now? Call 112 (emergency) or 1077 (disaster helpline).",
+    "checkAreaCta": "Check my area's landslide risk",
+    "howCanWeHelp": "How can we help?",
+    "intro": "{{total}} answers. The first group is for everyone; the rest are for officers and control-room staff.",
+    "searchPlaceholder": "Search help — try 'rain', 'alert', 'village'…",
+    "searchLabel": "Search the help centre",
+    "matchCount": "{{shown}} of {{total}} answers match “{{query}}”.",
+    "noMatch": "No answers matched “{{query}}”.",
+    "nothingHere": "Nothing here matches that. Try a shorter word, or contact your state technical support below.",
+    "clickHint": "Click a question to open the answer",
+    "groupResidents": "For everyone",
+    "groupOfficers": "For officers and control-room staff",
+    "stuckTitle": "Still stuck?",
+    "stuckBody": "Contact your state disaster management authority's technical desk. Tell them which page you were on, what you expected, what you saw, and the time — that is usually enough to diagnose it.",
+    "controlRoom": "State control room · 1077",
+    "placeholderNote": "Placeholder contact details — replace with your office's real support desk before deployment.",
+    "sections": [
+      {
+        "group": "residents",
+        "title": "For residents",
+        "faqs": [
+          {
+            "q": "How do I check if my village is at risk?",
+            "a": "Open 'Check my area' from the menu. Type your village or town name and press Search, or press 'Use my location'. You will see a colour, a word (High, Moderate or Low) and what to do."
+          },
+          {
+            "q": "What do High, Moderate and Low mean?",
+            "a": "They compare your place with other places in the same state. High means landslides are more likely there than in most places. Low means less likely, but still possible in heavy rain. It is not a promise that a landslide will or will not happen."
+          },
+          {
+            "q": "The result says HIGH RISK. What should I do?",
+            "a": "Do not panic. In heavy rain stay away from steep slopes and roads below cliffs. Watch for cracks in the ground, leaning trees or poles, and muddy stream water. If you see any, move away and tell your local authority. Keep a torch, a charged phone and important papers ready."
+          },
+          {
+            "q": "What is a rain alert?",
+            "a": "Many days of rain can make a slope give way. A rain alert means the rain in an area has reached a level that research has linked to landslides there. It is a warning to be careful, not proof that a landslide has happened."
+          },
+          {
+            "q": "Why does it say 'not assessed' or 'rain alerts are not switched on'?",
+            "a": "Our map covers road stretches in the north-east states where we have data. If your place is far from any road we have assessed, we say so instead of guessing. Rain alerts are switched on for Sikkim only for now. Other states still show risk levels and rainfall, but no alerts yet."
+          },
+          {
+            "q": "Who do I call in an emergency?",
+            "a": "Call 112 (national emergency) or 1077 (disaster helpline). The Emergency Contacts page in the menu has more helpline numbers. Numbers marked 'Unconfirmed' should be checked before you rely on them."
+          },
+          {
+            "q": "How do I report a crack or a landslide?",
+            "a": "Use the citizen reporting app: send a photo, your place and a short note. An officer will check it. If someone is in danger, call 112 first."
+          },
+          {
+            "q": "How do I change the language?",
+            "a": "Use the globe button at the top of the screen and choose English, हिन्दी or नेपाली. Your choice is remembered on that device."
+          },
+          {
+            "q": "Can I listen to the answer instead of reading it?",
+            "a": "On the 'Check my area' result there is a 'Listen' button that reads the result aloud. It appears only if your phone or computer has a voice for the language you chose. If you do not see it, ask someone to read it to you, or call the helpline."
+          },
+          {
+            "q": "Is the rainfall shown live?",
+            "a": "It comes from a weather service (Open-Meteo) and is refreshed about every hour. Today and past days are the service's estimate. The next two days are a forecast and are marked that way."
+          },
+          {
+            "q": "Does this predict when a landslide will happen?",
+            "a": "No. It shows which places are more prone to landslides because of the land itself, and it warns when rain reaches a dangerous level. It cannot say when or where a particular landslide will happen. Always follow warnings from your local authority."
+          }
+        ]
+      },
+      {
+        "group": "officers",
+        "title": "Everyday use",
+        "faqs": [
+          {
+            "q": "What am I supposed to check first thing in the morning?",
+            "a": "Open the Overview page. Read the cards at the top, then the map, then the Active Alerts panel. 'High Risk Zones' counts the highest-scoring zones in each state. Risk levels are relative to other zones in the same state, so use it to decide where to look first, not to compare one state with another. Beside the rainfall chart, check 'Rainfall updated … ago' to see how fresh the data is."
+          },
+          {
+            "q": "How do I find one particular village, alert or incident quickly?",
+            "a": "Use the search box at the top of any page, or press Ctrl+K (Cmd+K on a Mac), to find zones, alerts and reports by name. To assess a village or town by its ordinary name, use 'Check my area' instead — road stretches have codes like NH10, not village names."
+          },
+          {
+            "q": "How often does the information on screen change?",
+            "a": "Rainfall is refreshed about every hour, and opening the Overview refreshes it if it is over two and a half hours old. New alerts appear on screen as soon as they are raised. Other pages load fresh each time you open them."
+          },
+          {
+            "q": "Can I use this on a phone or tablet?",
+            "a": "Yes on a tablet — the layout adjusts. On a small phone the side menu is hidden behind a button and the dashboard is cramped; it is meant for a desk or control-room display. Residents on phones can use 'Check my area', which is built for small screens."
+          },
+          {
+            "q": "Where do I find public helpline numbers to give someone?",
+            "a": "The Emergency Contacts page in the side menu — a click-to-call directory of public helplines. Numbers already confirmed real can be called directly; anything not yet independently confirmed is clearly marked 'Unconfirmed — verify before real-world use'."
+          }
+        ]
+      },
+      {
+        "group": "officers",
+        "title": "Reading the risk map",
+        "faqs": [
+          {
+            "q": "What do the coloured circles on the map mean?",
+            "a": "Each circle is a road stretch that has been assessed. Its colour is its risk level: terracotta (red-brown) for High, turmeric (yellow-orange) for Moderate, green for Low. Zoomed out, nearby stretches are grouped into one circle showing how many there are. Risk levels are relative: each colour ranks a stretch against other stretches in the same state (High is roughly the top third), so a High stretch in one state is not necessarily as dangerous as a High stretch in another."
+          },
+          {
+            "q": "What is 'susceptibility', and how is it different from risk?",
+            "a": "Susceptibility is a score from 0 to 100% from a computer model that looks at the land itself — such as slope and ground cover — compared with where landslides have happened before. The risk level (High, Moderate, Low) is that score split into three bands. Neither changes with today's weather. Rain works separately, through alerts."
+          },
+          {
+            "q": "Why did a zone change colour? / Why is a zone High with no alert?",
+            "a": "Colours only change when the model is re-run with new data, not when it rains. Rain works through alerts: when rainfall reaches the danger level for a zone, an alert is raised. So a zone can be High on the map with no alert on a dry day, and a Low zone can still get an alert after a lot of rain."
+          },
+          {
+            "q": "What does the dashed line on the rainfall chart mean?",
+            "a": "It is the daily rainfall danger level for that zone. It comes from published research on rain and landslides for the region, and is lowered for zones with higher risk. It is drawn only for states where rain alerts are switched on (Sikkim today). For Sikkim the research source has not yet been checked against the paper's full text, so treat the level as a working value."
+          },
+          {
+            "q": "A village I know is at risk is not shown on the map. Why?",
+            "a": "The map shows road stretches, not every village. Zones are built from the main roads in each state, because that is where the landslide records are. To see the risk near a village, use 'Check my area' — it shows the nearest assessed road, and says clearly if none is near."
+          },
+          {
+            "q": "I clicked a circle on the map and it opened a new page. What is that?",
+            "a": "That is Zone Detail — the zone's own page with its score, the model version that scored it, its rainfall chart and every alert raised for it. For zones we do not keep rainfall for, the chart is fetched live and marked 'not stored'. Use Back to return."
+          },
+          {
+            "q": "What does the Highway Corridors page show that the map doesn't?",
+            "a": "The same zones grouped by highway or road code (for example NH310A) instead of listed one by one — so you can see which whole corridor has the worst risk, how many active alerts sit on it, and its highest-risk stretch. Useful for a corridor-level decision such as a road closure."
+          }
+        ]
+      },
+      {
+        "group": "officers",
+        "title": "Alerts and warnings",
+        "faqs": [
+          {
+            "q": "An alert has just appeared. What am I expected to do?",
+            "a": "Read the location and severity, check that zone on the map, then follow your district's standard operating procedure for that severity. This dashboard tells you what the system has detected; the decision to evacuate or close a road is yours."
+          },
+          {
+            "q": "Does the public get warned automatically?",
+            "a": "Partly. When a rain alert is raised in Sikkim, the system sends an SMS to subscribed citizen numbers automatically. It is a real SMS service (Twilio), but on a trial account it can only reach numbers verified in advance, so it is not yet a state-wide public warning system. Your job on the ground stays the same."
+          },
+          {
+            "q": "Who exactly receives those SMS messages?",
+            "a": "People who have submitted a citizen report (their phone number is kept for this), plus the officials on the Authority Contacts page for Critical broadcasts. There is no public sign-up yet, so a village not receiving warnings has simply not been added."
+          },
+          {
+            "q": "Where does the scrolling text at the top of the screen come from?",
+            "a": "Right now it is sample text, not a live bulletin — the live bulletin feed is not connected yet, so do not act on it. Real alerts are on the Alerts page and in the Active Alerts panel. Hover over the strip to stop it scrolling."
+          },
+          {
+            "q": "An alert is showing but the weather here is fine. Is it wrong?",
+            "a": "Not necessarily. Check the 'Rain now' line on the alert and the zone's rainfall chart. Alerts are based on rain over the last several days, not only today, and on the weather service's estimate for that exact spot, which can differ from what you see locally. If the rain has really stopped, the alert closes by itself."
+          },
+          {
+            "q": "How does an alert close?",
+            "a": "Automatically, once the rainfall has stayed below the danger level for two days in a row. The Status column then shows 'Resolved' and how it was closed. It is deliberately cautious: if the data is missing or old, the alert stays open."
+          },
+          {
+            "q": "Why does Assam show no alerts?",
+            "a": "Rain alerts are switched on for Sikkim only. Assam's rainfall danger level comes from a study of Guwahati and has not been checked for the whole state, so switching it on now would raise false alarms. The Assam view says 'Alerting not enabled' instead of showing 0, so a blank is not mistaken for safety."
+          },
+          {
+            "q": "What does the 'Broadcast' button on an alert row do?",
+            "a": "It lets you push out a warning yourself: write your own headline and message, choose a severity (Moderate, High or Critical) and pick channels (SMS, app push, community sirens, the government CAP gateway). You must be signed in as an officer. Only SMS and the Critical phone calls are real today; the other channels are simulated and marked that way."
+          },
+          {
+            "q": "What does marking a broadcast 'Critical' do differently?",
+            "a": "A Critical broadcast also places a real phone call to every official on the Authority Contacts page, reading your message aloud twice. Reserve Critical for situations that genuinely need someone's phone to ring — if every alert rang a phone, officials would start ignoring calls."
+          }
+        ]
+      },
+      {
+        "group": "officers",
+        "title": "Citizen reports and verification",
+        "faqs": [
+          {
+            "q": "Where do citizen reports come from?",
+            "a": "Residents submit them from the public reporting app on their phone, with a photo and a note. They arrive on the Citizen Reports page, marked 'Pending verification'. You must be signed in as an officer to see them."
+          },
+          {
+            "q": "How do I verify a report?",
+            "a": "Click the report to open it. You get the photo, the exact location, the landmark, the time it was sent and the reporter's details. Once you have checked the site — in person or against the risk map — press 'Verify report' at the bottom right. The report is then marked Verified for everyone."
+          },
+          {
+            "q": "What does 'Verified' actually mean?",
+            "a": "That an officer has confirmed the report describes something real. It does not mean the danger has been dealt with, and it does not create an incident record. Verification is not undone from this screen — contact the technical team if a mistake was made."
+          },
+          {
+            "q": "A report looks like a false alarm or a prank. What do I do?",
+            "a": "Leave it as Pending and do not verify it. Repeated false reports from one number should be raised with the team who run the reporting app."
+          },
+          {
+            "q": "Is the reporter's phone number confidential?",
+            "a": "It is visible only to signed-in officers, so you can call back for details. It is never shown publicly. Treat the number as official information and do not share it outside your office."
+          }
+        ]
+      },
+      {
+        "group": "officers",
+        "title": "Records and reports",
+        "faqs": [
+          {
+            "q": "How do I get a report for a meeting or a file?",
+            "a": "Go to the Incidents page and press 'Download' on that incident's row. A PDF is produced immediately."
+          },
+          {
+            "q": "What is inside that PDF?",
+            "a": "The incident's ID, location, date, severity and status, the impact, the weather report for the event, the rainfall in the days before it, and citizen reports filed from the same area."
+          },
+          {
+            "q": "What is the difference between an Alert and an Incident?",
+            "a": "An alert is a warning before something happens. An incident is the record of a landslide that actually happened, written after field verification. Not every alert becomes an incident. Note: the Incidents page currently shows sample records until the field-verification feed is connected."
+          }
+        ]
+      },
+      {
+        "group": "officers",
+        "title": "When something looks wrong",
+        "faqs": [
+          {
+            "q": "The numbers have not changed all day. Is the system stuck?",
+            "a": "Refresh the browser and check 'Rainfall updated … ago' beside the rainfall chart. Rainfall is refreshed about every hour. If it says many hours or days, tell the technical team — the hourly job may have stopped."
+          },
+          {
+            "q": "Which parts of this dashboard are real, and which are sample?",
+            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim, citizen reports, and SMS and phone calls (trial account). Sample for now: the scrolling warning strip, the Incidents list, the Data & Observations status, and the profile panel. IMD data is not connected."
+          },
+          {
+            "q": "What does the Data & Observations page tell me?",
+            "a": "It lists the data sources behind the system and a status for each. It currently shows sample status, not live monitoring, so do not use it to judge whether a feed is working. The 'Rainfall updated … ago' note on the Overview is the real freshness check."
+          },
+          {
+            "q": "'System Health' shows less than 100%. What does that mean?",
+            "a": "It shows whether the backend server is answering. Below 100% means it did not answer in time. Wait a minute and refresh — the free server can take up to a minute to wake up after being idle."
+          },
+          {
+            "q": "The map area is blank or grey.",
+            "a": "The map background is loaded from the internet. A blank map usually means this computer has lost its connection, or a firewall is blocking it. The risk circles and all other data still work."
+          },
+          {
+            "q": "Who do I contact when something is genuinely broken?",
+            "a": "Your state disaster management authority's technical contact. Tell them which page you were on, what you expected, what you saw, and the time — that is usually enough to diagnose it."
+          }
+        ]
+      },
+      {
+        "group": "officers",
+        "title": "Account and access",
+        "faqs": [
+          {
+            "q": "How do I sign in as an officer?",
+            "a": "Click the lock icon at the top of the screen and enter the officer key given to you by your state's technical team. The key stays in this browser tab only and is forgotten when you close it."
+          },
+          {
+            "q": "What can I do without signing in?",
+            "a": "Everyone can see the map, alerts, rainfall and 'Check my area'. Signing in is needed for actions and personal details: verifying citizen reports, reading reporters' phone numbers, sending broadcasts, managing Authority Contacts and updating risk scores."
+          },
+          {
+            "q": "Someone else needs access. How do they get it?",
+            "a": "The officer key is issued by the technical team, not from inside this dashboard. Do not share it in chats or messages. If it may have been seen by others, ask the technical team to change it."
+          }
+        ]
+      }
+    ]
   }
 }
