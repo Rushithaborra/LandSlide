@@ -382,13 +382,16 @@ export async function getMapView(state, { minLat, minLng, maxLat, maxLng }) {
  * never offered as the safer option, so this never recommends fleeing toward
  * an unassessed area. Distance is great-circle, not a road route: this hands
  * off to Google Maps for real turn-by-turn directions (see ZoneDetail.jsx)
- * instead of pretending to have them. null when nothing is safer.
+ * instead of pretending to have them. `nearest` is null when nothing is safer.
  * ----------------------------------------------------------------------- */
 export async function getNearestSafeZone(zoneId) {
   const res = await fetch(`${BASE_URL}/zones/${zoneId}/nearest-safer`);
   if (!res.ok) throw new Error(`load nearest safer zone failed: ${res.status}`);
   const nearest = await res.json();
-  return nearest ? { ...shapeZone(nearest), distanceKm: nearest.distance_km } : null;
+  // Wrapped so "still loading" (the hook's null) and "nothing safer nearby"
+  // ({ nearest: null }) are different values -- as a bare null they were the
+  // same, and the page showed "no lower-risk zone nearby" for the whole load.
+  return { nearest: nearest ? { ...shapeZone(nearest), distanceKm: nearest.distance_km } : null };
 }
 
 /* ----------------------------------------------------------------------- *

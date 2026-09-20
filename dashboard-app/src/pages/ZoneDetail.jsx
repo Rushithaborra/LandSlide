@@ -32,11 +32,11 @@ export default function ZoneDetail() {
   const { data: zone, error: zoneError, retry: retryZone } = useAsyncData(() => getZoneById(zoneId), [zoneId]);
   const { data: rainfall } = useAsyncData(() => getRainfallForZone(zoneId), [zoneId]);
   const { data: alerts } = useAsyncData(() => getAlertsForZone(zoneId), [zoneId]);
-  // undefined while loading; "no safer zone found" is an explicit null from
-  // the backend. Keyed on the id from the URL, not on the loaded zone: waiting
-  // for `zone` made the first (zone-less) call resolve to null, so the page
-  // briefly claimed "no lower-risk zone nearby" before the real answer arrived.
-  const { data: nearestSafe } = useAsyncData(() => getNearestSafeZone(zoneId), [zoneId]);
+  // null while loading (the hook's initial value); once loaded it is
+  // { nearest }, where nearest is null when nothing safer exists. Keyed on the
+  // id from the URL so the lookup starts alongside the zone fetch.
+  const { data: nearestResult } = useAsyncData(() => getNearestSafeZone(zoneId), [zoneId]);
+  const nearestSafe = nearestResult?.nearest;
 
   return (
     <DashboardLayout title={t("zoneDetail.title")} subtitle={t("zoneDetail.subtitle")}>
@@ -101,7 +101,7 @@ export default function ZoneDetail() {
                 </p>
                 {zone.level === "Low" ? (
                   <p className="mt-1 text-sm text-paper-500">{t("zoneDetail.alreadyLowest")}</p>
-                ) : nearestSafe === undefined ? (
+                ) : nearestResult === null ? (
                   <p className="mt-1 text-sm text-paper-500">{t("common.loading")}</p>
                 ) : nearestSafe === null ? (
                   <p className="mt-1 text-sm text-paper-500">{t("zoneDetail.noSaferNearby")}</p>
