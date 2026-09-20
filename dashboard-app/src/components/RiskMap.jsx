@@ -2,7 +2,8 @@ import { useState } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, ImageOverlay, Marker, Tooltip } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { Box } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
@@ -88,14 +89,23 @@ export default function RiskMap({ center, zones, height = 420 }) {
 
   return (
     <div style={{ height }} className="relative rounded-xl overflow-hidden border border-paper-200 dark:border-night-700">
-      <button
-        type="button"
-        onClick={() => setShowTerrain((v) => !v)}
-        className="absolute top-2 right-2 z-[1000] rounded-md border border-paper-200 dark:border-night-700 bg-white/90 dark:bg-night-800/90 px-2.5 py-1 text-xs font-medium shadow-sm"
-        title="Real Sikkim DEM hillshade + real zone risk tiers, Phase 1 static overlay -- see README"
-      >
-        {showTerrain ? "Hide terrain" : "Show terrain"}
-      </button>
+      <div className="absolute top-2 right-2 z-[1000] flex gap-1.5">
+        <button
+          type="button"
+          onClick={() => setShowTerrain((v) => !v)}
+          className="rounded-md border border-paper-200 dark:border-night-700 bg-white/90 dark:bg-night-800/90 px-2.5 py-1 text-xs font-medium shadow-sm"
+          title="Real Sikkim DEM hillshade + real zone risk tiers, Phase 1 static overlay -- see README"
+        >
+          {showTerrain ? "Hide terrain" : "Show terrain"}
+        </button>
+        <Link
+          to="/terrain-3d"
+          className="inline-flex items-center gap-1 rounded-md border border-paper-200 dark:border-night-700 bg-white/90 dark:bg-night-800/90 px-2.5 py-1 text-xs font-medium shadow-sm"
+          title="Real DEM rendered as an interactive 3D mesh (deck.gl), Phase 2 -- see README"
+        >
+          <Box size={13} /> 3D View
+        </Link>
+      </div>
       <MapContainer
         center={[center.lat, center.lng]}
         zoom={9}

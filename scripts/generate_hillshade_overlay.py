@@ -36,7 +36,14 @@ from xrspatial import hillshade
 
 ROOT = Path(__file__).resolve().parents[1]
 DEM_PATH = ROOT / "data" / "processed" / "dem_sikkim_utm45n.tif"
-ZONES_PATH = ROOT / "outputs" / "gis" / "sikkim_road_susceptibility.geojson"
+ZONES_PATH = ROOT / "outputs" / "gis" / "sikkim_road_susceptibility_live.geojson"
+# Not the original sikkim_road_susceptibility.geojson: that file predates
+# Person B's real model (connected 2026-09-06, superseding scores for 3,411
+# of 3,921 zones) and was found -- by directly checking this feature's own
+# acceptance criteria (compare a known zone's rendered color against its
+# real API score) -- to still carry the pre-Person-B tier for every single
+# zone. Run scripts/sync_live_zone_scores.py first to (re)generate the
+# _live file from the real, current production API before running this.
 OUT_DIR = ROOT / "dashboard-app" / "public"
 OUT_PATH = OUT_DIR / "sikkim_hillshade_overlay.png"
 
@@ -118,6 +125,18 @@ def rasterize_risk_tiers(zones_path: Path, out_shape, transform, crs):
     all_shapes = scored_burn + unscored_burn
     if not all_shapes:
         return np.zeros(out_shape, dtype=np.uint8)
+
+    # rasterize() draws shapes in list order and later shapes silently win at
+    # any pixel where geometries overlap. These are 500m-buffered ~500m road
+    # corridors, so adjacent zones' buffers overlap substantially -- checked
+    # directly: a real zone's own centroid can sit under 3 different zones'
+    # polygons at once. Left in geojson-feature order, a lower-risk zone
+    # drawn later could visually mask a higher-risk zone underneath it --
+    # exactly backwards for a hazard map. Sorting so severity increases
+    # (unscored -> low -> moderate -> high) means the highest real risk at
+    # any overlapping pixel always ends up drawn last, i.e. visible.
+    severity_rank = {4: 0, 1: 1, 2: 2, 3: 3}  # unscored, low, moderate, high
+    all_shapes.sort(key=lambda shape_code: severity_rank[shape_code[1]])
 
     tier_raster = rasterize(
         all_shapes, out_shape=out_shape, transform=transform, fill=0, dtype=np.uint8,

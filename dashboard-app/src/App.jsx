@@ -12,6 +12,7 @@ import DataObservations from "./pages/DataObservations";
 import DataMethodology from "./pages/DataMethodology";
 import CitizenReports from "./pages/CitizenReports";
 import HelpDocs from "./pages/HelpDocs";
+import Terrain3D from "./pages/Terrain3D";
 
 /**
  * All page routes live here. Match this list against the sidebar links in
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/data-methodology" element={<DataMethodology />} />
             <Route path="/citizen-reports" element={<CitizenReports />} />
             <Route path="/help" element={<HelpDocs />} />
+            <Route path="/terrain-3d" element={<Terrain3D />} />
           </Routes>
         </BrowserRouter>
       </RegionProvider>

@@ -213,15 +213,92 @@ actual DEM with real zone risk-tier colors on top:
   (deck.gl `TerrainLayer`, WGS84 reprojection, a dedicated 3D view) is
   scoped but **not built** — see `scripts/generate_hillshade_overlay.py`'s
   docstring if picking that up later.
-- **Verified locally, not against a deployed environment**: `npm run build`
-  succeeds, `npm run dev` serves the page and both new static assets
-  (PNG, bounds JSON) with correct HTTP 200s and content-types, and the
-  hillshade image itself was visually inspected directly (real mountain
-  relief with the real risk-tier-colored road corridors correctly
-  positioned on top). **Not yet verified**: actual on-screen rendering of
-  the Leaflet `ImageOverlay` in a live browser (no browser-automation tool
-  was available in the session that built this) — confirm the toggle
-  button and overlay alignment render correctly before treating this as
+- **Verified**: `npm run build` succeeds, `npm run dev` serves the page and
+  both static assets (PNG, bounds JSON) with correct HTTP 200s and
+  content-types, the hillshade image was visually inspected directly (real
+  mountain relief with the real risk-tier-colored road corridors correctly
+  positioned on top), and the toggle button + overlay were manually
+  confirmed rendering correctly in a live browser (2026-09-20, tagged
+  `phase1-verified`).
+
+**Phase 2 — interactive deck.gl 3D view added 2026-09-20** — a "3D View"
+link next to Phase 1's terrain toggle opens a dedicated page
+(`/terrain-3d`, `src/pages/Terrain3D.jsx`) with a real, camera-controllable
+3D scene, not a flat image:
+- **Real elevation geometry**: `scripts/generate_terrain_rgb.py` encodes
+  the same real DEM (`data/processed/dem_sikkim_utm45n.tif`) as a Mapbox
+  Terrain-RGB PNG (`dashboard-app/public/sikkim_terrain_rgb.png`), which
+  deck.gl's `TerrainLayer` decodes back into an actual elevation mesh
+  (`elevationDecoder: {rScaler: 6553.6, gScaler: 25.6, bScaler: 0.1, offset:
+  -10000}` — deck.gl's own documented decoder for this exact encoding,
+  matched one-for-one against the encoder). Real elevation range 0–8,560m,
+  consistent with Kanchenjunga's real ~8,586m summit. Reuses Phase 1's
+  already-computed real geographic bounds (`sikkim_hillshade_bounds.json`)
+  rather than recomputing them, since it's the same DEM file.
+- **Real texture + real zone data**: the mesh is textured with Phase 1's
+  same hillshade+risk-tier PNG (no new imagery invented), and real zone
+  markers (same production `GET /zones` data as the 2D map — fetched with
+  `state=Sikkim` explicitly, since the real DEM/terrain-RGB coverage is
+  Sikkim-only regardless of the dashboard's global state selector) are
+  draped onto the actual terrain surface via deck.gl's `TerrainExtension`
+  (`_TerrainExtension` in `@deck.gl/extensions` 9.4 — still
+  underscore-prefixed/experimental in this deck.gl version, not a typo).
+- **Real camera controls**: drag to pan, ctrl/right-click-drag to tilt and
+  rotate, scroll to zoom (deck.gl's built-in `controller`) — genuine 3D
+  perspective, not a fixed isometric image.
+- **New dependency footprint**: `@deck.gl/core`, `react`, `layers`,
+  `geo-layers`, `extensions`, `widgets`, `mesh-layers` + `@loaders.gl/core`,
+  `images`, all pinned to `9.4.0`/`4.4.5` after the unpinned install
+  thrashed npm's peer-dependency resolver for 28+ minutes before failing —
+  pinning matching versions fixed it in under 20 seconds. Production build
+  size grew from ~1.5MB to ~2.2MB (deck.gl's WebGL stack) — a real,
+  known tradeoff of adding a 3D rendering engine, not optimized further for
+  this phase.
+- **Two real bugs found and fixed by actually running this feature's own
+  acceptance criteria** ("verify by comparing a known high-susceptibility
+  zone's on-screen color/position against its real susceptibility_score
+  and risk_tier from the API" — skipped in the first pass, then run after
+  the visual result looked off):
+  1. **Stale zone data.** `outputs/gis/sikkim_road_susceptibility.geojson` —
+     the file both this feature's texture and Phase 1's hillshade are built
+     from — predates Person B's real model (connected 2026-09-06,
+     superseding scores for 3,411 of 3,921 zones). Checked directly: every
+     single one of its 3,921 features was still on the pre-Person-B model;
+     1,682 zones (43%) changed risk *tier* outright, not just score, once
+     synced to the live API. The live `GET /zones` endpoint only returns
+     centroids, not polygon geometry, so it can't replace the geojson
+     outright — `scripts/sync_live_zone_scores.py` fetches all live zones,
+     recovers each one's `segment_id` from its `name` field (`"SH
+     (44848721_00_001)"`), and merges real live scores onto the geojson's
+     real geometries, writing `sikkim_road_susceptibility_live.geojson`
+     (the original file is left untouched as a pre-Person-B record).
+     `generate_hillshade_overlay.py` now reads the `_live` file.
+  2. **Overlap draw order.** These are 500m-buffered ~500m road corridors,
+     so adjacent zones overlap heavily — checked directly: the verified
+     zone's own centroid sits under 3 different zones' polygons at once.
+     `rasterize()` draws in list order and the last shape silently wins at
+     any overlap, so a lower-risk zone drawn later could visually mask a
+     higher-risk zone underneath it — backwards for a hazard map.
+     `rasterize_risk_tiers()` now sorts shapes by severity (unscored → low
+     → moderate → high) before rasterizing, so the highest real risk at any
+     overlapping pixel is always the one left visible.
+  Re-verified against the same real zone after both fixes: pixel color now
+  decodes unambiguously as `high` (matches the live API's `risk_tier:
+  "high"`, `susceptibility_score: 0.9107`) instead of `moderate`.
+- **A third, cosmetic fix**: deck.gl's `TerrainLayer` defaults to
+  `material: true` (its own dynamic directional lighting) on top of a
+  texture that's already a pre-shaded hillshade — double-shading real
+  shadow areas toward black and washing out lit areas. Set `material:
+  false` so the real, already-correct shading shows through cleanly, and
+  lowered `meshMaxError` from the default 4.0 to 1.5 for a visibly less
+  blocky mesh over a mountain range this size.
+- **Verified**: `npm run build` succeeds, and `npm run dev` serves
+  `/terrain-3d` and both new assets (`sikkim_terrain_rgb.png`, reusing
+  the existing bounds JSON) with correct HTTP 200s. **Not yet verified**:
+  actual on-screen rendering of the deck.gl scene in a live browser (no
+  browser-automation tool was available in the session that built this,
+  same limitation as Phase 1) — confirm the terrain mesh, zone markers, and
+  camera drag/tilt/zoom controls all work correctly before treating this as
   demo-ready.
 
 ## ML data pipeline (`scripts/ml/`)
