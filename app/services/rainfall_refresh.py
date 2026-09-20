@@ -228,14 +228,19 @@ def refresh_if_stale(db: Session, max_age_minutes: int, per_state: int, run_aler
         return {"status": "in_progress"}
     try:
         summary = refresh_rainfall(db, per_state, run_alerts)
-        if summary["zones_refreshed"] > 0:  # a run that fetched nothing must not look fresh
-            record_refresh(db, {k: summary[k] for k in ("zones_refreshed", "zones_failed", "alerts_created", "alerts_resolved", "states")})
-        # First failure reason (zone id stripped) so a run that fetched nothing says why.
-        errors = summary.get("errors")
-        first_error = errors[0].split(": ", 1)[-1][:200] if errors else None
-        return {"status": "refreshed", "first_error": first_error, **summary}
-    finally:
+    except Exception:
         _release_lease(db)
+        raise
+    # First failure reason (zone id stripped) so a run that fetched nothing says why.
+    errors = summary.get("errors")
+    first_error = errors[0].split(": ", 1)[-1][:200] if errors else None
+    if summary["zones_refreshed"] > 0:
+        record_refresh(db, {k: summary[k] for k in ("zones_refreshed", "zones_failed", "alerts_created", "alerts_resolved", "states")})
+        _release_lease(db)
+    # else: a run that fetched nothing must not look fresh, and its lease is
+    # deliberately kept until it expires (LEASE_MINUTES), so a provider outage or
+    # rate limit means one retry every few minutes -- not one per dashboard visitor.
+    return {"status": "refreshed", "first_error": first_error, **summary}
 
 
 def refresh_rainfall(db: Session, per_state: int, run_alerts: bool = True) -> dict:

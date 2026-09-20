@@ -102,6 +102,7 @@ def test_a_run_that_fetched_nothing_must_not_make_stale_data_look_fresh(gate):
     out = rr.refresh_if_stale(MagicMock(), 60, 25)
     assert out["status"] == "refreshed"
     assert not any(isinstance(c, tuple) and c[0] == "record" for c in gate.calls)
+    assert "release" not in gate.calls  # cooldown: the lease stays until it expires
 
 
 # --- the public endpoints --------------------------------------------------
