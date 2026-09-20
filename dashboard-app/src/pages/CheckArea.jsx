@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, CloudRain, LocateFixed, MapPin, Phone, Search, ShieldCheck, TriangleAlert, Volume2, VolumeX } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import SurroundingsPanel from "../components/SurroundingsPanel";
 import { fetchLiveRainfall, geocodePlace, getAreaRisk, getRainfallStatus } from "../services/api";
 
 // Colour AND icon AND word: the level must be readable without reading much.
@@ -349,6 +350,8 @@ function Assessment({ result, speech }) {
           ) : null}
         </p>
       </div>
+
+      <SurroundingsPanel zoneId={zone.id} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link to={`/zones/${zone.id}`} className="text-sm font-medium text-teal-600 hover:underline">

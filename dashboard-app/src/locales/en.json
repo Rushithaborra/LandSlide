@@ -370,6 +370,10 @@
           {
             "q": "Does this predict when a landslide will happen?",
             "a": "No. It shows which places are more prone to landslides because of the land itself, and it warns when rain reaches a dangerous level. It cannot say when or where a particular landslide will happen. Always follow warnings from your local authority."
+          },
+          {
+            "q": "What if the road near me is blocked by a landslide?",
+            "a": "An alert means dangerous rain, not that the road is blocked. If you see a slide or a blockage, stay away from it, call 112 or 1077, and report it in the citizen reporting app so an officer can check it. On a road stretch's page you can see the villages and the nearest hospital, police and fire station around it (from OpenStreetMap, straight-line distances). This system does not know which villages would be cut off, where evacuation centres are, or how long rescue would take — ask your district control room (1077) about shelters and rescue."
           }
         ]
       },
@@ -710,6 +714,11 @@
             "status": "live",
             "name": "OpenStreetMap Nominatim place search",
             "detail": "Turns a typed village or town name into coordinates for 'Check my area'. A public service, restricted to the north-east and called only when Search is pressed."
+          },
+          {
+            "status": "live",
+            "name": "OpenStreetMap villages and emergency services",
+            "detail": "Named villages and towns, and hospitals, clinics, police and fire stations, downloaded from OpenStreetMap as a dated snapshot, stored in our database and shown around each road stretch. Volunteers map OpenStreetMap, so it is incomplete and can be out of date; distances are straight-line; coverage depends on what has been loaded (the download date is shown on the page). It does not say which villages would be cut off, and no rescue time is estimated."
           }
         ]
       },
@@ -855,5 +864,28 @@
   "alertWorse": {
     "line": "Rain worsened {{ago}} — recent rain is now {{ratio}}× the danger level",
     "short": "rain worsened"
+  },
+  "surroundings": {
+    "title": "Around this road stretch",
+    "villagesTitle": "Villages and towns nearby",
+    "villageCount_one": "{{count}} named village or town within {{km}} km",
+    "villageCount_other": "{{count}} named villages or towns within {{km}} km",
+    "none": "None mapped within {{km}} km.",
+    "servicesTitle": "Nearest hospital, police and fire station",
+    "servicesNone": "None found within {{km}} km.",
+    "km": "{{km}} km",
+    "call": "Call",
+    "note": "From OpenStreetMap (downloaded {{date}}), which volunteers map, so it can be incomplete or out of date. Distances are in a straight line, not travel time, and a place may be in another state. This system does not know which villages would be cut off if the road is blocked, and it does not estimate when rescue would arrive. In danger, call 112 or 1077.",
+    "notLoaded": "Nearby-places data is not loaded yet.",
+    "loadError": "Could not load nearby places right now.",
+    "kinds": {
+      "village": "Village",
+      "town": "Town",
+      "city": "City",
+      "hospital": "Hospital",
+      "clinic": "Clinic",
+      "police": "Police",
+      "fire_station": "Fire station"
+    }
   }
 }

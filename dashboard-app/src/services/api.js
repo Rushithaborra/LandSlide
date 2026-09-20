@@ -715,6 +715,22 @@ export async function getRainfallForZone(zoneId) {
   return { readings: shapeRainfallReadings(readings), threshold, source };
 }
 
+// Villages/towns and the nearest hospital/police/fire station around a road stretch
+// (OpenStreetMap snapshot, GET /zones/{id}/surroundings). Straight-line distances.
+export async function getSurroundings(zoneId) {
+  const s = await getJSON(`/zones/${zoneId}/surroundings`);
+  const shape = (p) => ({ name: p.name, kind: p.kind, distanceKm: p.distance_km, phone: p.phone || null });
+  return {
+    villageRadiusKm: s.village_radius_km,
+    serviceRadiusKm: s.service_radius_km,
+    villagesTotal: s.villages_total,
+    villages: s.villages.map(shape),
+    services: s.services.map(shape),
+    snapshotAt: s.snapshot_at,
+    areaCovered: s.area_covered,
+  };
+}
+
 export async function getAlertsForZone(zoneId) {
   const alerts = await getJSON("/alerts");
   return alerts

@@ -45,6 +45,29 @@ class AreaRiskOut(BaseModel):
     active_alerts: int  # active rainfall alerts on segments within the radius
 
 
+class NearbyPlaceOut(BaseModel):
+    name: str
+    kind: str  # village | town | city | hospital | clinic | police | fire_station
+    distance_km: float  # straight-line, not travel distance
+    phone: str | None = None  # only if OpenStreetMap lists one; unverified
+
+
+class SurroundingsOut(BaseModel):
+    """GET /zones/{id}/surroundings -- what OpenStreetMap lists around a road stretch.
+    Approximate on purpose: volunteer-mapped, a dated snapshot, straight-line
+    distances. It says nothing about who is cut off or how long rescue would take."""
+
+    village_radius_km: float
+    service_radius_km: float
+    villages_total: int  # named villages/towns/cities within village_radius_km
+    villages: list[NearbyPlaceOut]  # the nearest few
+    services: list[NearbyPlaceOut]  # nearest hospital/clinic/police/fire station(s) within service_radius_km
+    snapshot_at: datetime | None  # when the OpenStreetMap data was downloaded; None = not loaded yet
+    # False when nothing at all is loaded near this stretch (the download may not cover
+    # this part of the region yet). Then "no villages" means "unknown", not "none exist".
+    area_covered: bool = True
+
+
 class MapZoneOut(BaseModel):
     """One zone as a map pin -- only what a marker + tooltip need."""
 

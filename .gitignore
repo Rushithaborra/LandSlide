@@ -49,3 +49,6 @@ dashboard-app/.env
 # ml-integration branch -- large binaries, reproducible per
 # scripts/ml_personB_integration/README.md, not meant for git.
 ml_personB/
+
+# Downloaded OpenStreetMap snapshot and logs (scripts/fetch_osm_places.py) -- regenerate, do not commit
+data/interim/

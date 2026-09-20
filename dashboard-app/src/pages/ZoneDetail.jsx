@@ -6,6 +6,7 @@ import LoadError from "../components/LoadError";
 import RainfallChart from "../components/RainfallChart";
 import RecentAlertsTable from "../components/RecentAlertsTable";
 import RiskMap from "../components/RiskMap";
+import SurroundingsPanel from "../components/SurroundingsPanel";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { getZoneById, getRainfallForZone, getAlertsForZone, getNearestSafeZone } from "../services/api";
 
@@ -150,6 +151,8 @@ export default function ZoneDetail() {
               <RiskMap center={{ lat: zone.lat, lng: zone.lng }} zones={[zone]} height={260} />
             </div>
           </div>
+
+          <SurroundingsPanel zoneId={zoneId} />
 
           <div className="rounded-xl border border-paper-200 bg-white p-4 dark:border-night-700 dark:bg-night-900">
             <h3 className="mb-2 font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">

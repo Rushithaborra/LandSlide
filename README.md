@@ -129,6 +129,23 @@ is dominated by rain already counted when the alert was raised, so a new burst
 barely moves it (a first version that used all windows had a median ratio of 3.7 on
 the live alerts and would almost never have fired).
 
+**Around a road stretch (villages and nearest services).** A zone's page (and the
+"Check my area" result) shows the named villages/towns within 3 km and the nearest
+hospital, clinic, police and fire station, with straight-line distances and a call
+link when OpenStreetMap lists a phone. Data: `scripts/fetch_osm_places.py` downloads
+them from OpenStreetMap (Overpass API) in 1-degree tiles -- the public servers time
+out on big queries, so it retries across three mirrors, saves after every tile and
+resumes -- and `scripts/load_osm_places.py` upserts them into `places` (migration
+015); `GET /zones/{id}/surroundings` serves them (public, indexed box query).
+**Honest limits, also printed on the panel:** OpenStreetMap is volunteer-mapped, so
+it is incomplete and dated (the snapshot date is shown); distances are straight-line,
+not travel time, and the nearest service can be in another state; where nothing is
+loaded near a stretch the panel says "not loaded", not "no villages"; and the system
+does **not** know which villages would be cut off if a road is blocked, where
+evacuation centres are (OpenStreetMap has almost none tagged -- that list has to
+come from the state disaster authority), or how long rescue would take, so it shows
+none of those. Coverage grows as tiles are loaded (Sikkim first).
+
 ## Check my area, and help in three languages
 **Check my area** (`/check-area`, also a search box on the Overview) lets a resident
 type a village or town, or press "Use my location", and see the landslide risk

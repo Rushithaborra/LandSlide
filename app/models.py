@@ -126,6 +126,21 @@ class Alert(Base):
         return self.zone.risk_tier
 
 
+class Place(Base):
+    """A village/town or an emergency service from OpenStreetMap (migrations/
+    015_places.sql). A dated snapshot, incomplete by nature -- see the migration."""
+
+    __tablename__ = "places"
+
+    osm_id: Mapped[str] = mapped_column(String, primary_key=True)
+    kind: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str | None] = mapped_column(String, nullable=True)
+    lat: Mapped[float] = mapped_column(Float, nullable=False)
+    lng: Mapped[float] = mapped_column(Float, nullable=False)
+    phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class AlertBroadcast(Base):
     __tablename__ = "alert_broadcasts"
 
