@@ -156,13 +156,14 @@ async function findZoneWithRainfall(zones, tryCount = 15) {
     .slice()
     .sort((a, b) => (b.susceptibility_score ?? 0) - (a.susceptibility_score ?? 0))
     .slice(0, tryCount);
-  for (const zone of candidates) {
-    try {
-      const readings = await getJSON(`/rainfall/${zone.id}`);
-      if (readings.length > 0) return { zone, readings };
-    } catch {
-      // try the next candidate
-    }
+  // Asked in parallel, then the highest-priority zone that has readings wins.
+  // One at a time, a state with no stored rainfall at all (most newly added
+  // states) cost 15 sequential requests -- the whole Overview sat on
+  // "Loading" for ~18 s when switching to Assam.
+  const results = await Promise.allSettled(candidates.map((zone) => getJSON(`/rainfall/${zone.id}`)));
+  for (let i = 0; i < candidates.length; i++) {
+    const r = results[i];
+    if (r.status === "fulfilled" && r.value.length > 0) return { zone: candidates[i], readings: r.value };
   }
   return null;
 }
