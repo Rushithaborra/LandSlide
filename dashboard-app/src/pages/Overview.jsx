@@ -11,10 +11,19 @@ import {
   getSummaryStats,
   getActiveAlerts,
   getRainfallTrend,
+  getRainfallStatus,
+  refreshRainfallIfStale,
 } from "../services/api";
 import { mapCenter } from "../data/mockData";
 import { useRegion } from "../context/RegionContext";
 import { useAlertStream } from "../hooks/useAlertStream";
+
+function formatAge(minutes) {
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  return hours < 24 ? `${hours} h ago` : `${Math.floor(hours / 24)} d ago`;
+}
 
 export default function Overview() {
   const { t } = useTranslation();
@@ -33,6 +42,8 @@ export default function Overview() {
   // its own data and shows its own retry.)
   const [partialError, setPartialError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  // Minutes since the backend last refreshed rainfall (null = unknown/never).
+  const [rainfallAge, setRainfallAge] = useState(null);
   const { state: selectedState } = useRegion();
   // Tracks which state this effect last actually fetched for, so a
   // retryCount bump (a live alert arriving via useAlertStream, or the
@@ -99,6 +110,24 @@ export default function Overview() {
   // Active Alerts panel all update in place, no loading flash (existing
   // data stays on screen while the re-fetch is in flight).
   useAlertStream(() => setRetryCount((n) => n + 1));
+
+  // Opening the Overview tells the backend "someone is looking"; it refreshes
+  // rainfall only if what it has is over an hour old (so any number of viewers
+  // costs at most one refresh an hour), then the page re-reads without a flash.
+  // Runs once per visit -- a state switch doesn't need another refresh.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const result = await refreshRainfallIfStale();
+      if (cancelled) return;
+      if (result?.status === "refreshed") setRetryCount((n) => n + 1);
+      const status = await getRainfallStatus();
+      if (!cancelled) setRainfallAge(status?.age_minutes ?? null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <DashboardLayout
@@ -211,6 +240,7 @@ export default function Overview() {
                 {rainfallThreshold
                   ? t("overview.dangerThreshold", { value: rainfallThreshold.mm.toFixed(1) })
                   : t("overview.noThresholdConfigured")}
+                {rainfallAge !== null && ` · ${t("overview.rainfallUpdated", { age: formatAge(rainfallAge) })}`}
               </span>
             </div>
             <RainfallChart data={rainfall} thresholdMm={rainfallThreshold?.mm ?? null} height={340} />

@@ -67,11 +67,22 @@ cover). It reads
 the 20-day Open-Meteo window in one request per 25 zones (~3-8 s per run, ~400
 Open-Meteo calls a day against a 10,000/day free limit). A zone that already
 has an active alert is not alerted again, and a refresh replaces the same days,
-so repeating a run is safe. To switch it on, add the repository secret
+so repeating a run is safe. To use the full path, add the repository secret
 `OFFICER_API_KEY` (the same value as `API_KEY` on Render); until then the job
-does nothing. `POST /rainfall/refresh?alerts=false` stores rainfall without
+shows a warning and calls the public `refresh-if-stale` endpoint instead. `POST /rainfall/refresh?alerts=false` stores rainfall without
 alerting. Limits: only the top zones per state (plus any zone with an active
 alert) are refreshed, not all 100k.
+
+**Opening the dashboard keeps rainfall current too.** The Overview calls the
+public `POST /rainfall/refresh-if-stale`, which refreshes (and evaluates alerts)
+only when stored rainfall is older than `RAINFALL_REFRESH_MAX_AGE_MINUTES`
+(default 60), however many people are viewing. It takes no input, so it can't be
+abused to pick what gets fetched; a database lease (`job_runs`, migration 013)
+lets one refresh run at a time, and a crashed or empty run never marks stale data
+fresh. `GET /rainfall/status` reports the age shown on the dashboard. The
+"Rainfall (24h)" card uses the latest *observed* day only (never a forecast day),
+and each alert shows its zone's latest observed rainfall next to its
+raised-at-the-time text.
 
 **Alerts close themselves.** On each refresh, an active alert whose zone is in an
 alerting state is resolved (`resolved_by = "system"`, with a timestamp,

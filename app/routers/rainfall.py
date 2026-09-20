@@ -6,11 +6,11 @@ from sqlalchemy.orm import Session
 from app.config import get_rainfall_threshold, settings
 from app.database import get_db
 from app.models import RainfallReading, Zone
-from app.schemas import RainfallReadingOut, RainfallRefreshOut, RainfallThresholdOut
+from app.schemas import RainfallReadingOut, RainfallRefreshIfStaleOut, RainfallRefreshOut, RainfallStatusOut, RainfallThresholdOut
 from app.security import require_officer_key
 from app.services import open_meteo
 from app.services.alert_engine import can_alert, check_and_trigger, intensity_duration_threshold
-from app.services.rainfall_refresh import refresh_rainfall, store_readings
+from app.services.rainfall_refresh import record_refresh, refresh_if_stale, refresh_rainfall, refresh_status, store_readings
 
 router = APIRouter(prefix="/rainfall", tags=["rainfall"])
 
@@ -25,7 +25,29 @@ def refresh_all(
     refreshes the highest-risk zones of every state that has a rainfall
     threshold, then fires alerts (and SMS, if Twilio is set up) for any whose
     fresh rainfall crosses it. `alerts=false` is a dry run for the data only."""
-    return refresh_rainfall(db, per_state or settings.rainfall_refresh_zones_per_state, run_alerts=alerts)
+    out = refresh_rainfall(db, per_state or settings.rainfall_refresh_zones_per_state, run_alerts=alerts)
+    # Only a full-size run that also checked alerts counts as "refreshed" for the
+    # staleness gate; a data-only or tiny test run must not make the system look fresh.
+    if per_state is None and alerts and out["zones_refreshed"] > 0:
+        record_refresh(db, {k: out[k] for k in ("zones_refreshed", "zones_failed", "alerts_created", "alerts_resolved", "states")})
+    return out
+
+
+@router.get("/status", response_model=RainfallStatusOut)
+def rainfall_status(db: Session = Depends(get_db)):
+    """When rainfall was last refreshed (the dashboard shows 'updated 12 min ago')."""
+    return refresh_status(db, settings.rainfall_refresh_max_age_minutes)
+
+
+@router.post("/refresh-if-stale", response_model=RainfallRefreshIfStaleOut)
+def refresh_if_stale_endpoint(db: Session = Depends(get_db)):
+    """Public on purpose: the dashboard calls this when it opens, so rainfall
+    stays current for anyone looking at it (a judge, an officer) without
+    depending on a scheduler. Safe to expose: it takes no input, does nothing
+    while the data is fresh (RAINFALL_REFRESH_MAX_AGE_MINUTES, default 60), only
+    one refresh runs at a time, and what it fetches and alerts on is fixed by
+    configuration -- a caller can only make it run when it was due anyway."""
+    return refresh_if_stale(db, settings.rainfall_refresh_max_age_minutes, settings.rainfall_refresh_zones_per_state)
 
 
 @router.post("/{zone_id}/fetch", response_model=list[RainfallReadingOut], dependencies=[Depends(require_officer_key)])

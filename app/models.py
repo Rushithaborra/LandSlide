@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from geoalchemy2 import Geometry
 from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, String
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -72,6 +72,17 @@ class RainfallReading(Base):
     __table_args__ = (CheckConstraint("source IN ('open-meteo','imd')"),)
 
     zone: Mapped[Zone] = relationship(back_populates="rainfall_readings")
+
+
+class JobRun(Base):
+    """When a background job last completed (migrations/013_job_runs.sql) -- the
+    rainfall refresh uses it to decide whether the data is stale."""
+
+    __tablename__ = "job_runs"
+
+    name: Mapped[str] = mapped_column(String, primary_key=True)
+    last_run_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    summary: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
 
 class Alert(Base):

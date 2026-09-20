@@ -1,5 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const severityStyle = {
   High: "bg-risk-highSoft dark:bg-risk-high/20 text-risk-high dark:text-risk-highOn",
@@ -16,6 +17,7 @@ const severityStyle = {
 const VISIBLE_COUNT = 5;
 
 export default function AlertsPanel({ alerts }) {
+  const { t } = useTranslation();
   const visible = alerts.slice(0, VISIBLE_COUNT);
   const remaining = alerts.length - visible.length;
 
@@ -40,6 +42,11 @@ export default function AlertsPanel({ alerts }) {
                 <span className="text-[11px] text-paper-500 whitespace-nowrap">{a.timeAgo}</span>
               </div>
               <p className="text-xs text-paper-600 dark:text-paper-400 mt-0.5">{a.location}</p>
+              {a.rainNowMm !== null && (
+                <p className="text-[11px] text-paper-500 mt-0.5">
+                  {t("table.rainNow", { mm: a.rainNowMm.toFixed(1), day: a.rainNowDay })}
+                </p>
+              )}
               <span
                 className={`inline-block mt-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${
                   severityStyle[a.severity] || "bg-paper-100 text-paper-600"

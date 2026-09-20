@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
@@ -137,6 +137,28 @@ class RainfallRefreshOut(BaseModel):
     duration_seconds: float
 
 
+class RainfallStatusOut(BaseModel):
+    """GET /rainfall/status -- how fresh the stored rainfall is."""
+
+    last_refresh_at: datetime | None
+    age_minutes: int | None
+    max_age_minutes: int
+    stale: bool
+
+
+class RainfallRefreshIfStaleOut(BaseModel):
+    """POST /rainfall/refresh-if-stale: 'fresh' (nothing to do), 'in_progress'
+    (someone else is refreshing right now) or 'refreshed' (with the summary)."""
+
+    status: Literal["fresh", "in_progress", "refreshed"]
+    age_minutes: int | None = None
+    zones_refreshed: int | None = None
+    zones_failed: int | None = None
+    alerts_created: int | None = None
+    alerts_resolved: int | None = None
+    duration_seconds: float | None = None
+
+
 class RainfallThresholdOut(BaseModel):
     """The real, config-driven 1-day I-D threshold for one zone -- what the
     dashboard's rainfall chart should draw its reference line against,
@@ -165,6 +187,11 @@ class AlertOut(BaseModel):
     delivery_method: str
     resolved_at: datetime | None = None
     resolved_by: str | None = None  # 'officer' | 'system' (rainfall cleared)
+    # An alert's text is a snapshot from the moment it was raised and never
+    # changes; these are the zone's most recent OBSERVED daily rainfall, so the
+    # dashboard can show what the rain is doing now next to it.
+    latest_rainfall_mm: float | None = None
+    latest_rainfall_date: date | None = None
 
 
 class GenerateBulletinIn(BaseModel):

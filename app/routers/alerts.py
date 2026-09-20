@@ -5,11 +5,12 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 from starlette.concurrency import run_in_threadpool
 
 from app.database import SessionLocal, get_db
-from app.models import Alert, AlertBroadcast, Zone
+from app.models import Alert, AlertBroadcast, RainfallReading, Zone
 from app.security import require_officer_key
 from app.schemas import AlertOut, BroadcastIn, BroadcastOut, GenerateBulletinIn, GenerateBulletinOut
 from app.services.bulletin import generate_bulletin
@@ -87,7 +88,27 @@ def list_alerts(status: str | None = None, state: str | None = None, db: Session
         # EXISTS on the zone) replaces the dashboard downloading every zone
         # of the state just to work out which alerts are its own.
         query = query.filter(Alert.zone.has(Zone.state == state))
-    return query.order_by(Alert.triggered_at.desc()).all()
+    alerts = query.order_by(Alert.triggered_at.desc()).all()
+    _attach_latest_rainfall(db, alerts)
+    return alerts
+
+
+def _attach_latest_rainfall(db: Session, alerts: list[Alert]) -> None:
+    """Each alert's text is frozen at the moment it was raised. Attach the
+    zone's most recent OBSERVED daily rainfall (today at the latest, never a
+    forecast day) so the dashboard can show what the rain is doing now."""
+    zone_ids = {a.zone_id for a in alerts}
+    if not zone_ids:
+        return
+    rows = db.execute(
+        select(RainfallReading.zone_id, RainfallReading.timestamp, RainfallReading.intensity_mm)
+        .where(RainfallReading.zone_id.in_(zone_ids), RainfallReading.timestamp <= func.now())
+        .distinct(RainfallReading.zone_id)
+        .order_by(RainfallReading.zone_id, RainfallReading.timestamp.desc())
+    ).all()
+    latest = {zone_id: (ts.date(), mm) for zone_id, ts, mm in rows}
+    for a in alerts:
+        a.latest_rainfall_date, a.latest_rainfall_mm = latest.get(a.zone_id, (None, None))
 
 
 @router.post("/{alert_id}/resolve", response_model=AlertOut, dependencies=[Depends(require_officer_key)])

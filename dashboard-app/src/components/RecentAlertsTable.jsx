@@ -26,7 +26,14 @@ export default function RecentAlertsTable({ alerts, onBroadcast }) {
           {alerts.map((a) => (
             <tr key={a.id} className={`border-t border-paper-200 dark:border-night-700 ${a.status === "resolved" ? "opacity-60" : ""}`}>
               <td className="py-2.5 pr-3 text-paper-700 dark:text-paper-300">{a.title}</td>
-              <td className="py-2.5 pr-3 text-paper-600 dark:text-paper-400">{a.location}</td>
+              <td className="py-2.5 pr-3 text-paper-600 dark:text-paper-400">
+                {a.location}
+                {a.rainNowMm !== null && (
+                  <span className="block text-[11px] text-paper-500">
+                    {t("table.rainNow", { mm: a.rainNowMm.toFixed(1), day: a.rainNowDay })}
+                  </span>
+                )}
+              </td>
               <td className="py-2.5 pr-3">
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${severityStyle[a.severity]}`}>
                   {a.severity}

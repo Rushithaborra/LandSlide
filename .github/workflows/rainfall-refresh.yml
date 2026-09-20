@@ -7,7 +7,8 @@
 #
 # Needs ONE repository secret (Settings -> Secrets and variables -> Actions):
 #   OFFICER_API_KEY   the same value as API_KEY on Render (the officer key)
-# Until it is set, each run just prints a notice and succeeds -- nothing breaks.
+# Until it is set, each run shows a warning and falls back to the public
+# refresh-if-stale endpoint (still keeps rainfall current).
 name: Refresh rainfall
 
 on:
@@ -36,7 +37,12 @@ jobs:
           ALERTS: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.alerts) || 'true' }}
         run: |
           if [ -z "$OFFICER_KEY" ]; then
-            echo "OFFICER_API_KEY secret is not set -- skipping (see the comment at the top of this file)."
+            # Not silent: this shows as a yellow warning on the run. The public
+            # endpoint still keeps rainfall current (refreshes only when the data
+            # is over an hour old) but cannot be told to skip alert evaluation.
+            echo "::warning::OFFICER_API_KEY secret is not visible to this repository -- using the public refresh-if-stale endpoint instead."
+            curl --fail-with-body --silent --show-error               --max-time 200 --retry 3 --retry-delay 30 --retry-all-errors               -X POST "$BACKEND_URL/rainfall/refresh-if-stale"
+            echo
             exit 0
           fi
           # The free backend can take ~50 s to wake up, so allow a long first

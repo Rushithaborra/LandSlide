@@ -197,6 +197,41 @@ function timeAgo(isoString) {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
+// "today" / "yesterday" / "Sep 19" for a rainfall day. Daily rainfall is stored
+// per UTC day, so compare UTC dates, not the viewer's local ones.
+export function dayLabel(isoTimestamp) {
+  const day = new Date(isoTimestamp).toISOString().slice(0, 10);
+  const today = new Date();
+  const utcToday = today.toISOString().slice(0, 10);
+  const utcYesterday = new Date(today.getTime() - 86400000).toISOString().slice(0, 10);
+  if (day === utcToday) return "today";
+  if (day === utcYesterday) return "yesterday";
+  return new Date(`${day}T00:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+// Rainfall is kept current by the backend, not by anyone clicking anything:
+// the dashboard just tells it "someone is looking", and the backend refreshes
+// only if the stored data is older than an hour (never more often, however many
+// people open the page). Resolves to the backend's answer, or null if it can't
+// be reached -- a failed check must never break the page.
+export async function refreshRainfallIfStale() {
+  try {
+    const res = await fetch(`${BASE_URL}/rainfall/refresh-if-stale`, { method: "POST" });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+// When rainfall was last refreshed, for "updated 12 min ago".
+export async function getRainfallStatus() {
+  try {
+    return await getJSON("/rainfall/status");
+  } catch {
+    return null;
+  }
+}
+
 // One place that turns a backend alert into what the UI shows, so the Alerts
 // page and the zone page can't drift apart.
 function shapeAlert(a) {
@@ -212,6 +247,10 @@ function shapeAlert(a) {
     // "officer" = closed by a person; null = resolved before this was recorded.
     resolvedBy: a.resolved_by || null,
     resolvedAgo: a.resolved_at ? timeAgo(a.resolved_at) : null,
+    // The alert text above is frozen at the moment it was raised; this is what
+    // the zone's rain is doing now (latest observed day, never a forecast).
+    rainNowMm: a.latest_rainfall_mm ?? null,
+    rainNowDay: a.latest_rainfall_date ? dayLabel(`${a.latest_rainfall_date}T00:00:00Z`) : null,
   };
 }
 
@@ -248,11 +287,19 @@ async function findZoneWithRainfall(zones, tryCount = 15) {
   // states) cost 15 sequential requests -- the whole Overview sat on
   // "Loading" for ~18 s when switching to Assam.
   const results = await Promise.allSettled(candidates.map((zone) => getJSON(`/rainfall/${zone.id}`)));
-  for (let i = 0; i < candidates.length; i++) {
-    const r = results[i];
-    if (r.status === "fulfilled" && r.value.length > 0) return { zone: candidates[i], readings: r.value };
-  }
-  return null;
+  const withData = candidates
+    .map((zone, i) => ({ zone, readings: results[i].status === "fulfilled" ? results[i].value : [] }))
+    .filter((c) => c.readings.length > 0);
+  // Prefer a zone whose newest OBSERVED day is recent, so the card doesn't land
+  // on a zone that was last refreshed days ago while others are current.
+  return withData.find((c) => newestObservedAgeDays(c.readings) <= 3) || withData[0] || null;
+}
+
+function newestObservedAgeDays(readings) {
+  const observed = readings.filter((r) => !r.is_forecast);
+  if (observed.length === 0) return Infinity;
+  const newest = Math.max(...observed.map((r) => new Date(r.timestamp).getTime()));
+  return (Date.now() - newest) / 86400000;
 }
 
 /* ----------------------------------------------------------------------- *
@@ -286,9 +333,17 @@ export async function getSummaryStats(state) {
     // (rather than assuming index 0 or the last index) avoided a real bug
     // here where this previously read readings[length-1], i.e. the OLDEST
     // fetched day, and labeled it "Rainfall (24h)".
-    const latest = found.readings.reduce((a, b) => (new Date(a.timestamp) > new Date(b.timestamp) ? a : b));
-    rainfall24hLabel = `${latest.intensity_mm.toFixed(0)} mm`;
-    rainfallZoneName = found.zone.name;
+    //
+    // Only OBSERVED days count: readings include the next 2 forecast days, and
+    // taking the newest timestamp put tomorrow's or the day after's PREDICTED
+    // rain under a "Rainfall (24h)" label. The date is shown so it is clear
+    // which day the number is for.
+    const observed = found.readings.filter((r) => !r.is_forecast);
+    if (observed.length > 0) {
+      const latest = observed.reduce((a, b) => (new Date(a.timestamp) > new Date(b.timestamp) ? a : b));
+      rainfall24hLabel = `${latest.intensity_mm.toFixed(0)} mm`;
+      rainfallZoneName = `${found.zone.name} · ${dayLabel(latest.timestamp)}`;
+    }
   }
 
   let systemHealthy = false;
@@ -327,12 +382,6 @@ export async function getRecentAlerts() {
  * (rainfall is stored per zone), so this shows the first zone's last 7
  * readings -- a reasonable stand-in until there's more than one seeded zone.
  * ----------------------------------------------------------------------- */
-function isToday(isoTimestamp) {
-  const d = new Date(isoTimestamp);
-  const now = new Date();
-  return d.toDateString() === now.toDateString();
-}
-
 // Shared by getRainfallTrend and getRainfallForZone -- both used to
 // independently sort+map the exact same reading shape (a real duplicate,
 // not just similar-looking code): GET /rainfall/{id} returns newest-first,
@@ -372,27 +421,11 @@ export async function getRainfallTrend(state) {
   const found = await findZoneWithRainfall(zones);
   if (!found) return { readings: [], threshold: null };
 
-  let readings = found.readings;
-  const newest = readings.reduce((a, b) => (new Date(a.timestamp) > new Date(b.timestamp) ? a : b));
-
-  // The batch script that originally seeded rainfall only ran once -- without
-  // this, the chart would keep showing whatever week that one run happened to
-  // fetch, forever. Re-fetching live from Open-Meteo when the newest stored
-  // reading isn't from today keeps this genuinely current, not a frozen
-  // snapshot; at most once per zone per day, since every other page load that
-  // same day already finds a "today" reading and skips straight past this.
-  if (!isToday(newest.timestamp)) {
-    try {
-      const res = await officerFetch(`/rainfall/${found.zone.id}/fetch`, { method: "POST" });
-      if (res.ok) {
-        const fresh = await res.json();
-        if (fresh.length > 0) readings = fresh;
-      }
-    } catch {
-      // Open-Meteo/network hiccup -- fall back to the (possibly stale)
-      // readings already fetched above rather than fail the whole card.
-    }
-  }
+  // Keeping this current is the backend's job (POST /rainfall/refresh-if-stale,
+  // called when the Overview opens, plus the scheduled job). It used to be done
+  // here, one zone at a time, by whoever loaded the page -- which stopped working
+  // for visitors once that endpoint needed the officer key, so the chart froze.
+  const readings = found.readings;
 
   let threshold = null;
   try {

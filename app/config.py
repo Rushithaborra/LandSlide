@@ -65,6 +65,12 @@ class Settings(BaseSettings):
     # (and re-alert, and re-text people, an hour later).
     rainfall_alert_clear_days: int = 2
 
+    # Rainfall is refreshed automatically when it is older than this. Anyone opening
+    # the dashboard can trigger it (POST /rainfall/refresh-if-stale), but never more
+    # often than this, so it can't be used to hammer Open-Meteo. Hourly matches how
+    # often Open-Meteo itself updates; ~77 zones a run is well inside its free limits.
+    rainfall_refresh_max_age_minutes: int = 60
+
     # Scheduled rainfall refresh (app/services/rainfall_refresh.py): how many of
     # each state's highest-risk zones to refresh per run. Only states with a
     # configured rainfall threshold are refreshed (others can't alert).

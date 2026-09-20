@@ -23,13 +23,15 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from app.config import get_rainfall_threshold
-from app.models import Alert, RainfallReading, Zone
+from app.config import settings
+from app.models import Alert, JobRun, RainfallReading, Zone
 from app.services import open_meteo
 from app.services.alert_engine import can_alert, check_and_trigger, drop_forecast_days, evaluate_daily_rainfall, has_cleared
 
@@ -148,6 +150,89 @@ def _fetch_all(zones: list[ZoneTarget]) -> list[list[open_meteo.DailyRainfall] |
 
     with ThreadPoolExecutor(max_workers=MAX_FETCH_WORKERS) as pool:
         return [result for chunk_results in pool.map(fetch_chunk, chunks) for result in chunk_results]
+
+
+REFRESH_JOB = "rainfall_refresh"  # job_runs row: when a refresh last completed
+LEASE_JOB = "rainfall_refresh_lease"  # job_runs row: a refresh is running (or crashed) since...
+LEASE_MINUTES = 3  # a run takes ~10 s; a crashed run stops blocking others after this
+
+
+def is_stale(last_run_at: datetime | None, max_age_minutes: int, now: datetime | None = None) -> bool:
+    """True when there has never been a refresh, or the last one is at least
+    `max_age_minutes` old."""
+    if last_run_at is None:
+        return True
+    return (now or datetime.now(timezone.utc)) - last_run_at >= timedelta(minutes=max_age_minutes)
+
+
+def refresh_status(db: Session, max_age_minutes: int) -> dict:
+    """When rainfall was last refreshed, for the dashboard's 'updated 12 min ago'
+    and for the staleness gate."""
+    row = db.get(JobRun, REFRESH_JOB)
+    last = row.last_run_at if row else None
+    now = datetime.now(timezone.utc)
+    return {
+        "last_refresh_at": last,
+        "age_minutes": None if last is None else int((now - last).total_seconds() // 60),
+        "max_age_minutes": max_age_minutes,
+        "stale": is_stale(last, max_age_minutes, now),
+    }
+
+
+def _claim_lease(db: Session) -> bool:
+    """Atomically take the right to run a refresh. Two visitors opening the
+    dashboard at the same moment must not both fetch and write: exactly one
+    claim succeeds, the other is told a refresh is already running. It is one
+    INSERT ... ON CONFLICT DO UPDATE ... WHERE (the row is expired), so it works
+    through any connection pooler -- a Postgres advisory lock does not -- and a
+    run that crashed cannot block the next one for longer than LEASE_MINUTES."""
+    now = func.now()
+    stmt = (
+        pg_insert(JobRun)
+        .values(name=LEASE_JOB, last_run_at=now)
+        .on_conflict_do_update(
+            index_elements=[JobRun.name],
+            set_={"last_run_at": now},
+            where=JobRun.last_run_at < now - timedelta(minutes=LEASE_MINUTES),
+        )
+        .returning(JobRun.name)
+    )
+    claimed = db.execute(stmt).first() is not None
+    db.commit()
+    return claimed
+
+
+def _release_lease(db: Session) -> None:
+    db.execute(update(JobRun).where(JobRun.name == LEASE_JOB).values(last_run_at=datetime(2000, 1, 1, tzinfo=timezone.utc)))
+    db.commit()
+
+
+def record_refresh(db: Session, summary: dict) -> None:
+    now = datetime.now(timezone.utc)
+    stmt = pg_insert(JobRun).values(name=REFRESH_JOB, last_run_at=now, summary=summary)
+    db.execute(stmt.on_conflict_do_update(index_elements=[JobRun.name], set_={"last_run_at": now, "summary": summary}))
+    db.commit()
+
+
+def refresh_if_stale(db: Session, max_age_minutes: int, per_state: int, run_alerts: bool = True) -> dict:
+    """The dashboard-driven refresh: does nothing if rainfall is fresh, otherwise
+    refreshes it (and alerts). Safe to call from anywhere, any number of times:
+    the freshness check makes repeats free, the lease keeps concurrent callers
+    from doubling up, and nothing here takes input that could change WHAT is
+    fetched or alerted -- a caller can only make it run at the earliest moment
+    it was going to be due anyway."""
+    status = refresh_status(db, max_age_minutes)
+    if not status["stale"]:
+        return {"status": "fresh", "age_minutes": status["age_minutes"]}
+    if not _claim_lease(db):
+        return {"status": "in_progress"}
+    try:
+        summary = refresh_rainfall(db, per_state, run_alerts)
+        if summary["zones_refreshed"] > 0:  # a run that fetched nothing must not look fresh
+            record_refresh(db, {k: summary[k] for k in ("zones_refreshed", "zones_failed", "alerts_created", "alerts_resolved", "states")})
+        return {"status": "refreshed", **summary}
+    finally:
+        _release_lease(db)
 
 
 def refresh_rainfall(db: Session, per_state: int, run_alerts: bool = True) -> dict:
