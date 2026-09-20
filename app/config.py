@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +24,22 @@ class RainfallThresholdConfig(BaseModel):
     # these coefficients. Do not flip this to True on trust alone.
     verified_against_primary_text: bool = False
 
+    @model_validator(mode="after")
+    def _engine_units_are_days_and_mm_per_day(self):
+        """The alert engine computes `coefficient * D**exponent` with D in DAYS
+        and reads the result as mm/day; the unit fields are documentation, not
+        conversions. A published equation in other units (Assam's is in mm/h and
+        hours) must be converted BEFORE it is configured -- silently feeding raw
+        hourly coefficients into the daily formula put Assam's thresholds 5.2x
+        too low. Failing here turns that mistake into a startup error."""
+        if self.duration_unit != "days" or self.intensity_unit != "mm/day":
+            raise ValueError(
+                f"rainfall threshold for {self.region!r} is declared in {self.intensity_unit} / "
+                f"{self.duration_unit}, but the alert engine works in mm/day and days: convert the "
+                "coefficient first, then set duration_unit=days and intensity_unit=mm/day"
+            )
+        return self
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="__", extra="ignore")
@@ -37,10 +53,10 @@ class Settings(BaseSettings):
     # explicit list, default Sikkim only (what production has always done): a
     # state can have a threshold configured for display and data refresh without
     # being trusted to alert. Assam's Guwahati equation, for one, has an
-    # unconfirmed intensity unit -- read as mm/day it says 5.9 mm in a day is
-    # dangerous, which would put every Assam zone on alert on an ordinary
-    # monsoon day. Add a state here (RAINFALL_ALERT_STATES=["sikkim","assam"])
-    # only after its threshold, and its units, are confirmed.
+    # Guwahati equation was configured in the wrong units (fixed 2026-09-20; see
+    # .env.example) and is still fit to only 19 landslides in one city, so it stays
+    # off this list until someone decides it is fit for state-wide alerting. Add a
+    # state here (RAINFALL_ALERT_STATES=["sikkim","assam"]) only after that call.
     rainfall_alert_states: list[str] = ["sikkim"]
 
     # Auto-resolve (app/services/alert_engine.has_cleared): an alert closes itself
