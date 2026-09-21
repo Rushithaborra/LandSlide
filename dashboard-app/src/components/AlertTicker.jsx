@@ -32,7 +32,7 @@ const severityTone = {
   Low: "text-risk-low dark:text-risk-lowOn",
 };
 
-const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const titleCase = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase()); // "arunachal pradesh" -> "Arunachal Pradesh"
 
 // The fixed wording is translated here; an alert's own sentence comes from the
 // backend in English (it is generated at the moment the alert is raised).
