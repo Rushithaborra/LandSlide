@@ -18,6 +18,7 @@ from app.database import SessionLocal
 from app.models import Place
 
 CHUNK = 2000
+ALLOWED_KINDS = {"village", "town", "city", "hospital", "clinic", "police", "fire_station"}  # the table's CHECK
 
 
 def main() -> int:
@@ -27,7 +28,11 @@ def main() -> int:
     rows = [
         {"osm_id": p["osm_id"], "kind": p["kind"], "name": p["name"], "lat": p["lat"], "lng": p["lng"], "phone": p.get("phone"), "fetched_at": fetched_at}
         for p in snapshot["places"]
+        if p["kind"] in ALLOWED_KINDS  # an older download may hold other place=* kinds (e.g. city_block)
     ]
+    skipped = len(snapshot["places"]) - len(rows)
+    if skipped:
+        print(f"skipping {skipped} records whose kind is not one the table accepts")
     with SessionLocal() as db:
         for i in range(0, len(rows), CHUNK):
             chunk = rows[i : i + CHUNK]

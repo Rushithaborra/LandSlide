@@ -26,6 +26,7 @@ WEST, SOUTH, EAST, NORTH = 88.0, 21.9, 97.5, 29.6
 SERVERS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter", "https://overpass.private.coffee/api/interpreter"]
 HEADERS = {"User-Agent": "landslide-ews-research/1.0 (SIH prototype; contact via GitHub Rushithaborra/LandSlide)", "Accept": "application/json"}
 PAUSE_SECONDS = 2.0
+SERVICE_KINDS = ("hospital", "clinic", "police", "fire_station")
 FIRST_TILES = {(27, 88), (28, 88)}  # Sikkim
 
 # What counts as a "village" for the dashboard, and which services matter for a rescue.
@@ -71,10 +72,16 @@ def place_row(e: dict) -> dict | None:
     lng = e.get("lon") if "lon" in e else (e.get("center") or {}).get("lon")
     if lat is None or lng is None:
         return None
-    if "place" in tags:
-        kind = "village" if tags["place"] in ("village", "hamlet") else tags["place"]  # village | town | city
+    # A service takes precedence: an OSM hospital can also carry a place=* tag (a ward, a
+    # city_block) and must stay a hospital. Anything else must be a settlement we asked for.
+    if tags.get("amenity") in SERVICE_KINDS:
+        kind = tags["amenity"]
+    elif tags.get("place") in ("village", "hamlet"):
+        kind = "village"
+    elif tags.get("place") in ("town", "city"):
+        kind = tags["place"]
     else:
-        kind = tags.get("amenity")  # hospital | clinic | police | fire_station
+        return None
     return {
         "osm_id": f"{e['type'][0]}{e['id']}",  # n123 / w123 / r123
         "kind": kind,
