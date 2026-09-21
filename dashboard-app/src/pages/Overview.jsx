@@ -263,7 +263,13 @@ export default function Overview() {
               </div>
             </div>
 
-            <AlertsPanel alerts={alerts} />
+            <AlertsPanel
+              alerts={alerts}
+              emptyText={t(
+                stats.activeAlerts.value === "—" ? "alerts.alertingOff" : selectedState ? "alerts.emptyForState" : "alertsPanel.none",
+                { state: selectedState ? t(`states.${selectedState}`, { defaultValue: selectedState }) : t("states.all") },
+              )}
+            />
           </div>
 
           {/* Rainfall trend — full width.

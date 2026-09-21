@@ -896,7 +896,8 @@
     "title": "Active Alerts",
     "viewAll": "View all",
     "more_one": "+{{count}} more active alert",
-    "more_other": "+{{count}} more active alerts"
+    "more_other": "+{{count}} more active alerts",
+    "none": "No active alerts right now."
   },
   "sample": {
     "title": "Sample data",

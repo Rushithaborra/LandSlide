@@ -18,7 +18,7 @@ const severityStyle = {
 // of dictating the whole page's length.
 const VISIBLE_COUNT = 5;
 
-export default function AlertsPanel({ alerts }) {
+export default function AlertsPanel({ alerts, emptyText }) {
   const { t, i18n } = useTranslation();
   const visible = alerts.slice(0, VISIBLE_COUNT);
   const remaining = alerts.length - visible.length;
@@ -33,6 +33,7 @@ export default function AlertsPanel({ alerts }) {
       </div>
 
       <div className="space-y-3 flex-1 overflow-y-auto">
+        {alerts.length === 0 && emptyText && <p className="text-sm text-paper-500">{emptyText}</p>}
         {visible.map((a) => (
           <div key={a.id} className="flex gap-3 border-b border-paper-200 dark:border-night-700 pb-3 last:border-0">
             <div className="mt-0.5 text-risk-high dark:text-risk-highOn shrink-0">
