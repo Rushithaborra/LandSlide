@@ -4,6 +4,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import AlertTicker from "../components/AlertTicker";
 import { getTickerBulletins } from "../services/api";
+import { useRegion } from "../context/RegionContext";
 import { useAlertStream } from "../hooks/useAlertStream";
 import { ALERTS_CHANGED_EVENT } from "../utils/localizedText";
 
@@ -17,13 +18,14 @@ import { ALERTS_CHANGED_EVENT } from "../utils/localizedText";
 const TICKER_REFRESH_MS = 5 * 60 * 1000;
 
 export default function DashboardLayout({ title, subtitle, children }) {
+  const { state } = useRegion();
   const [bulletins, setBulletins] = useState([]);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const loadBulletins = useCallback(() => {
     // A failed refresh keeps whatever the strip already shows rather than erroring.
-    getTickerBulletins().then(setBulletins).catch(() => {});
-  }, []);
+    getTickerBulletins(state).then(setBulletins).catch(() => {});
+  }, [state]);
 
   useEffect(() => {
     loadBulletins();

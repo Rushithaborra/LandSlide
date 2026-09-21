@@ -181,6 +181,11 @@ function alertsPath(state) {
   return state ? `/alerts?state=${encodeURIComponent(state)}` : "/alerts";
 }
 
+// The ticker and the bell follow the state selector like every other page.
+function activeAlertsPath(state) {
+  return `/alerts?status=active${state ? `&state=${encodeURIComponent(state)}` : ""}`;
+}
+
 async function getJSON(path, { auth = false } = {}) {
   if (inFlight.has(path)) return inFlight.get(path);
   const promise = fetchReadRetrying(`${BASE_URL}${path}`, auth ? { headers: withOfficerKey() } : undefined).then((res) => {
@@ -877,8 +882,8 @@ export async function getEmergencyContacts(state) {
  * ----------------------------------------------------------------------- */
 const TICKER_MAX_ALERTS = 5;
 
-export async function getTickerBulletins() {
-  const [alerts, status] = await Promise.all([getJSON("/alerts?status=active"), getRainfallStatus()]);
+export async function getTickerBulletins(state) {
+  const [alerts, status] = await Promise.all([getJSON(activeAlertsPath(state)), getRainfallStatus()]);
   if (alerts.length === 0) {
     return [{ id: "none", kind: "none", states: status?.alerting_states ?? [] }];
   }
@@ -1009,8 +1014,8 @@ export async function searchAll(query) {
  * ----------------------------------------------------------------------- */
 const NOTIFICATION_LIMIT = 20;
 
-export async function getNotifications() {
-  const alerts = await getJSON("/alerts?status=active"); // newest first
+export async function getNotifications(state) {
+  const alerts = await getJSON(activeAlertsPath(state)); // newest first
   return {
     total: alerts.length,
     items: alerts.slice(0, NOTIFICATION_LIMIT).map((a) => ({

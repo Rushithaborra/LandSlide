@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Bell, AlertTriangle, CheckCheck } from "lucide-react";
 import { getNotifications } from "../services/api";
+import { useRegion } from "../context/RegionContext";
 import { ALERTS_CHANGED_EVENT, agoLabel, alertSentence } from "../utils/localizedText";
 import WorsenedNote from "./WorsenedNote";
 
@@ -41,6 +42,7 @@ function saveReadIds(ids) {
 
 export default function NotificationsPanel() {
   const { t } = useTranslation();
+  const { state } = useRegion();
   const [data, setData] = useState({ items: [], total: 0 });
   const [readIds, setReadIds] = useState(loadReadIds);
   const [open, setOpen] = useState(false);
@@ -48,7 +50,7 @@ export default function NotificationsPanel() {
   const navigate = useNavigate();
 
   const load = useCallback(() => {
-    getNotifications()
+    getNotifications(state)
       .then((result) => {
         setData(result);
         // Forget ids of alerts that are no longer active, so the stored list can't grow forever.
@@ -60,7 +62,7 @@ export default function NotificationsPanel() {
         });
       })
       .catch(() => {}); // keep what is shown if a refresh fails
-  }, []);
+  }, [state]);
 
   useEffect(() => {
     load();
