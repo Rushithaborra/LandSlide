@@ -217,6 +217,14 @@ class RainfallRefreshOut(BaseModel):
     duration_seconds: float
 
 
+class IntegrationsOut(BaseModel):
+    """GET /system/integrations -- whether credentials for each optional service are set."""
+
+    sms_voice: bool
+    ai_summaries: bool
+    photo_storage: bool
+
+
 class RainfallStatusOut(BaseModel):
     """GET /rainfall/status -- how fresh the stored rainfall is."""
 

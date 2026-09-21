@@ -17,7 +17,6 @@
 
 import i18n from "../i18n";
 import {
-  dataSources,
   adminProfile,
   emergencyContacts,
 } from "../data/mockData";
@@ -856,8 +855,43 @@ export async function getLandslideSummary(state) {
   return getJSON(state ? `/landslide-records/summary?state=${encodeURIComponent(state)}` : "/landslide-records/summary");
 }
 
+/**
+ * What the running system is connected to, from the real endpoints: rainfall freshness,
+ * the records loaded, and which optional services have credentials on the server
+ * (GET /system/integrations -- flags only). "Configured" is not "reachable right now", and
+ * the page says so. The last three rows are facts about this build, not live checks.
+ */
 export async function getDataSources() {
-  return fakeDelay(dataSources);
+  const [rain, records, integrations] = await Promise.allSettled([getRainfallStatus(), getLandslideSummary(), getJSON("/system/integrations")]);
+  const value = (r) => (r.status === "fulfilled" ? r.value : null);
+  const rainStatus = value(rain);
+  const recordsSummary = value(records);
+  const flags = value(integrations);
+  const unknown = { status: "unknown", detail: { key: "checkFailed" } };
+  const flag = (on, onDetail, offDetail) =>
+    flags === null ? unknown : on ? { status: "connected", detail: onDetail } : { status: "notConnected", detail: offDetail };
+
+  return [
+    {
+      key: "openMeteo",
+      ...(rainStatus?.last_refresh_at
+        ? { status: rainStatus.stale ? "stale" : "connected", detail: { key: "updatedAgo", params: { at: rainStatus.last_refresh_at } } }
+        : unknown),
+    },
+    {
+      key: "landslideRecords",
+      ...(recordsSummary
+        ? { status: recordsSummary.total > 0 ? "connected" : "notConnected", detail: { key: "records", params: { count: recordsSummary.total } } }
+        : unknown),
+    },
+    // The trial-account note is what the SMS handover doc records; update it if the Twilio account is upgraded.
+    { key: "smsVoice", ...flag(flags?.sms_voice, { key: "smsTrial" }, { key: "smsOff" }) },
+    { key: "aiSummaries", ...flag(flags?.ai_summaries, { key: "configured" }, { key: "notSet" }) },
+    { key: "photoStorage", ...flag(flags?.photo_storage, { key: "configured" }, { key: "notSet" }) },
+    { key: "dem", status: "offline", detail: { key: "offline" } },
+    { key: "imd", status: "notConnected", detail: { key: "imd" } },
+    { key: "sentinel", status: "notConnected", detail: { key: "sentinel" } },
+  ];
 }
 
 /* ----------------------------------------------------------------------- *

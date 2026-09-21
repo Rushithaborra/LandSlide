@@ -2,8 +2,7 @@ import { FlaskConical } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 /**
- * A visible "this is sample data" banner. Some pages (Incidents, Data &
- * Observations, the profile panel) still show demonstration values because
+ * A visible "this is sample data" banner. The profile panel still shows demonstration values because
  * nothing real feeds them yet; without a label they look like live records.
  * `kind` picks the wording under `sample.*` in the language files.
  */

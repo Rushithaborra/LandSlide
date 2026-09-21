@@ -245,8 +245,8 @@ strip and "x days ago" all follow the language switcher. A sentence in any other
 format is shown untouched in English rather than mangled. (The Broadcast composer's
 pre-filled SMS text is still English -- an officer edits it before sending.)
 The notification bell also lists the newest real active alerts (unread is
-remembered per browser -- there is no officer login). Only the Data & Observations status
-and profile panel are still **sample data** (each says so on the page, and Help says so).
+remembered per browser -- there is no officer login). Only the profile panel is still
+**sample data** (it says so on the page, and Help says so).
 
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /
@@ -390,12 +390,15 @@ than silently left half-done:
   Broadcast composer, and the SMS sent to citizens) stays English-only on purpose --
   CLAUDE.md scopes "full multilingual SMS" to a later phase, and translating message
   *content* delivered to citizens is that feature, not UI translation.
-- **Sample data pages** (Data & Observations status, profile panel) carry English sample
-  values, each with a visible "Sample data" banner (`SampleDataNotice`, translated). The
-  sample rows are not accurate to the live system (e.g. they list the SMS gateway as not
-  connected while Twilio is live) -- the banner is the safeguard, so wire real data in or
-  remove the page before relying on it. (The Incidents page and its sample PDF download
-  were replaced by real GSI records; the PDF generator and jsPDF were removed.)
+- **Data & Observations reports the running system.** It used to be a hard-coded list that
+  said the SMS gateway was not connected while Twilio was live. It now reads rainfall
+  freshness (`/rainfall/status`), the records loaded (`/landslide-records/summary`) and
+  `GET /system/integrations`, which returns yes/no flags for whether the server has SMS/voice,
+  AI-summary and photo-storage credentials (never a value). "Connected" means set up, not
+  tested this second, and the page says so; the DEM/OSM, IMD and Sentinel-2 rows are facts
+  about this build. The one remaining **sample data** page is the profile panel (banner:
+  `SampleDataNotice`). The Twilio "trial account" line is the handover doc's word: update
+  `smsTrial` in the language files if the account is upgraded.
 - **Two Help/Methodology facts to keep current by hand**: the zone and AUC figures
   quoted on the Methodology page come from the pipeline reports, not from code.
 

@@ -149,25 +149,13 @@ export const citizenReports = [
   },
 ];
 
-// ---- H. System / data-source status (Settings → Data Sources page) ----
-// Statuses here must stay truthful (CLAUDE.md honesty rule): IMD access was
-// never obtained this round -- Open-Meteo is the live rainfall source.
-export const dataSources = [
-  { name: "Open-Meteo API (live rainfall)", status: "Connected", lastSync: "fetched per zone on demand" },
-  { name: "GSI Landslide Inventory (3,921 zones scored)", status: "Connected", lastSync: "1 day ago" },
-  { name: "Copernicus GLO-30 DEM + OpenStreetMap roads", status: "Connected", lastSync: "used offline for model training" },
-  { name: "IMD Rainfall API", status: "Not connected", lastSync: "— roadmap, needs institutional access" },
-  { name: "Sentinel-2 Imagery", status: "Not connected", lastSync: "—" },
-  { name: "Twilio / MSG91 SMS Gateway", status: "Not connected", lastSync: "— alerts are logged only this round" },
-];
-
 // ---- H2. Emergency contacts directory --------------------------------
 // 112 and 108 are real, nationwide, unambiguous numbers -- safe to state
 // with full confidence. The state/BRO/NDRF rows are a placeholder directory
 // structure, honestly flagged: getting a disaster-response number wrong is
 // a real-world harm, not just an inaccuracy, so those are marked
 // unconfirmed rather than presented as verified (same honesty pattern as
-// dataSources above and RAINFALL_THRESHOLD__VERIFIED_AGAINST_PRIMARY_TEXT
+// the Data Sources & Methodology page and RAINFALL_THRESHOLD__VERIFIED_AGAINST_PRIMARY_TEXT
 // in app/config.py -- don't claim confirmation that hasn't happened).
 export const emergencyContacts = [
   { name: "National Emergency Number", jurisdiction: "All India — Police / Fire / Ambulance", phone: "112", verified: true, state: null },

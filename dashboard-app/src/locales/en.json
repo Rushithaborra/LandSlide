@@ -166,8 +166,37 @@
   },
   "dataObservations": {
     "title": "Data & Observations",
-    "subtitle": "Upstream data source health and sync status",
-    "lastSync": "Last sync: {{value}}"
+    "subtitle": "What the system is connected to right now",
+    "note": "Live from the running system. “Connected” means set up on the server — it is not a test of the connection at this moment.",
+    "rows": {
+      "openMeteo": "Open-Meteo rainfall",
+      "landslideRecords": "GSI landslide records",
+      "smsVoice": "SMS and phone calls (Twilio)",
+      "aiSummaries": "AI summaries of citizen reports (Gemini)",
+      "photoStorage": "Citizen-report photo storage (Supabase)",
+      "dem": "Copernicus GLO-30 elevation + OpenStreetMap roads",
+      "imd": "IMD rainfall API",
+      "sentinel": "Sentinel-2 imagery"
+    },
+    "status": {
+      "connected": "Connected",
+      "notConnected": "Not connected",
+      "stale": "Out of date",
+      "unknown": "Could not check",
+      "offline": "Used offline"
+    },
+    "detail": {
+      "updatedAgo": "Rainfall updated {{ago}}",
+      "records": "{{count, number}} records across the eight states",
+      "smsTrial": "Trial account: only verified numbers receive messages",
+      "smsOff": "Alerts are recorded but no messages are sent",
+      "configured": "Credentials are set (this does not test the connection)",
+      "notSet": "Credentials are not set",
+      "offline": "Used offline to train the models",
+      "imd": "Needs institutional access, not obtained",
+      "sentinel": "Not used in this build",
+      "checkFailed": "The server could not be reached"
+    }
   },
   "citizenReports": {
     "title": "Citizen Reports",
@@ -576,11 +605,11 @@
           },
           {
             "q": "Which parts of this dashboard are real, and which are sample?",
-            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim (also shown in the scrolling strip at the top and in the notification bell), citizen reports, the landslide records on the Incidents page (all eight states), and SMS and phone calls (trial account). Sample for now: the Data & Observations status, and the profile panel. IMD data is not connected."
+            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim and Assam (also shown in the scrolling strip at the top and in the notification bell), citizen reports, the landslide records on the Incidents page (all eight states), the Data & Observations status, and SMS and phone calls (trial account). Sample for now: only the profile panel. IMD data is not connected."
           },
           {
             "q": "What does the Data & Observations page tell me?",
-            "a": "It lists the data sources behind the system and a status for each. It currently shows sample status, not live monitoring, so do not use it to judge whether a feed is working. The 'Rainfall updated … ago' note on the Overview is the real freshness check."
+            "a": "It lists what the system is connected to, read from the running server: whether rainfall was updated recently, how many landslide records are loaded, and whether the SMS, AI-summary and photo services have credentials set. 'Connected' means set up, not tested at this moment, so 'Rainfall updated … ago' on the Overview is still the best freshness check."
           },
           {
             "q": "'System Health' shows less than 100%. What does that mean?",
@@ -902,7 +931,6 @@
   },
   "sample": {
     "title": "Sample data",
-    "dataObservations": "The sources and status values below are samples, not live monitoring. For real freshness see “Rainfall updated … ago” on the Overview, and the Data Sources & Methodology page for what is real.",
     "profile": "This profile is sample data — there are no officer accounts yet, and nothing you change here is saved to a server."
   },
   "alertWorse": {
