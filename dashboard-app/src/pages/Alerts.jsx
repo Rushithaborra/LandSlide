@@ -6,7 +6,8 @@ import LoadError from "../components/LoadError";
 import BroadcastComposerModal from "../components/BroadcastComposerModal";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { useAlertStream } from "../hooks/useAlertStream";
-import { getRecentAlerts } from "../services/api";
+import { useRegion } from "../context/RegionContext";
+import { getRecentAlerts, getRainfallStatus } from "../services/api";
 
 /**
  * LINK SPOT B/C (Stage 3 Risk Fusion + Stage 5 Notification & Alert Dispatch)
@@ -15,7 +16,14 @@ import { getRecentAlerts } from "../services/api";
  */
 export default function Alerts() {
   const { t } = useTranslation();
-  const { data: alerts, error, retry } = useAsyncData(getRecentAlerts);
+  const { state } = useRegion();
+  const { data: alerts, error, retry } = useAsyncData(() => getRecentAlerts(state), [state]);
+  const { data: rainStatus } = useAsyncData(getRainfallStatus);
+  const stateName = state ? t(`states.${state}`, { defaultValue: state }) : t("states.all");
+  // A state that is refreshed but not switched on for alerting has no alerts because it
+  // is not monitored, not because it is safe -- say so instead of an empty table.
+  const alertingOff =
+    Boolean(state) && Array.isArray(rainStatus?.alerting_states) && !rainStatus.alerting_states.some((s) => s.toLowerCase() === state.toLowerCase());
   const [broadcastTarget, setBroadcastTarget] = useState(null);
 
   // A new alert should appear in this table the moment it fires, not only
@@ -28,6 +36,9 @@ export default function Alerts() {
         <LoadError message={error} onRetry={retry} />
       ) : (
         <div className="bg-white dark:bg-night-900 rounded-xl border border-paper-200 dark:border-night-700 p-4">
+          {alerts && alerts.length === 0 && (
+            <p className="text-sm text-paper-500">{t(alertingOff ? "alerts.alertingOff" : "alerts.emptyForState", { state: stateName })}</p>
+          )}
           <RecentAlertsTable alerts={alerts || []} onBroadcast={setBroadcastTarget} />
         </div>
       )}

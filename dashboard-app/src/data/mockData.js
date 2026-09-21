@@ -230,11 +230,11 @@ export const dataSources = [
 // dataSources above and RAINFALL_THRESHOLD__VERIFIED_AGAINST_PRIMARY_TEXT
 // in app/config.py -- don't claim confirmation that hasn't happened).
 export const emergencyContacts = [
-  { name: "National Emergency Number", jurisdiction: "All India — Police / Fire / Ambulance", phone: "112", verified: true },
-  { name: "Emergency Medical & Ambulance", jurisdiction: "All India", phone: "108", verified: true },
-  { name: "Sikkim State Emergency Operations Centre", jurisdiction: "Sikkim SDMA control room", phone: "1070", verified: false },
-  { name: "NDRF — nearest response unit", jurisdiction: "North Eastern Region", phone: "Confirm with NDRF HQ before use", verified: false },
-  { name: "BRO — NH10 maintenance (Project Swastik)", jurisdiction: "Sikkim highway clearance", phone: "Confirm with BRO before use", verified: false },
+  { name: "National Emergency Number", jurisdiction: "All India — Police / Fire / Ambulance", phone: "112", verified: true, state: null },
+  { name: "Emergency Medical & Ambulance", jurisdiction: "All India", phone: "108", verified: true, state: null },
+  { name: "Sikkim State Emergency Operations Centre", jurisdiction: "Sikkim SDMA control room", phone: "1070", verified: false, state: "Sikkim" },
+  { name: "NDRF — nearest response unit", jurisdiction: "North Eastern Region", phone: "Confirm with NDRF HQ before use", verified: false, state: null },
+  { name: "BRO — NH10 maintenance (Project Swastik)", jurisdiction: "Sikkim highway clearance", phone: "Confirm with BRO before use", verified: false, state: "Sikkim" },
 ];
 
 // ---- J. Admin profile (NEW IN DRAFT 3) -----------------------------------

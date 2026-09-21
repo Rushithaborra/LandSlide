@@ -8,10 +8,11 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import CitizenReport
+from app.models import CitizenReport, Zone
 from app.schemas import CitizenReportIn, CitizenReportOut, PolishDescriptionIn, PolishDescriptionOut
 from app.services.ai_client import gemini_configured
 from app.services.description_polish import polish_description
+from app.services.geo import state_at, state_from_place_name
 from app.services.translation import translate_to_english
 from app.services.triage_summary import generate_triage_summary
 from app.security import require_officer_key
@@ -82,6 +83,21 @@ def _save_photo(photo: UploadFile) -> str:
     return f"{settings.supabase_url}/storage/v1/object/public/{settings.supabase_storage_bucket}/{filename}"
 
 
+def _report_state(db: Session, payload: CitizenReportIn) -> str | None:
+    """A report's state: its zone's if the reporter's app named one, else the nearest
+    assessed zone to its coordinates, else the state its place name unambiguously
+    geocodes to, else unknown (None) -- never guessed."""
+    if payload.zone_id is not None:
+        zone = db.get(Zone, payload.zone_id)
+        if zone is not None:
+            return zone.state
+    if payload.coords is not None:
+        return state_at(db, payload.coords.lat, payload.coords.lng)
+    if payload.place_name:
+        return state_from_place_name(db, payload.place_name)
+    return None
+
+
 @router.post("", response_model=CitizenReportOut)
 def submit_report(
     data: str = Form(..., description="JSON string matching CitizenReportIn's field names"),
@@ -110,6 +126,7 @@ def submit_report(
     report = CitizenReport(
         client_report_id=payload.client_report_id,
         zone_id=payload.zone_id,
+        state=_report_state(db, payload),
         report_type=payload.report_type,
         severity=payload.severity,
         geo_lat=payload.coords.lat if payload.coords else None,
@@ -155,8 +172,14 @@ def submit_report(
 
 
 @router.get("", response_model=list[CitizenReportOut], dependencies=[Depends(require_officer_key)])
-def list_reports(db: Session = Depends(get_db)):
-    return db.query(CitizenReport).order_by(CitizenReport.submitted_at.desc()).all()
+def list_reports(state: str | None = None, db: Session = Depends(get_db)):
+    """All reports, or one state's (state=...). A report whose state could not be
+    worked out (place name only, no coordinates) has state NULL and so appears only
+    in the unfiltered list, never under a state it was not shown to belong to."""
+    query = db.query(CitizenReport)
+    if state:
+        query = query.filter(CitizenReport.state == state)
+    return query.order_by(CitizenReport.submitted_at.desc()).all()
 
 
 @router.post("/{report_id}/verify", response_model=CitizenReportOut, dependencies=[Depends(require_officer_key)])

@@ -6,7 +6,8 @@ test file). db_conn is never touched directly: every function that would
 query it is monkeypatched instead.
 """
 import datetime
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 from app.services import sms_alerts
 
@@ -82,30 +83,39 @@ def test_escalate_critical_alert_never_calls_below_critical_severity():
     mock_contacts.assert_not_called()  # never even looks up authorities below critical
 
 
+def _db_with_zone(state="Sikkim"):
+    """escalate_critical_alert looks up the zone's state to pick whose officials to call."""
+    db = MagicMock()
+    db.get.return_value = SimpleNamespace(state=state)
+    return db
+
+
 def test_escalate_critical_alert_calls_authorities_when_critical():
+    db = _db_with_zone()
     with patch.object(sms_alerts, "trigger_zone_alert", return_value={"skipped": True, "reason": "no subscribers"}), \
          patch.object(sms_alerts, "get_last_alert_time_by_channel", return_value=None), \
          patch.object(sms_alerts, "get_authority_contacts", return_value=[{"name": "Officer A", "phone": "+913"}]), \
          patch.object(sms_alerts, "make_alert_call", return_value={"to": "+913", "success": True, "sid": "CA1"}), \
          patch.object(sms_alerts, "log_alert_sent") as mock_log:
-        result = sms_alerts.escalate_critical_alert(db=None, zone_id="z1", zone_name="Ranipool", severity="critical")
+        result = sms_alerts.escalate_critical_alert(db=db, zone_id="z1", zone_name="Ranipool", severity="critical")
 
     assert result["calls"]["skipped"] is False
     assert result["calls"]["called"] == 1
-    mock_log.assert_called_once_with(None, "z1", "critical", 1, channel="call")
+    mock_log.assert_called_once_with(db, "z1", "critical", 1, channel="call")
 
 
 def test_escalate_critical_alert_respects_send_sms_false():
     """The Broadcast composer passes send_sms=False when the operator didn't
     select the "sms" channel -- calls should still fire on critical severity,
     but no text should go out."""
+    db = _db_with_zone()
     with patch.object(sms_alerts, "trigger_zone_alert") as mock_sms, \
          patch.object(sms_alerts, "get_last_alert_time_by_channel", return_value=None), \
          patch.object(sms_alerts, "get_authority_contacts", return_value=[{"name": "Officer A", "phone": "+913"}]), \
          patch.object(sms_alerts, "make_alert_call", return_value={"to": "+913", "success": True, "sid": "CA1"}), \
          patch.object(sms_alerts, "log_alert_sent"):
         result = sms_alerts.escalate_critical_alert(
-            db=None, zone_id="z1", zone_name="Ranipool", severity="critical", send_sms=False,
+            db=db, zone_id="z1", zone_name="Ranipool", severity="critical", send_sms=False,
         )
 
     mock_sms.assert_not_called()

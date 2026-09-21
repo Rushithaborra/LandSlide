@@ -5,6 +5,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import CitizenReportModal from "../components/CitizenReportModal";
 import LoadError from "../components/LoadError";
 import { useAsyncData } from "../hooks/useAsyncData";
+import { useRegion } from "../context/RegionContext";
 import { getCitizenReports } from "../services/api";
 
 /**
@@ -20,7 +21,9 @@ import { getCitizenReports } from "../services/api";
  */
 export default function CitizenReports() {
   const { t } = useTranslation();
-  const { data, error, retry } = useAsyncData(getCitizenReports);
+  const { state } = useRegion();
+  const { data, error, retry } = useAsyncData(() => getCitizenReports(state), [state]);
+  const stateName = state ? t(`states.${state}`, { defaultValue: state }) : t("states.all");
   const [reports, setReports] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
 
@@ -59,6 +62,10 @@ export default function CitizenReports() {
               {t("citizenReports.reportCount", { count: reports.length })}
             </span>
           </div>
+
+          {data && reports.length === 0 && (
+            <p className="text-sm text-paper-500">{t("citizenReports.noneForState", { state: stateName })}</p>
+          )}
 
           <div className="divide-y divide-paper-200 dark:divide-night-700">
             {reports.map((r) => (
@@ -117,6 +124,8 @@ export default function CitizenReports() {
               </button>
             ))}
           </div>
+
+          <p className="mt-4 text-xs text-paper-500">{t("citizenReports.stateNote")}</p>
         </div>
       </div>
 

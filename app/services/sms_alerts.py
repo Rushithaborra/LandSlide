@@ -16,11 +16,11 @@ from in this app:
 """
 import datetime
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import AuthorityContact, CitizenReport, SmsAlertLog
+from app.models import AuthorityContact, CitizenReport, SmsAlertLog, Zone
 
 # Minimum time between automatic SMS alerts for the SAME zone, so one ongoing
 # rain event doesn't spam the same people every time check_and_trigger() reruns.
@@ -102,10 +102,16 @@ def get_subscribers_for_zone(db: Session, zone_id) -> list[str]:
     return [r[0] for r in rows]
 
 
-def get_authority_contacts(db: Session) -> list[dict]:
-    contacts = db.execute(
-        select(AuthorityContact).where(AuthorityContact.phone_number.isnot(None), AuthorityContact.phone_number != "")
-    ).scalars().all()
+def get_authority_contacts(db: Session, state: str | None = None) -> list[dict]:
+    """Officials to call. With a state: that state's contacts plus the all-states
+    ones (state IS NULL) -- a Sikkim alert must not ring Assam's officials. Without
+    one (a zone whose state is unknown), only the all-states contacts."""
+    query = select(AuthorityContact).where(AuthorityContact.phone_number.isnot(None), AuthorityContact.phone_number != "")
+    if state:
+        query = query.where(or_(AuthorityContact.state == state, AuthorityContact.state.is_(None)))
+    else:
+        query = query.where(AuthorityContact.state.is_(None))
+    contacts = db.execute(query).scalars().all()
     return [{"name": c.name, "phone": c.phone_number} for c in contacts]
 
 
@@ -188,7 +194,8 @@ def escalate_critical_alert(
         if elapsed < datetime.timedelta(minutes=COOLDOWN_MINUTES):
             return {"sms": sms_result, "calls": {"skipped": True, "reason": "Call cooldown active"}}
 
-    authorities = get_authority_contacts(db)
+    zone = db.get(Zone, zone_id)
+    authorities = get_authority_contacts(db, zone.state if zone else None)
     if not authorities:
         return {"sms": sms_result, "calls": {"skipped": True, "reason": "No authority contacts registered"}}
 

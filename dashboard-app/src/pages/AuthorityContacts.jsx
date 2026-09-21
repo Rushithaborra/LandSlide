@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Phone, Trash2, UserPlus, ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import LoadError from "../components/LoadError";
 import { useAsyncData } from "../hooks/useAsyncData";
+import { useRegion, NER_STATES } from "../context/RegionContext";
 import { getAuthorityContacts, addAuthorityContact, deleteAuthorityContact } from "../services/api";
 
 /**
@@ -16,7 +17,13 @@ import { getAuthorityContacts, addAuthorityContact, deleteAuthorityContact } fro
  */
 export default function AuthorityContacts() {
   const { t } = useTranslation();
-  const { data: contacts, error, retry } = useAsyncData(getAuthorityContacts);
+  const { state: selectedState } = useRegion();
+  const { data: contacts, error, retry } = useAsyncData(() => getAuthorityContacts(selectedState), [selectedState]);
+  const stateName = (s) => (s ? t(`states.${s}`, { defaultValue: s }) : t("states.all"));
+  // The state a new contact is registered for ("" = all states). Follows the selector so
+  // adding while viewing Assam defaults to Assam, but can be changed.
+  const [contactState, setContactState] = useState(selectedState);
+  useEffect(() => setContactState(selectedState), [selectedState]);
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -29,7 +36,7 @@ export default function AuthorityContacts() {
     setSaving(true);
     setFormError(null);
     try {
-      await addAuthorityContact({ name, role, phoneNumber });
+      await addAuthorityContact({ name, role, phoneNumber, state: contactState });
       setName("");
       setRole("");
       setPhoneNumber("");
@@ -67,13 +74,17 @@ export default function AuthorityContacts() {
             </h2>
           </div>
 
+          <p className="mb-3 text-xs text-paper-500">
+            {selectedState ? t("authorityContacts.showingState", { state: stateName(selectedState) }) : t("authorityContacts.showingAll")}
+          </p>
+
           {error && !contacts ? (
             <LoadError message={error} onRetry={retry} />
           ) : !contacts ? (
             <p className="text-sm text-paper-500">{t("common.loading")}</p>
           ) : contacts.length === 0 ? (
             <p className="text-sm text-paper-500">
-              {t("authorityContacts.noneRegistered")}
+              {selectedState ? t("authorityContacts.noneForState", { state: stateName(selectedState) }) : t("authorityContacts.noneRegistered")}
             </p>
           ) : (
             <div className="divide-y divide-paper-200 dark:divide-night-700">
@@ -82,6 +93,9 @@ export default function AuthorityContacts() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-ink-800 dark:text-paper-200">{c.name}</p>
                     {c.role && <p className="text-xs text-paper-500">{c.role}</p>}
+                    <span className="mt-1 inline-block rounded-full bg-paper-100 px-2 py-0.5 text-[11px] font-medium text-paper-600 dark:bg-night-800 dark:text-paper-400">
+                      {c.state ? stateName(c.state) : t("authorityContacts.allStatesBadge")}
+                    </span>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <span className="inline-flex items-center gap-1.5 text-xs font-medium text-paper-600 dark:text-paper-400">
@@ -145,6 +159,22 @@ export default function AuthorityContacts() {
               />
             </div>
 
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wide text-paper-500">{t("authorityContacts.state")}</label>
+              <select
+                value={contactState}
+                onChange={(e) => setContactState(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-paper-200 bg-white px-3 py-2 text-sm text-ink-800 dark:border-night-700 dark:bg-night-800 dark:text-paper-200"
+              >
+                <option value="">{t("authorityContacts.allStatesOption")}</option>
+                {NER_STATES.map((s) => (
+                  <option key={s} value={s}>
+                    {stateName(s)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {formError && <p className="text-sm text-risk-high">{formError}</p>}
 
             <button
@@ -157,7 +187,7 @@ export default function AuthorityContacts() {
             </button>
           </form>
           <p className="mt-3 text-xs text-paper-500">
-            {t("authorityContacts.twilioNote")}
+            {t("authorityContacts.twilioNote")} {t("authorityContacts.callScope")}
           </p>
         </div>
       </div>

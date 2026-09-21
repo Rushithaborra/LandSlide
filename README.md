@@ -146,6 +146,29 @@ evacuation centres are (OpenStreetMap has almost none tagged -- that list has to
 come from the state disaster authority), or how long rescue would take, so it shows
 none of those. Coverage grows as tiles are loaded (Sikkim first).
 
+## The state selector filters every state-aware page
+Choosing a state in the top bar now filters the Overview, Alerts, Highway Corridors,
+Authority Contacts, Emergency Contacts, Incidents and Citizen Reports (it used to
+affect only the first two, so other pages kept showing Sikkim's data). "All States"
+shows everything. Details worth knowing:
+- **Authority contacts** carry a `state` (migration 016; NULL = an all-states contact,
+  shown under every state). Existing contacts were set to Sikkim once. The Add form has a
+  state field that defaults to the selected state. **A Critical broadcast now calls only
+  the alert's own state's officials plus the all-states ones** (before, everyone in the
+  table, so an Assam alert would have rung Sikkim's officials).
+- **Citizen reports** get a `state` when they are submitted: their zone's, else the
+  nearest assessed zone to their coordinates (within 25 km), else -- for a report with
+  only a place name -- the state that name geocodes to via Nominatim, accepted only if
+  every match agrees. Otherwise it stays NULL and shows under All States only; it is
+  never guessed. (Of the 3 existing reports, one was resolved to Sikkim.)
+- **Alerts** for a state where rain alerts are not switched on say so, rather than
+  showing an empty list that reads as "safe".
+- **Emergency contacts** are a static directory: the national numbers (112, 108) show
+  under every state; only Sikkim has state-specific entries, and any other state shows a
+  note that its own numbers have not been added. No number was invented.
+- **Incidents** are sample data, all Sikkim's, so other states correctly show none.
+- Help and Data Sources & Methodology are the same everywhere and do not change.
+
 ## Check my area, and help in three languages
 **Check my area** (`/check-area`, also a search box on the Overview) lets a resident
 type a village or town, or press "Use my location", and see the landslide risk

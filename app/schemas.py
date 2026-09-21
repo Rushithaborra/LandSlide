@@ -300,10 +300,14 @@ class BroadcastOut(BaseModel):
     dispatched_at: datetime
 
 
+NerState = Literal["Sikkim", "Assam", "Arunachal Pradesh", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Tripura"]
+
+
 class AuthorityContactIn(BaseModel):
     name: str = Field(min_length=1)
     role: str | None = None
     phone_number: str = Field(min_length=1)
+    state: NerState | None = None  # None = all states (a national / NER-wide contact)
 
 
 class AuthorityContactOut(BaseModel):
@@ -314,6 +318,7 @@ class AuthorityContactOut(BaseModel):
     role: str | None
     phone_number: str
     added_at: datetime
+    state: str | None = None
 
 
 class Coords(BaseModel):
@@ -366,6 +371,7 @@ class CitizenReportOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    state: str | None = None  # worked out at submission; None = unknown
     client_report_id: uuid.UUID | None
     zone_id: uuid.UUID | None
     report_type: str

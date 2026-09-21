@@ -3,6 +3,7 @@ import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import SampleDataNotice from "../components/SampleDataNotice";
+import { useRegion } from "../context/RegionContext";
 import { getIncidents, getCitizenReports } from "../services/api";
 import { generateIncidentReport } from "../services/incidentReport";
 
@@ -25,17 +26,18 @@ const severityStyle = {
  */
 export default function Incidents() {
   const { t } = useTranslation();
+  const { state } = useRegion();
   const [incidents, setIncidents] = useState([]);
   const [reports, setReports] = useState([]);
   const [busyId, setBusyId] = useState(null);
 
   useEffect(() => {
-    getIncidents().then(setIncidents);
+    getIncidents(state).then(setIncidents);
     // getCitizenReports is a real backend call (unlike getIncidents, which is
     // mocked and can't fail) -- if it rejects, related reports just stay
     // empty for the PDF download rather than crashing the page.
     getCitizenReports().then(setReports).catch(() => {});
-  }, []);
+  }, [state]);
 
   const handleDownload = (incident) => {
     setBusyId(incident.id);
@@ -89,6 +91,12 @@ export default function Incidents() {
           </tbody>
         </table>
       </div>
+
+      {incidents.length === 0 && (
+        <p className="mt-3 text-sm text-paper-600 dark:text-paper-400">
+          {t("incidents.noneForState", { state: state ? t(`states.${state}`, { defaultValue: state }) : t("states.all") })}
+        </p>
+      )}
 
       <p className="mt-3 text-xs text-paper-500">
         {t("incidents.footnote")}

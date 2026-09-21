@@ -377,8 +377,8 @@ export async function getActiveAlerts(state) {
   return shaped.filter((a) => a.status === "active");
 }
 
-export async function getRecentAlerts() {
-  return fetchAndShapeAlerts();
+export async function getRecentAlerts(state) {
+  return fetchAndShapeAlerts(state);
 }
 
 /* ----------------------------------------------------------------------- *
@@ -574,8 +574,10 @@ function shapeReport(r) {
   };
 }
 
-export async function getCitizenReports() {
-  const reports = await getJSON("/reports", { auth: true });
+// `state` (optional): one state's reports. A report's state is worked out when it is
+// submitted; those it could not be worked out for appear only when no state is chosen.
+export async function getCitizenReports(state) {
+  const reports = await getJSON(state ? `/reports?state=${encodeURIComponent(state)}` : "/reports", { auth: true });
   return reports.map(shapeReport);
 }
 
@@ -748,17 +750,18 @@ export async function getAlertsForZone(zoneId) {
  * is short and changes rarely but must always be fresh right after an add
  * or delete.
  * ----------------------------------------------------------------------- */
-export async function getAuthorityContacts() {
-  const res = await officerFetch("/authority-contacts");
+// `state` (optional): that state's officials plus the all-states ones (state null).
+export async function getAuthorityContacts(state) {
+  const res = await officerFetch(state ? `/authority-contacts?state=${encodeURIComponent(state)}` : "/authority-contacts");
   if (!res.ok) throw new Error(`load authority contacts failed: ${res.status}`);
   return res.json();
 }
 
-export async function addAuthorityContact({ name, role, phoneNumber }) {
+export async function addAuthorityContact({ name, role, phoneNumber, state }) {
   const res = await officerFetch("/authority-contacts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, role: role || null, phone_number: phoneNumber }),
+    body: JSON.stringify({ name, role: role || null, phone_number: phoneNumber, state: state || null }),
   });
   if (!res.ok) throw new Error(`add authority contact failed: ${res.status}`);
   return res.json();
@@ -774,8 +777,12 @@ export async function deleteAuthorityContact(contactId) {
  * data-source health, the warning ticker). Left on mock data on purpose,
  * not connected.
  * ----------------------------------------------------------------------- */
-export async function getIncidents() {
-  return fakeDelay(incidents);
+// Sample records (see the banner on the page). Every one is in Sikkim, so choosing
+// another state correctly shows none, rather than showing Sikkim's under its name.
+const incidentState = (i) => (/sikkim/i.test(`${i.location} ${i.area}`) ? "Sikkim" : null);
+
+export async function getIncidents(state) {
+  return fakeDelay(state ? incidents.filter((i) => incidentState(i) === state) : incidents);
 }
 
 export async function getDataSources() {
@@ -789,8 +796,9 @@ export async function getDataSources() {
  * status. This genuinely cannot fail (no network call), so it skips
  * useAsyncData the same way getDataSources does.
  * ----------------------------------------------------------------------- */
-export async function getEmergencyContacts() {
-  return fakeDelay(emergencyContacts);
+// A state's view = the all-India/region numbers (state null) plus that state's own.
+export async function getEmergencyContacts(state) {
+  return fakeDelay(state ? emergencyContacts.filter((c) => c.state === null || c.state === state) : emergencyContacts);
 }
 
 /* ----------------------------------------------------------------------- *

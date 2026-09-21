@@ -94,13 +94,16 @@
   },
   "alerts": {
     "title": "Alerts",
-    "subtitle": "All landslide risk alerts across regions"
+    "subtitle": "All landslide risk alerts across regions",
+    "emptyForState": "No alerts for {{state}}.",
+    "alertingOff": "No alerts shown for {{state}}: rain alerts are not switched on there, so this does not mean it is safe."
   },
   "incidents": {
     "title": "Incidents",
     "subtitle": "Verified landslide incidents log",
     "downloadAriaLabel": "Download the full PDF report for incident {{id}}",
-    "footnote": "Each report contains the incident details, the weather report, the rainfall trend before the event, previous recorded activity in that area, and every citizen report filed from the same area."
+    "footnote": "Each report contains the incident details, the weather report, the rainfall trend before the event, previous recorded activity in that area, and every citizen report filed from the same area.",
+    "noneForState": "No incident records for {{state}}."
   },
   "highwayCorridors": {
     "title": "Highway Corridors",
@@ -109,7 +112,8 @@
   "emergencyContacts": {
     "title": "Emergency Contacts",
     "subtitle": "Click-to-call directory for disaster response",
-    "unconfirmed": "Unconfirmed — verify before real-world use"
+    "unconfirmed": "Unconfirmed — verify before real-world use",
+    "noStateSpecific": "No numbers specific to {{state}} have been added yet — the national numbers above work everywhere. Ask {{state}}'s disaster management authority for its control-room number."
   },
   "authorityContacts": {
     "title": "Authority Contacts",
@@ -125,7 +129,14 @@
     "phoneNumber": "Phone number",
     "adding": "Adding…",
     "addOfficialButton": "Add official",
-    "twilioNote": "On a Twilio trial account, calls can only reach numbers verified in the Twilio console first — see docs/sms_voice_alert_handover.md."
+    "twilioNote": "On a Twilio trial account, calls can only reach numbers verified in the Twilio console first — see docs/sms_voice_alert_handover.md.",
+    "state": "State",
+    "allStatesOption": "All states (national)",
+    "allStatesBadge": "All states",
+    "showingState": "Showing officials for {{state}}, plus those registered for all states.",
+    "showingAll": "Showing every registered official, from all states.",
+    "noneForState": "No officials are registered for {{state}} yet.",
+    "callScope": "A critical broadcast for a zone calls that zone's state's officials and the all-states ones."
   },
   "dataObservations": {
     "title": "Data & Observations",
@@ -138,7 +149,9 @@
     "recentSubmissions": "Recent submissions",
     "reportCount_one": "{{count}} report · click any report for full details",
     "reportCount_other": "{{count}} reports · click any report for full details",
-    "openDetailsAriaLabel": "Open full details for report {{id}}"
+    "openDetailsAriaLabel": "Open full details for report {{id}}",
+    "noneForState": "No reports for {{state}}.",
+    "stateNote": "A report's state is worked out from its location when it is sent; a report with only a place name (no location) appears under All States only."
   },
   "citizenReportModal": {
     "photoSubmitted": "Photo submitted by the citizen",
@@ -392,6 +405,10 @@
           {
             "q": "How often does the information on screen change?",
             "a": "Rainfall is refreshed about every hour, and opening the Overview refreshes it if it is over two and a half hours old. New alerts appear on screen as soon as they are raised. Other pages load fresh each time you open them."
+          },
+          {
+            "q": "What does the state selector at the top do?",
+            "a": "It filters the pages by state. Choose a state and the Overview, Alerts, Highway Corridors, Authority Contacts, Emergency Contacts, Incidents and Citizen Reports show only that state; 'All States' shows everything. Authority Contacts always also shows contacts registered for all states, and a Critical broadcast calls the officials of the alert's own state plus those. If a state has no alerts, contacts or records, the page says so — for a state where rain alerts are switched off (everything except Sikkim today) it says that, so an empty list is not read as safety. Pages that are the same everywhere (Help, Data Sources &amp; Methodology) do not change."
           },
           {
             "q": "Can I use this on a phone or tablet?",

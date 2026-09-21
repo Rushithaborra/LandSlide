@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { useRegion } from "../context/RegionContext";
 import { getEmergencyContacts } from "../services/api";
 
 /**
@@ -12,11 +13,15 @@ import { getEmergencyContacts } from "../services/api";
  */
 export default function EmergencyContacts() {
   const { t } = useTranslation();
+  const { state } = useRegion();
   const [contacts, setContacts] = useState([]);
 
   useEffect(() => {
-    getEmergencyContacts().then(setContacts);
-  }, []);
+    getEmergencyContacts(state).then(setContacts);
+  }, [state]);
+
+  // Only the all-India/region numbers apply to this state: say so, rather than let it look complete.
+  const noStateSpecific = Boolean(state) && contacts.every((c) => c.state === null);
 
   return (
     <DashboardLayout title={t("emergencyContacts.title")} subtitle={t("emergencyContacts.subtitle")}>
@@ -46,6 +51,11 @@ export default function EmergencyContacts() {
           </div>
         ))}
       </div>
+      {noStateSpecific && (
+        <p className="mt-3 text-sm text-paper-600 dark:text-paper-400">
+          {t("emergencyContacts.noStateSpecific", { state: t(`states.${state}`, { defaultValue: state }) })}
+        </p>
+      )}
     </DashboardLayout>
   );
 }

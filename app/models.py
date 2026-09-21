@@ -189,6 +189,9 @@ class AuthorityContact(Base):
     role: Mapped[str | None] = mapped_column(String, nullable=True)
     phone_number: Mapped[str] = mapped_column(String, nullable=False)
     added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    # migrations/016: the state this official covers; NULL = all states (national /
+    # NER-wide). A critical broadcast rings the alert's own state's contacts plus these.
+    state: Mapped[str | None] = mapped_column(String, nullable=True)
 
 
 class CitizenReport(Base):
@@ -205,6 +208,9 @@ class CitizenReport(Base):
     geo_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     geo_accuracy_m: Mapped[float | None] = mapped_column(Float, nullable=True)
     place_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    # migrations/016: worked out at submission (zone, else the nearest assessed zone to the
+    # coordinates); NULL = could not be worked out -- shown under "All States" only.
+    state: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str] = mapped_column(String, nullable=False)
     reporter_name: Mapped[str | None] = mapped_column(String, nullable=True)
     reporter_phone: Mapped[str | None] = mapped_column(String, nullable=True)
