@@ -146,6 +146,33 @@ evacuation centres are (OpenStreetMap has almost none tagged -- that list has to
 come from the state disaster authority), or how long rescue would take, so it shows
 none of those. Coverage grows as tiles are loaded (Sikkim first).
 
+## Incidents = real GSI landslide records, per state
+The Incidents page used to be sample data for Sikkim only. It now shows real historical
+landslide records from each state's Geological Survey of India inventory
+(`landslide_records`, migration 017; `GET /landslide-records` with state / district /
+status / search filters and paging, and `/landslide-records/summary` for the filters).
+Loaded so far: **Assam 587** (590 rows, 3 exact duplicates dropped) and **Sikkim 764**;
+every other state says its records are not loaded yet. **Honest limits:** the inventories
+give a place, coordinates and an activity status but almost never a date or severity, so
+neither is shown (the page says these are past records, not live reports); Sikkim's
+district names are messy at the source ("East", "North", "Namchi"), and are tidied but
+not re-mapped. Each record has a "Check risk here" link that opens Check my area at its
+exact coordinates. To add the next state:
+`python scripts/load_landslide_records.py <state>` (reads `gsi_<state>_landslides.csv`
+from the NER pipeline repo, cleans it with `app/services/landslide_records.py`, and
+replaces that state's rows in one transaction).
+
+**Highway Corridors, cleaned up.** Zones are still grouped by the road code in their name,
+but highway spellings are now normalised (`NH27` / `NH 27` / `NH-27` are one corridor:
+Assam went from 126 to 122 highways), every corridor is labelled a highway, a named road
+or unnamed, and unnamed OpenStreetMap ways -- 58% of Assam's zones -- are shown as a count
+rather than as a fake "road" corridor. The page has Highways / Named roads tabs, and the
+alerts column shows "—" (not 0) where rain alerts are not switched on.
+
+**Alerts for Assam stay off** (decision 2026-09-21): its rainfall threshold comes from a
+Guwahati study, and statewide it would flag ordinary monsoon rain. Options kept for later:
+Guwahati-area only, or a statewide IMD "heavy rain" rule.
+
 ## The state selector filters every state-aware page
 Choosing a state in the top bar now filters the Overview, Alerts, Highway Corridors,
 Authority Contacts, Emergency Contacts, Incidents and Citizen Reports (it used to
@@ -166,7 +193,8 @@ shows everything. Details worth knowing:
 - **Emergency contacts** are a static directory: the national numbers (112, 108) show
   under every state; only Sikkim has state-specific entries, and any other state shows a
   note that its own numbers have not been added. No number was invented.
-- **Incidents** are sample data, all Sikkim's, so other states correctly show none.
+- **Incidents** show that state's real GSI landslide records (see "Incidents = real GSI landslide
+  records" below); a state whose records are not loaded says so.
 - Help and Data Sources & Methodology are the same everywhere and do not change.
 
 ## Check my area, and help in three languages
@@ -201,8 +229,8 @@ strip and "x days ago" all follow the language switcher. A sentence in any other
 format is shown untouched in English rather than mangled. (The Broadcast composer's
 pre-filled SMS text is still English -- an officer edits it before sending.)
 The notification bell also lists the newest real active alerts (unread is
-remembered per browser -- there is no officer login). The Incidents list, Data &
-Observations status and profile panel are still **sample data** (Help says so).
+remembered per browser -- there is no officer login). Only the Data & Observations status
+and profile panel are still **sample data** (each says so on the page, and Help says so).
 
 ## Two-layer risk model
 - **Static (ML-owned):** `zones.susceptibility_score` / `risk_tier` /
@@ -346,13 +374,12 @@ than silently left half-done:
   Broadcast composer, and the SMS sent to citizens) stays English-only on purpose --
   CLAUDE.md scopes "full multilingual SMS" to a later phase, and translating message
   *content* delivered to citizens is that feature, not UI translation.
-- **Sample data pages** (Incidents list, Data & Observations status, profile panel)
-  carry English sample values. Each now shows a visible "Sample data" banner
-  (`SampleDataNotice`, translated), and the incident PDF stamps every page "SAMPLE
-  DATA" (its footer used to claim IMD and ISRO as sources, which are not connected).
-  The sample rows are not accurate to the live system (e.g. they list the SMS gateway
-  as not connected while Twilio is live) -- the banner is the safeguard, so wire real
-  data in or remove the page before relying on it.
+- **Sample data pages** (Data & Observations status, profile panel) carry English sample
+  values, each with a visible "Sample data" banner (`SampleDataNotice`, translated). The
+  sample rows are not accurate to the live system (e.g. they list the SMS gateway as not
+  connected while Twilio is live) -- the banner is the safeguard, so wire real data in or
+  remove the page before relying on it. (The Incidents page and its sample PDF download
+  were replaced by real GSI records; the PDF generator and jsPDF were removed.)
 - **Two Help/Methodology facts to keep current by hand**: the zone and AUC figures
   quoted on the Methodology page come from the pipeline reports, not from code.
 

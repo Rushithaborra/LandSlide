@@ -15,10 +15,26 @@ router = APIRouter(prefix="/corridors", tags=["corridors"])
 # zone, not just a capped page: this endpoint used to fetch the top 5000
 # zones and group them in Python, which silently undercounted any state
 # larger than that (Meghalaya's 10,691 zones showed as 5,000) and could drop
-# a road whose zones all ranked low. Same fix would have been needed at
-# Assam's 66,677.
-_CODE = func.coalesce(func.nullif(func.btrim(func.split_part(Zone.name, " (", 1)), ""), "Unnamed")
+# a road whose zones all ranked low.
+#
+# Cleaned up for Assam, where the raw grouping was misleading:
+#  - the same highway appears under variant spellings ('NH27', 'NH 27', 'NH-27'),
+#    so highway codes are normalised (upper-case, no spaces or hyphens) to one corridor;
+#  - 58% of Assam's zones sit on unnamed OSM ways ('road'), which is not a corridor at
+#    all, so those are labelled kind='unnamed' and the dashboard shows them as a count,
+#    not as a road;
+#  - real highways (NH/SH/AH) are told apart from local named roads (kind).
+_RAW = func.coalesce(func.nullif(func.btrim(func.split_part(Zone.name, " (", 1)), ""), "Unnamed")
+_IS_HIGHWAY = _RAW.op("~*")(r"^(NH|SH|AH)\s*-?\s*[0-9]")
+_CODE = case((_IS_HIGHWAY, func.upper(func.regexp_replace(_RAW, r"[\s-]", "", "g"))), else_=_RAW)
+_KIND = case((_IS_HIGHWAY, "highway"), (_RAW.in_(["road", "Unnamed"]), "unnamed"), else_="named")
 _TIER_RANK = case((Zone.risk_tier == "high", 2), (Zone.risk_tier == "moderate", 1), (Zone.risk_tier == "low", 0), else_=-1)
+
+
+def display_code(code: str) -> str:
+    """'SH37;SH022' (OSM lists two refs for a road that has both a national-style and a
+    state number) reads better as 'SH37 / SH022'."""
+    return code.replace(";", " / ")
 
 
 @router.get("", response_model=list[CorridorOut])
@@ -31,6 +47,7 @@ def list_corridors(state: str | None = None, db: Session = Depends(get_db)):
     has_active_alert = exists().where(Alert.zone_id == Zone.id, Alert.status == "active")
     ranked = select(
         _CODE.label("code"),
+        _KIND.label("kind"),
         Zone.name,
         Zone.risk_tier,
         Zone.susceptibility_score,
@@ -54,7 +71,8 @@ def list_corridors(state: str | None = None, db: Session = Depends(get_db)):
     ).all()
     return [
         CorridorOut(
-            code=r.code,
+            code=display_code(r.code),
+            kind=r.kind,
             zone_count=r.zone_count,
             active_alert_count=int(r.active_alert_count),
             worst_risk_tier=r.risk_tier,

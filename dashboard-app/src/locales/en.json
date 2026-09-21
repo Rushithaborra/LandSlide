@@ -102,14 +102,36 @@
   },
   "incidents": {
     "title": "Incidents",
-    "subtitle": "Verified landslide incidents log",
-    "downloadAriaLabel": "Download the full PDF report for incident {{id}}",
-    "footnote": "Each report contains the incident details, the weather report, the rainfall trend before the event, previous recorded activity in that area, and every citizen report filed from the same area.",
-    "noneForState": "No incident records for {{state}}."
+    "subtitle": "Historical landslide records from the Geological Survey of India — {{state}}",
+    "note": "These are past landslides recorded by the Geological Survey of India, not live reports. The survey gives a place, its coordinates and whether the slide is still active — it does not record a date or a severity, so none is shown. New landslides reported by residents are on the Citizen Reports page.",
+    "notLoaded": "Landslide records for {{state}} have not been loaded yet.",
+    "searchPlaceholder": "Search by place, road or district…",
+    "district": "District",
+    "allDistricts": "All districts",
+    "activity": "Status",
+    "allActivities": "All statuses",
+    "place": "Place and road section",
+    "stateCol": "State",
+    "check": "Risk here",
+    "checkHere": "Check risk here",
+    "noMatch": "No records match these filters.",
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "pageOf": "Page {{page}} of {{pages}}",
+    "prev": "Previous page",
+    "next": "Next page"
   },
   "highwayCorridors": {
     "title": "Highway Corridors",
-    "subtitle": "Real zones grouped by highway, worst risk first — {{state}}"
+    "subtitle": "Real zones grouped by road, worst risk first — {{state}}",
+    "tab": {
+      "highway": "Highways",
+      "named": "Named roads"
+    },
+    "none": "No {{state}} corridors of this kind.",
+    "activeCount": "{{count}} active",
+    "alertsOff": "Alerts show \"—\" because rain alerts are not switched on for {{state}}. That does not mean these roads are safe.",
+    "unnamedNote_one": "{{count, number}} road stretch has no highway or road name in OpenStreetMap, so it is not grouped into a corridor here.",
+    "unnamedNote_other": "{{count, number}} road stretches have no highway or road name in OpenStreetMap, so they are not grouped into corridors here."
   },
   "emergencyContacts": {
     "title": "Emergency Contacts",
@@ -530,19 +552,15 @@
       },
       {
         "group": "officers",
-        "title": "Records and reports",
+        "title": "Records and incidents",
         "faqs": [
           {
-            "q": "How do I get a report for a meeting or a file?",
-            "a": "Go to the Incidents page and press 'Download' on that incident's row. A PDF is produced immediately."
-          },
-          {
-            "q": "What is inside that PDF?",
-            "a": "The incident's ID, location, date, severity and status, the impact, the weather report for the event, the rainfall in the days before it, and citizen reports filed from the same area."
+            "q": "What is on the Incidents page?",
+            "a": "Real past landslides recorded by the Geological Survey of India, for the state chosen at the top: the place and road section, the district, whether the slide is still active, and its coordinates. Use the filters and search to narrow them, and 'Check risk here' to see the risk around one. The survey does not record a date or a severity, so none is shown. So far Assam (587 records) and Sikkim (764) are loaded; other states say they are not loaded yet."
           },
           {
             "q": "What is the difference between an Alert and an Incident?",
-            "a": "An alert is a warning before something happens. An incident is the record of a landslide that actually happened, written after field verification. Not every alert becomes an incident. Note: the Incidents page currently shows sample records until the field-verification feed is connected."
+            "a": "An alert is a warning raised when rain reaches a dangerous level for a road stretch. An incident, on the Incidents page, is a past landslide recorded by the Geological Survey of India. Not every alert becomes an incident. New landslides reported by residents are on the Citizen Reports page, where an officer can verify them."
           }
         ]
       },
@@ -556,7 +574,7 @@
           },
           {
             "q": "Which parts of this dashboard are real, and which are sample?",
-            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim (also shown in the scrolling strip at the top and in the notification bell), citizen reports, and SMS and phone calls (trial account). Sample for now: the Incidents list, the Data & Observations status, and the profile panel. IMD data is not connected."
+            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim (also shown in the scrolling strip at the top and in the notification bell), citizen reports, the landslide records on the Incidents page (Assam and Sikkim so far), and SMS and phone calls (trial account). Sample for now: the Data & Observations status, and the profile panel. IMD data is not connected."
           },
           {
             "q": "What does the Data & Observations page tell me?",
@@ -727,7 +745,7 @@
           {
             "status": "live",
             "name": "Landslide inventories (Geological Survey of India–linked)",
-            "detail": "Real historical landslide points — the ground truth the models learn from. Sikkim: 765 verified points (777 raw records; 3 duplicate-coordinate points resolved). Each other state uses its own real inventory; see that state's training report."
+            "detail": "Real historical landslide points — the ground truth the models learn from. Sikkim: 765 verified points (777 raw records; 3 duplicate-coordinate points resolved). Each other state uses its own real inventory; see that state's training report. The records are also shown on the Incidents page — loaded so far for Assam (587) and Sikkim (764)."
           },
           {
             "status": "live",
@@ -876,7 +894,6 @@
   },
   "sample": {
     "title": "Sample data",
-    "incidents": "The incidents on this page are demonstration records, not real events. Nothing feeds this page yet (no field-verification system is connected), and the PDF you can download from a row carries the same sample data. Real alerts are on the Alerts page.",
     "dataObservations": "The sources and status values below are samples, not live monitoring. For real freshness see “Rainfall updated … ago” on the Overview, and the Data Sources & Methodology page for what is real.",
     "profile": "This profile is sample data — there are no officer accounts yet, and nothing you change here is saved to a server."
   },

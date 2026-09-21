@@ -5,7 +5,7 @@
  * Real backend: FastAPI + PostgreSQL/PostGIS. LINK SPOTS A-F and K call it
  * for real, as do the warning strip and the notification bell (real active
  * alerts). G, H, J, L stay on mock data on purpose -- either out of this
- * round's 2-feature scope (incidents, data sources), require a login system
+ * round's 2-feature scope (data sources), require a login system
  * this project doesn't have yet (admin profile), or are already client-side
  * only by design (the incident PDF).
  *
@@ -17,10 +17,8 @@
 
 import i18n from "../i18n";
 import {
-  incidents,
   dataSources,
   adminProfile,
-  citizenReports as mockCitizenReports,
   emergencyContacts,
 } from "../data/mockData";
 
@@ -559,6 +557,7 @@ export async function getCorridors(state) {
   const corridors = await getJSON(state ? `/corridors?state=${encodeURIComponent(state)}` : "/corridors");
   return corridors.map((c) => ({
     code: c.code,
+    kind: c.kind, // "highway" | "named" | "unnamed"
     zoneCount: c.zone_count,
     activeAlertCount: c.active_alert_count,
     worstTier: capitalizeTier(c.worst_risk_tier),
@@ -804,16 +803,42 @@ export async function deleteAuthorityContact(contactId) {
 }
 
 /* ----------------------------------------------------------------------- *
- * Out of scope for this round -- no backend endpoint exists (incidents,
- * data-source health, the warning ticker). Left on mock data on purpose,
- * not connected.
+ * Out of scope for this round -- no backend endpoint exists (data-source
+ * health). Left on mock data on purpose, not connected.
  * ----------------------------------------------------------------------- */
-// Sample records (see the banner on the page). Every one is in Sikkim, so choosing
-// another state correctly shows none, rather than showing Sikkim's under its name.
-const incidentState = (i) => (/sikkim/i.test(`${i.location} ${i.area}`) ? "Sikkim" : null);
+// Real historical landslide records (Geological Survey of India inventories) from
+// GET /landslide-records. No date and no severity: the inventories have neither.
+export const RECORDS_PAGE_SIZE = 50;
 
-export async function getIncidents(state) {
-  return fakeDelay(state ? incidents.filter((i) => incidentState(i) === state) : incidents);
+export async function getLandslideRecords({ state, district, activity, q, page = 0 } = {}) {
+  const params = new URLSearchParams({ limit: RECORDS_PAGE_SIZE, offset: page * RECORDS_PAGE_SIZE });
+  if (state) params.set("state", state);
+  if (district) params.set("district", district);
+  if (activity) params.set("activity", activity);
+  if (q && q.trim()) params.set("q", q.trim());
+  const r = await getJSON(`/landslide-records?${params}`);
+  return {
+    total: r.total,
+    items: r.items.map((i) => ({
+      id: i.id,
+      slideNo: i.slide_no,
+      state: i.state,
+      district: i.district,
+      name: i.slide_name || i.location || i.slide_no,
+      location: i.location,
+      lat: i.lat,
+      lng: i.lng,
+      activity: i.activity,
+      material: i.material,
+      movement: i.movement,
+      historyNote: i.history_note,
+    })),
+  };
+}
+
+// What is loaded for a state: total, districts and activity statuses (the page's filters).
+export async function getLandslideSummary(state) {
+  return getJSON(state ? `/landslide-records/summary?state=${encodeURIComponent(state)}` : "/landslide-records/summary");
 }
 
 export async function getDataSources() {
@@ -919,23 +944,8 @@ export async function broadcastAlert(alertId, { headline, severity, message, cha
 }
 
 /* ----------------------------------------------------------------------- *
- * LINK SPOT L — Incident report download. Already client-side only by
- * design (jsPDF, no backend needed) -- incidents themselves are mock (out
- * of scope), so the citizen reports bundled into the PDF stay mock too for
- * internal consistency (a real citizen report has no "area" field to match
- * a mock incident's area against).
- * ----------------------------------------------------------------------- */
-export async function getIncidentReportBundle(incidentId) {
-  const incident = incidents.find((i) => i.id === incidentId);
-  const related = mockCitizenReports.filter((r) => r.area === incident?.area);
-  return fakeDelay({ incident, citizenReports: related }, 150);
-}
-
-/* ----------------------------------------------------------------------- *
- * LINK SPOT M — Global search. Real: searches actual zones, alerts, and
- * citizen reports. Incidents stay mock (out of scope), included anyway so
- * the search doesn't silently drop a whole category the UI advertises --
- * each result routes to a page that's itself honest about being mock.
+ * LINK SPOT M — Global search. Real: searches actual zones, alerts, citizen
+ * reports and the GSI landslide records ("Incident" results).
  * ----------------------------------------------------------------------- */
 export async function searchAll(query) {
   const q = query.trim().toLowerCase();
@@ -943,11 +953,12 @@ export async function searchAll(query) {
 
   // Zone names are searched by the backend (min 2 characters there) rather
   // than downloading every zone and filtering in the browser.
-  const [zones, alerts, reports] = await Promise.all([
+  const [zones, alerts, reports, records] = await Promise.all([
     q.length >= 2 ? getJSON(`/zones?q=${encodeURIComponent(q)}&limit=20`) : Promise.resolve([]),
     fetchAndShapeAlerts(),
     // Citizen reports need the officer key; without it, search just skips them.
     getCitizenReports().catch(() => []),
+    q.length >= 2 ? getJSON(`/landslide-records?q=${encodeURIComponent(q)}&limit=5`).then((r) => r.items).catch(() => []) : Promise.resolve([]),
   ]);
 
   const results = [];
@@ -967,10 +978,14 @@ export async function searchAll(query) {
       results.push({ id: r.id, type: "Citizen report", title: r.location, subtitle: r.note, to: "/citizen-reports" });
     }
   }
-  for (const inc of incidents) {
-    if (inc.location.toLowerCase().includes(q) || inc.area?.toLowerCase().includes(q)) {
-      results.push({ id: inc.id, type: "Incident", title: inc.location, subtitle: inc.status, to: "/incidents" });
-    }
+  for (const rec of records) {
+    results.push({
+      id: rec.id,
+      type: "Incident",
+      title: rec.slide_name || rec.location || rec.slide_no,
+      subtitle: [rec.district, rec.state].filter(Boolean).join(", "),
+      to: `/incidents?q=${encodeURIComponent(rec.slide_name || rec.location || "")}`,
+    });
   }
 
   return results.slice(0, 12);

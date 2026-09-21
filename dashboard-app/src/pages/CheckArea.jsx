@@ -149,9 +149,14 @@ export default function CheckArea() {
     [assess, i18n.language, setParams, t],
   );
 
-  // Arriving from the Overview search box (?q=...) runs the search straight away.
+  // Arriving from the Overview search box (?q=...) runs the search straight away; arriving
+  // from a landslide record (?lat=&lng=&name=) assesses that exact place.
   useEffect(() => {
-    if (params.get("q")) search(params.get("q"));
+    const lat = Number(params.get("lat"));
+    const lng = Number(params.get("lng"));
+    if (params.get("lat") && params.get("lng") && Number.isFinite(lat) && Number.isFinite(lng)) {
+      assess({ name: params.get("name") || t("checkArea.yourLocation"), detail: "", lat, lng });
+    } else if (params.get("q")) search(params.get("q"));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
   }, []);
 

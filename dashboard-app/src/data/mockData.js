@@ -149,66 +149,6 @@ export const citizenReports = [
   },
 ];
 
-// ---- G. Incidents log (post-event records) ----
-// EXTENDED IN DRAFT 3: each incident now also carries the material that goes
-// into its downloadable PDF report (weather, rainfall trend, area history).
-// The original fields (id, location, date, severity, status) are unchanged.
-export const incidents = [
-  {
-    id: "IN-88",
-    location: "Chungthang, North Sikkim",
-    date: "12 May 2026",
-    severity: "High",
-    status: "Resolved",
-    // --- added in draft 3 (feeds the PDF report) ---
-    area: "North Sikkim",
-    weatherReport:
-      "Continuous rainfall for 38 hours preceding the event. Peak hourly intensity 21 mm/hr recorded at the Chungthang gauge. Cumulative 48-hour total 214 mm against a 100 mm trigger threshold.",
-    rainfallTrend: [
-      { day: "08 May", mm: 34 },
-      { day: "09 May", mm: 61 },
-      { day: "10 May", mm: 96 },
-      { day: "11 May", mm: 118 },
-      { day: "12 May", mm: 142 },
-    ],
-    areaHistory: [
-      "2019 — Slope failure on the same NH-10 stretch, road closed 4 days.",
-      "2021 — Two debris flows recorded 2 km upstream after a cloudburst.",
-      "2023 — GSI field survey flagged the slope as highly susceptible (0.84).",
-    ],
-    casualties: "Nil",
-    infrastructureImpact: "NH-10 blocked for 26 hours; one culvert damaged.",
-    responseSummary:
-      "Alert issued 6 hours before failure. 3 households evacuated pre-emptively by the district team. Road cleared by BRO on 13 May.",
-  },
-  {
-    id: "IN-87",
-    location: "Legship, West Sikkim",
-    date: "3 May 2026",
-    severity: "Moderate",
-    status: "Monitoring",
-    // --- added in draft 3 (feeds the PDF report) ---
-    area: "West Sikkim",
-    weatherReport:
-      "Intermittent moderate rain over 3 days. Peak hourly intensity 11 mm/hr. Cumulative 48-hour total 88 mm, just below the 100 mm trigger threshold.",
-    rainfallTrend: [
-      { day: "29 Apr", mm: 12 },
-      { day: "30 Apr", mm: 28 },
-      { day: "01 May", mm: 44 },
-      { day: "02 May", mm: 51 },
-      { day: "03 May", mm: 37 },
-    ],
-    areaHistory: [
-      "2020 — Minor slip near the Legship bridge, cleared within a day.",
-      "2022 — Retaining wall constructed on the river-facing slope.",
-    ],
-    casualties: "Nil",
-    infrastructureImpact: "Partial shoulder collapse on the approach road.",
-    responseSummary:
-      "Zone kept under active monitoring. Piezometer readings requested from the state PWD.",
-  },
-];
-
 // ---- H. System / data-source status (Settings → Data Sources page) ----
 // Statuses here must stay truthful (CLAUDE.md honesty rule): IMD access was
 // never obtained this round -- Open-Meteo is the live rainfall source.
@@ -279,13 +219,6 @@ export const searchIndex = [
     title: `${a.id} — ${a.title}`,
     subtitle: `${a.location} · ${a.timeAgo}`,
     to: "/alerts",
-  })),
-  ...incidents.map((i) => ({
-    id: `s-${i.id}`,
-    type: "Incident",
-    title: `${i.id} — ${i.location}`,
-    subtitle: `${i.date} · ${i.severity} · ${i.status}`,
-    to: "/incidents",
   })),
   ...citizenReports.map((r) => ({
     id: `s-${r.id}`,

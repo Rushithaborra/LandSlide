@@ -68,6 +68,42 @@ class SurroundingsOut(BaseModel):
     area_covered: bool = True
 
 
+class LandslideRecordOut(BaseModel):
+    """One real GSI landslide record. No date and no severity: the inventory has neither."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    slide_no: str | None
+    state: str
+    district: str | None
+    slide_name: str | None
+    location: str | None
+    lat: float
+    lng: float
+    activity: str
+    material: str | None
+    movement: str | None
+    history_note: str | None
+    source: str
+
+
+class LandslideRecordsOut(BaseModel):
+    total: int  # matching the filters, before paging
+    items: list[LandslideRecordOut]
+
+
+class CountOut(BaseModel):
+    name: str
+    count: int
+
+
+class LandslideSummaryOut(BaseModel):
+    total: int
+    districts: list[CountOut]
+    activities: list[CountOut]
+
+
 class MapZoneOut(BaseModel):
     """One zone as a map pin -- only what a marker + tooltip need."""
 
@@ -125,6 +161,9 @@ class CorridorOut(BaseModel):
     not a stored table, computed from existing zones + alerts."""
 
     code: str
+    # highway = a real NH/SH/AH road; named = a local named road; unnamed = OSM ways with
+    # no highway or road name (one lump, not a corridor -- shown as a count only).
+    kind: Literal["highway", "named", "unnamed"] = "named"
     zone_count: int
     active_alert_count: int
     worst_risk_tier: str | None

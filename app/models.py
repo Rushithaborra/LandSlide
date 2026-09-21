@@ -141,6 +141,28 @@ class Place(Base):
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
+class LandslideRecord(Base):
+    """A real historical landslide from a Geological Survey of India inventory
+    (migrations/017_landslide_records.sql). Place, coordinates and activity status only:
+    the inventories almost never carry a date or severity, so none is stored."""
+
+    __tablename__ = "landslide_records"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    slide_no: Mapped[str | None] = mapped_column(String, nullable=True)
+    state: Mapped[str] = mapped_column(String, nullable=False)
+    district: Mapped[str | None] = mapped_column(String, nullable=True)
+    slide_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+    lat: Mapped[float] = mapped_column(Float, nullable=False)
+    lng: Mapped[float] = mapped_column(Float, nullable=False)
+    activity: Mapped[str] = mapped_column(String, nullable=False, default="Unknown")
+    material: Mapped[str | None] = mapped_column(String, nullable=True)
+    movement: Mapped[str | None] = mapped_column(String, nullable=True)
+    history_note: Mapped[str | None] = mapped_column(String, nullable=True)
+    source: Mapped[str] = mapped_column(String, nullable=False, default="Geological Survey of India landslide inventory")
+
+
 class AlertBroadcast(Base):
     __tablename__ = "alert_broadcasts"
 
