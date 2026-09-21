@@ -193,7 +193,7 @@
       "configured": "Credentials are set (this does not test the connection)",
       "notSet": "Credentials are not set",
       "offline": "Used offline to train the models",
-      "imd": "Needs institutional access, not obtained",
+      "imd": "Portal access has been granted, but nothing is connected yet: the key works only from one fixed IP address",
       "sentinel": "Not used in this build",
       "checkFailed": "The server could not be reached"
     }
@@ -801,7 +801,7 @@
           {
             "status": "simulated",
             "name": "IMD (India Meteorological Department)",
-            "detail": "The pitch deck's tech-stack slide names IMD as the primary rainfall source, with Open-Meteo as the fallback. IMD API access was not reachable in this build's timeframe — Open-Meteo is what is actually live, not IMD."
+            "detail": "The pitch deck's tech-stack slide names IMD as the primary rainfall source, with Open-Meteo as the fallback. IMD has since granted access to its API portal, but nothing is wired in yet — its key works only from one fixed IP address, which this system's hosting does not have. Open-Meteo is what is actually live, not IMD."
           },
           {
             "status": "unverified",
