@@ -15,6 +15,7 @@
  * ============================================================================
  */
 
+import i18n from "../i18n";
 import {
   incidents,
   dataSources,
@@ -24,6 +25,36 @@ import {
 } from "../data/mockData";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+// Every request has a deadline. Without one, a request that hangs (Render restarting
+// mid-deploy, or waking from sleep) never settles, and a page waiting on it sat on
+// "Loading..." forever with no error and no Retry button. After the deadline it fails,
+// and the pages' existing error state + Retry take over. Uploads get longer (photos).
+const REQUEST_TIMEOUT_MS = 45000;
+const UPLOAD_TIMEOUT_MS = 120000;
+
+async function timedFetch(url, options = {}) {
+  const timeout = options.method === "POST" && options.body instanceof FormData ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS;
+  try {
+    return await fetch(url, { ...options, signal: options.signal ?? AbortSignal.timeout(timeout) });
+  } catch (e) {
+    // The browser's own messages ("signal timed out", "Failed to fetch") mean nothing to
+    // most people -- say what happened and what to do, in the chosen language.
+    const timedOut = e?.name === "TimeoutError" || e?.name === "AbortError";
+    throw new Error(i18n.t(timedOut ? "common.slowResponse" : "common.unreachable"));
+  }
+}
+
+// A read that fails at the network level (a restart drops the connection, a timeout)
+// is tried once more after a moment; HTTP error statuses are NOT retried.
+async function fetchReadRetrying(url, options) {
+  try {
+    return await timedFetch(url, options);
+  } catch {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    return timedFetch(url, options);
+  }
+}
 
 // Server-Sent Events endpoint (see useAlertStream.js) -- exported here so
 // this file stays the one place that knows the backend's base URL.
@@ -72,10 +103,10 @@ function withOfficerKey(headers = {}) {
   return key ? { ...headers, "X-API-Key": key } : headers;
 }
 
-// fetch() for endpoints that need the officer key. A 401/429 becomes an
+// timedFetch() for endpoints that need the officer key. A 401/429 becomes an
 // AuthRequiredError, so callers can tell "not signed in" from a real failure.
 async function officerFetch(path, options = {}) {
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers: withOfficerKey(options.headers) });
+  const res = await timedFetch(`${BASE_URL}${path}`, { ...options, headers: withOfficerKey(options.headers) });
   if (res.status === 401 || res.status === 429) throw new AuthRequiredError(res.status);
   return res;
 }
@@ -84,7 +115,7 @@ async function officerFetch(path, options = {}) {
 // is caught at sign-in instead of failing every later action.
 export async function verifyOfficerKey(key) {
   try {
-    const res = await fetch(`${BASE_URL}/authority-contacts`, { headers: { "X-API-Key": key } });
+    const res = await timedFetch(`${BASE_URL}/authority-contacts`, { headers: { "X-API-Key": key } });
     if (res.status === 401) return "invalid";
     if (res.status === 429) return "throttled";
     return res.ok ? "ok" : "error";
@@ -154,7 +185,7 @@ function alertsPath(state) {
 
 async function getJSON(path, { auth = false } = {}) {
   if (inFlight.has(path)) return inFlight.get(path);
-  const promise = fetch(`${BASE_URL}${path}`, auth ? { headers: withOfficerKey() } : undefined).then((res) => {
+  const promise = fetchReadRetrying(`${BASE_URL}${path}`, auth ? { headers: withOfficerKey() } : undefined).then((res) => {
     if (auth && (res.status === 401 || res.status === 429)) throw new AuthRequiredError(res.status);
     if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
     return res.json();
@@ -202,7 +233,7 @@ function timeAgo(isoString) {
 // be reached -- a failed check must never break the page.
 export async function refreshRainfallIfStale() {
   try {
-    const res = await fetch(`${BASE_URL}/rainfall/refresh-if-stale`, { method: "POST" });
+    const res = await timedFetch(`${BASE_URL}/rainfall/refresh-if-stale`, { method: "POST" });
     return res.ok ? await res.json() : null;
   } catch {
     return null;
@@ -413,7 +444,7 @@ function shapeRainfallReadings(readings, { limit } = {}) {
 // Mizoram today) -- RainfallChart.jsx skips drawing the reference line
 // entirely in that case rather than showing a fabricated one.
 export async function getRainfallThreshold(zoneId) {
-  const res = await fetch(`${BASE_URL}/rainfall/${zoneId}/threshold`);
+  const res = await timedFetch(`${BASE_URL}/rainfall/${zoneId}/threshold`);
   if (!res.ok) throw new Error(`load threshold failed: ${res.status}`);
   const t = await res.json();
   return t ? { mm: t.threshold_mm_per_day, source: t.source, verified: t.verified_against_primary_text } : null;
@@ -509,7 +540,7 @@ export async function getMapView(state, { minLat, minLng, maxLat, maxLng }) {
  * instead of pretending to have them. `nearest` is null when nothing is safer.
  * ----------------------------------------------------------------------- */
 export async function getNearestSafeZone(zoneId) {
-  const res = await fetch(`${BASE_URL}/zones/${zoneId}/nearest-safer`);
+  const res = await timedFetch(`${BASE_URL}/zones/${zoneId}/nearest-safer`);
   if (!res.ok) throw new Error(`load nearest safer zone failed: ${res.status}`);
   const nearest = await res.json();
   // Wrapped so "still loading" (the hook's null) and "nothing safer nearby"
@@ -594,7 +625,7 @@ export async function submitCitizenReport(payload) {
   };
   const form = new FormData();
   form.append("data", JSON.stringify(body));
-  const res = await fetch(`${BASE_URL}/reports`, { method: "POST", body: form });
+  const res = await timedFetch(`${BASE_URL}/reports`, { method: "POST", body: form });
   if (!res.ok) throw new Error(`submit report failed: ${res.status}`);
   return res.json();
 }
@@ -607,7 +638,7 @@ export async function submitCitizenReport(payload) {
  * backend surface for a page that's just a different view of existing data.
  * ----------------------------------------------------------------------- */
 export async function getZoneById(zoneId) {
-  const res = await fetch(`${BASE_URL}/zones/${zoneId}`);
+  const res = await timedFetch(`${BASE_URL}/zones/${zoneId}`);
   if (!res.ok) throw new Error(`load zone failed: ${res.status}`);
   const z = await res.json();
   return {
@@ -639,7 +670,7 @@ export async function fetchLiveRainfall(lat, lng, { pastDays = 10, forecastDays 
     forecast_days: forecastDays,
     timezone: "UTC",
   });
-  const res = await fetch(`${OPEN_METEO_URL}?${params}`);
+  const res = await timedFetch(`${OPEN_METEO_URL}?${params}`);
   if (!res.ok) throw new Error(`live rainfall failed: ${res.status}`);
   const { daily } = await res.json();
   const today = new Date().toISOString().slice(0, 10);
@@ -668,7 +699,7 @@ export async function geocodePlace(query, language = "en") {
     limit: "6",
     "accept-language": language,
   });
-  const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
+  const res = await timedFetch(`https://nominatim.openstreetmap.org/search?${params}`);
   if (!res.ok) throw new Error(`place search failed: ${res.status}`);
   const places = await res.json();
   return places.map((p) => {

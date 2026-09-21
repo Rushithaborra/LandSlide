@@ -8,7 +8,9 @@
     "couldNotLoadPage": "Couldn't load this page",
     "call": "Call {{phone}}",
     "close": "Close",
-    "done": "Done"
+    "done": "Done",
+    "slowResponse": "The server is taking too long to respond — it may be waking up. Please try again in a minute.",
+    "unreachable": "Could not reach the server. Check your internet connection and try again."
   },
   "table": {
     "alert": "Alert",
