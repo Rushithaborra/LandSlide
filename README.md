@@ -158,8 +158,12 @@ The Incidents page used to be sample data for Sikkim only. It now shows real his
 landslide records from each state's Geological Survey of India inventory
 (`landslide_records`, migration 017; `GET /landslide-records` with state / district /
 status / search filters and paging, and `/landslide-records/summary` for the filters).
-Loaded so far: **Assam 587** (590 rows, 3 exact duplicates dropped) and **Sikkim 764**;
-every other state says its records are not loaded yet. **Honest limits:** the inventories
+Loaded: **all eight states, 8,236 records** -- Sikkim 764, Assam 587 (590 rows, 3 exact
+duplicates dropped), Meghalaya 892, Manipur 1,437, Mizoram 1,881, Nagaland 1,571, Arunachal
+Pradesh 1,038, Tripura 66 (none dropped). A state whose records are ever missing says so.
+Placeholder text the surveyors typed ("-", "NA", "<Null>", "Nil") counts as empty, and the
+few records with no name, number or location show as "Unnamed record" plus their district.
+**Honest limits:** the inventories
 give a place, coordinates and an activity status but almost never a date or severity, so
 neither is shown (the page says these are past records, not live reports); Sikkim's
 district names are messy at the source ("East", "North", "Namchi"), and are tidied but

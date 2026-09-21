@@ -135,10 +135,12 @@ export default function Incidents() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.items.map((r) => (
+                  {data.items.map((r) => {
+                    const title = r.name || t("incidents.unnamed", { district: r.district || stateName });
+                    return (
                     <tr key={r.id} className="border-t border-paper-200 align-top dark:border-night-700">
                       <td className="py-2.5 pr-3">
-                        <p className="font-medium text-ink-800 dark:text-paper-200">{r.name}</p>
+                        <p className="font-medium text-ink-800 dark:text-paper-200">{title}</p>
                         {r.location && r.location !== r.name && <p className="text-xs text-paper-500">{r.location}</p>}
                         {(r.material || r.movement || r.historyNote) && (
                           <p className="mt-0.5 text-xs text-paper-500">
@@ -155,7 +157,7 @@ export default function Incidents() {
                       </td>
                       <td className="py-2.5">
                         <Link
-                          to={`/check-area?lat=${r.lat}&lng=${r.lng}&name=${encodeURIComponent(r.name)}`}
+                          to={`/check-area?lat=${r.lat}&lng=${r.lng}&name=${encodeURIComponent(title)}`}
                           className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-paper-200 px-2.5 py-1.5 text-xs font-medium text-teal-600 hover:bg-paper-50 dark:border-night-700 dark:hover:bg-night-800"
                         >
                           <MapPin size={13} />
@@ -163,7 +165,8 @@ export default function Incidents() {
                         </Link>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

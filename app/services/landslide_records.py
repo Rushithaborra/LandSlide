@@ -16,14 +16,20 @@ LNG_RANGE = (87.5, 98.0)
 _MOJIBAKE = {"ΓÇô": "–", "ΓÇö": "—", "ΓÇÖ": "’", "ΓÇ£": "“", "ΓÇ¥": "”", "â€“": "–", "â€™": "’"}
 
 
+# What the surveyors typed where they had nothing to say. Shown as text these read like data
+# ("Location: <Null>"), so they count as empty.
+_PLACEHOLDERS = {"-", "--", "na", "n/a", "-na-", "nil", "null", "<null>", "none", "not available"}
+
+
 def clean_text(value: str | None, limit: int | None = None) -> str | None:
-    """Trimmed, single-spaced text (newlines included), garbled dashes fixed; None if empty."""
+    """Trimmed, single-spaced text (newlines included), garbled dashes fixed; None if empty
+    or only a placeholder like '-' or 'NA'."""
     if value is None:
         return None
     for bad, good in _MOJIBAKE.items():
         value = value.replace(bad, good)
     value = re.sub(r"\s+", " ", value).strip()
-    if not value:
+    if not value or value.lower() in _PLACEHOLDERS:
         return None
     return value[:limit] if limit else value
 

@@ -839,7 +839,7 @@ export async function getLandslideRecords({ state, district, activity, q, page =
       slideNo: i.slide_no,
       state: i.state,
       district: i.district,
-      name: i.slide_name || i.location || i.slide_no,
+      name: i.slide_name || i.location || i.slide_no || null, // a few records have none of the three
       location: i.location,
       lat: i.lat,
       lng: i.lng,

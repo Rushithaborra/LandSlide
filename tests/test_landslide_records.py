@@ -28,6 +28,12 @@ def test_text_is_trimmed_single_spaced_and_empty_becomes_none():
     assert clean_text("   ") is None and clean_text(None) is None and clean_text("") is None
 
 
+@pytest.mark.parametrize("placeholder", ["-", " -NA- ", "NA", "N/A", "Nil", "<Null>", "null"])
+def test_placeholders_typed_where_the_survey_had_nothing_count_as_empty(placeholder):
+    assert clean_text(placeholder) is None
+    assert clean_text("NH-37 near Nil Kanth") == "NH-37 near Nil Kanth"  # only the whole value is a placeholder
+
+
 def test_garbled_dashes_from_the_assam_file_are_repaired():
     assert clean_text("Raja Bazaar ΓÇôBara Arkap road.") == "Raja Bazaar –Bara Arkap road."
 
