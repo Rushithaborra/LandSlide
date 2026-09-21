@@ -139,11 +139,16 @@ the live alerts and would almost never have fired).
 **Around a road stretch (villages and nearest services).** A zone's page (and the
 "Check my area" result) shows the named villages/towns within 3 km and the nearest
 hospital, clinic, police and fire station, with straight-line distances and a call
-link when OpenStreetMap lists a phone. Data: `scripts/fetch_osm_places.py` downloads
-them from OpenStreetMap (Overpass API) in 1-degree tiles -- the public servers time
-out on big queries, so it retries across three mirrors, saves after every tile and
-resumes -- and `scripts/load_osm_places.py` upserts them into `places` (migration
-015); `GET /zones/{id}/surroundings` serves them (public, indexed box query).
+link when OpenStreetMap lists a phone. Data: the whole north-east comes from one
+Geofabrik extract (`north-eastern-zone-latest.osm.pbf`, ~105 MB, updated daily):
+`scripts/extract_osm_places.py` reads it with pyosmium in seconds and
+`scripts/load_osm_places.py` upserts the result into `places` (migration 015);
+`GET /zones/{id}/surroundings` serves them (public, indexed box query). Loaded
+2026-09-21 from the 2026-09-20 extract: 8,170 places (5,973 villages, 346 towns, 30
+cities, 765 hospitals, 811 clinics, 214 police stations, 31 fire stations) -> 22,852
+in the table with the earlier Overpass tiles, and all seven states with zones now have
+services near their stretches. The older `scripts/fetch_osm_places.py` (Overpass, 1-degree
+tiles; the public servers time out constantly) is only a fallback.
 **Honest limits, also printed on the panel:** OpenStreetMap is volunteer-mapped, so
 it is incomplete and dated (the snapshot date is shown); distances are straight-line,
 not travel time, and the nearest service can be in another state; where nothing is
@@ -151,7 +156,12 @@ loaded near a stretch the panel says "not loaded", not "no villages"; and the sy
 does **not** know which villages would be cut off if a road is blocked, where
 evacuation centres are (OpenStreetMap has almost none tagged -- that list has to
 come from the state disaster authority), or how long rescue would take, so it shows
-none of those. Coverage grows as tiles are loaded (Sikkim first).
+none of those. **Village coverage is thin in the hills:** of each state's 30
+highest-risk stretches, a mapped village lies within 3 km for 21 in Sikkim, 28 in
+Arunachal Pradesh, 13 in Meghalaya, 12 in Manipur, 11 in Mizoram, 10 in Nagaland and
+only 8 in Assam (measured 2026-09-21), because OpenStreetMap has few tagged villages
+there -- "none mapped" is not "none exist". An official village list with coordinates
+(Census / state authority) would be better and is the way to improve it.
 
 ## Incidents = real GSI landslide records, per state
 The Incidents page used to be sample data for Sikkim only. It now shows real historical
