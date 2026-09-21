@@ -41,8 +41,12 @@ def tiles_with_zones() -> list[tuple[int, int]]:
     from app.database import SessionLocal
     from app.models import Zone
 
-    with SessionLocal() as db:
-        rows = db.execute(select(func.floor(Zone.centroid_lat), func.floor(Zone.centroid_lng)).distinct()).all()
+    try:
+        with SessionLocal() as db:
+            rows = db.execute(select(func.floor(Zone.centroid_lat), func.floor(Zone.centroid_lng)).distinct()).all()
+    except Exception as e:  # database unreachable (e.g. no IPv6 route to Supabase): fall back to the whole grid
+        print(f"could not read zones from the database ({type(e).__name__}); using every tile in the region instead", file=sys.stderr)
+        return [(lat, lng) for lat in range(int(SOUTH), int(NORTH) + 1) for lng in range(int(WEST), int(EAST) + 1)]
     return sorted((int(lat), int(lng)) for lat, lng in rows)
 
 
