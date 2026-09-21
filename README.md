@@ -565,3 +565,16 @@ Run the API:
 uvicorn app.main:app --reload
 ```
 Docs at http://localhost:8000/docs
+
+## IMD API client (built, not connected)
+`app/services/imd.py` is a small client for the India Meteorological Department's API portal
+(api.imd.gov.in): every call sends `X-API-KEY` (bound to one registered server IP, so it only
+works from that machine) and a JWT that it mints from the portal account's email and password
+(cached until shortly before it expires, refreshed once on a 401). Settings `IMD_API_KEY`,
+`IMD_EMAIL`, `IMD_PASSWORD` go in `.env` only (they are `SecretStr`s, never logged, and not
+put in error messages). `python scripts/imd_probe.py districtwarning` is the read-only test from
+this machine; it saves the response under `data/interim/` (gitignored). **Nothing in the
+dashboard or the alert engine uses IMD yet**, and the data-sources page says so. Useful
+endpoints: district warnings and rainfall, AWS/rain-gauge stations, district nowcast, 5-day
+district rainfall forecast. Blockers: the key needs a fixed public IP (neither GitHub Actions
+nor Render's free tier has one), and IMD's terms on public display must be read first.

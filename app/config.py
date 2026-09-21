@@ -1,4 +1,4 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -139,6 +139,13 @@ class Settings(BaseSettings):
     # pattern as everything else above: POST /reports still works without
     # it, just leaves triage_summary null.
     google_api_key: str | None = None
+
+    # India Meteorological Department API portal (app/services/imd.py). The key is bound to
+    # one registered server IP; the JWT is minted from the portal account's email and
+    # password, so those are secrets too. SecretStr keeps them out of logs and reprs.
+    imd_api_key: SecretStr | None = None
+    imd_email: str | None = None
+    imd_password: SecretStr | None = None
 
 
 settings = Settings()
