@@ -7,6 +7,7 @@ import { agoLabel } from "../utils/localizedText";
 const STATUS_STYLE = {
   connected: "bg-risk-lowSoft text-risk-low",
   stale: "bg-risk-moderateSoft text-risk-moderate",
+  snapshot: "bg-risk-moderateSoft text-risk-moderate",
 };
 const NEUTRAL = "bg-paper-100 text-paper-600 dark:bg-night-800 dark:text-paper-400";
 

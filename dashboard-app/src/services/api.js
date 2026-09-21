@@ -855,6 +855,20 @@ export async function getLandslideSummary(state) {
   return getJSON(state ? `/landslide-records/summary?state=${encodeURIComponent(state)}` : "/landslide-records/summary");
 }
 
+export async function getImdWarnings(state) {
+  const r = await getJSON(state ? `/imd/warnings?state=${encodeURIComponent(state)}` : "/imd/warnings");
+  return {
+    issuedAt: r.issued_at,
+    fetchedAt: r.fetched_at,
+    coveredCount: r.districts_covered,
+    districts: r.districts.map((d) => ({
+      state: d.state,
+      district: d.district,
+      days: d.days.map((x) => ({ day: x.day, date: x.valid_date, kinds: x.kinds, color: x.color })),
+    })),
+  };
+}
+
 /**
  * What the running system is connected to, from the real endpoints: rainfall freshness,
  * the records loaded, and which optional services have credentials on the server
@@ -862,7 +876,12 @@ export async function getLandslideSummary(state) {
  * the page says so. The last three rows are facts about this build, not live checks.
  */
 export async function getDataSources() {
-  const [rain, records, integrations] = await Promise.allSettled([getRainfallStatus(), getLandslideSummary(), getJSON("/system/integrations")]);
+  const [rain, records, integrations, imdSnapshot] = await Promise.allSettled([
+    getRainfallStatus(),
+    getLandslideSummary(),
+    getJSON("/system/integrations"),
+    getJSON("/imd/warnings"),
+  ]);
   const value = (r) => (r.status === "fulfilled" ? r.value : null);
   const rainStatus = value(rain);
   const recordsSummary = value(records);
@@ -889,7 +908,10 @@ export async function getDataSources() {
     { key: "aiSummaries", ...flag(flags?.ai_summaries, { key: "configured" }, { key: "notSet" }) },
     { key: "photoStorage", ...flag(flags?.photo_storage, { key: "configured" }, { key: "notSet" }) },
     { key: "dem", status: "offline", detail: { key: "offline" } },
-    { key: "imd", status: "notConnected", detail: { key: "imd" } },
+    // IMD is never live: its key works from one fixed IP only. A pushed snapshot is shown as exactly that.
+    value(imdSnapshot)?.fetched_at
+      ? { key: "imd", status: "snapshot", detail: { key: "imdSnapshot", params: { at: value(imdSnapshot).fetched_at } } }
+      : { key: "imd", status: "notConnected", detail: { key: "imd" } },
     { key: "sentinel", status: "notConnected", detail: { key: "sentinel" } },
   ];
 }

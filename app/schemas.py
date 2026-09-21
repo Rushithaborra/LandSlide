@@ -217,6 +217,54 @@ class RainfallRefreshOut(BaseModel):
     duration_seconds: float
 
 
+NER_STATES = ("Sikkim", "Assam", "Arunachal Pradesh", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Tripura")
+
+
+class ImdWarningRowIn(BaseModel):
+    """One district, one day, as pushed by scripts/push_imd_warnings.py."""
+
+    state: Literal[NER_STATES]
+    district: str = Field(min_length=1, max_length=100)
+    obj_id: str = Field(min_length=1, max_length=20)
+    day: int = Field(ge=1, le=5)
+    valid_date: date
+    codes: list[int] = Field(min_length=1, max_length=8)
+    color: int = Field(ge=1, le=4)
+
+    @model_validator(mode="after")
+    def _known_codes(self):
+        if any(c < 1 or c > 17 for c in self.codes):
+            raise ValueError("IMD warning codes are 1-17")
+        return self
+
+
+class ImdWarningsIn(BaseModel):
+    issued_at: datetime
+    rows: list[ImdWarningRowIn] = Field(max_length=2000)
+
+
+class ImdWarningDayOut(BaseModel):
+    day: int
+    valid_date: date
+    kinds: list[Literal["heavy", "very_heavy", "extremely_heavy"]]
+    color: int  # 1 red, 2 orange, 3 yellow, 4 green
+
+
+class ImdWarningDistrictOut(BaseModel):
+    state: str
+    district: str
+    days: list[ImdWarningDayOut]
+
+
+class ImdWarningsOut(BaseModel):
+    """GET /imd/warnings -- the rain-related warnings in the stored IMD snapshot."""
+
+    issued_at: datetime | None  # None: no snapshot has been pushed yet
+    fetched_at: datetime | None
+    districts_covered: int  # districts IMD's feed lists for this selection (0 = IMD does not list them)
+    districts: list[ImdWarningDistrictOut]  # only those with a rain warning on some day
+
+
 class IntegrationsOut(BaseModel):
     """GET /system/integrations -- whether credentials for each optional service are set."""
 

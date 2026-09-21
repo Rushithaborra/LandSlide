@@ -566,15 +566,32 @@ uvicorn app.main:app --reload
 ```
 Docs at http://localhost:8000/docs
 
-## IMD API client (built, not connected)
+## IMD district rain warnings (a hand-pushed snapshot)
 `app/services/imd.py` is a small client for the India Meteorological Department's API portal
 (api.imd.gov.in): every call sends `X-API-KEY` (bound to one registered server IP, so it only
-works from that machine) and a JWT that it mints from the portal account's email and password
-(cached until shortly before it expires, refreshed once on a 401). Settings `IMD_API_KEY`,
-`IMD_EMAIL`, `IMD_PASSWORD` go in `.env` only (they are `SecretStr`s, never logged, and not
-put in error messages). `python scripts/imd_probe.py districtwarning` is the read-only test from
-this machine; it saves the response under `data/interim/` (gitignored). **Nothing in the
-dashboard or the alert engine uses IMD yet**, and the data-sources page says so. Useful
-endpoints: district warnings and rainfall, AWS/rain-gauge stations, district nowcast, 5-day
-district rainfall forecast. Blockers: the key needs a fixed public IP (neither GitHub Actions
-nor Render's free tier has one), and IMD's terms on public display must be read first.
+works from that machine) and a JWT it mints from the portal account's email and password (cached
+until shortly before it expires, refreshed once on a 401). `IMD_API_KEY`, `IMD_EMAIL`,
+`IMD_PASSWORD` go in `.env` only (`SecretStr`s, never logged or put in an error message).
+`python scripts/imd_probe.py <endpoint>` is the read-only test.
+
+**What the dashboard shows.** Because the key works from one fixed IP and the live server and the
+GitHub job have none, the live system never calls IMD. Instead
+`python scripts/push_imd_warnings.py --push` (run on the registered laptop, e.g. before a demo;
+without `--push` it is a dry run) fetches IMD's `districtwarning` (5-day codes and colours) and
+`state_district_rainfall_forecast` (which state each district is in), joins them on IMD's own
+district id (`Obj_id`, identical across endpoints), and replaces the backend's snapshot
+(`POST /imd/warnings`, officer key; table `imd_warnings`, migration 018). `GET /imd/warnings?state=`
+(public) returns only the rain warnings (IMD codes 2 heavy, 16 very heavy, 17 extremely heavy),
+plus `districts_covered` so "IMD lists this state and warns nowhere" is not confused with "IMD's
+feed does not list this state". The Overview and Alerts pages show the `ImdWarningsPanel`: labelled
+as IMD's rainfall forecast (not a landslide alert, separate from this system's own alerts), with
+the IMD issue date and how long ago it was fetched, and a note when it is more than two days old.
+The Data & Observations row says "Manual snapshot", never "Connected".
+
+**Honest limits.** (1) IMD's warnings feed has no Mizoram districts at all (8 of 120 north-east
+districts are missing from it, all Mizoram; Kamrup Metro joins by id to "Kamrup"); the panel says
+so. (2) Only the issue date is used, because the feed's own timestamp has no stated time zone;
+"day 1" is taken to be the issue date, as IMD's bulletins do -- an assumption. (3) It is a
+snapshot: it does not update itself. (4) IMD's terms of use for public display were not published on
+the pages read; check the portal's Terms & Conditions before showing this publicly. (5) Nothing in
+the alert engine uses IMD; Open-Meteo feeds rainfall and the system's own alerts.

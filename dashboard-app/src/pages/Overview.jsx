@@ -7,6 +7,7 @@ import StatCard from "../components/StatCard";
 import RiskMap from "../components/RiskMap";
 import RiskLegend from "../components/RiskLegend";
 import AlertsPanel from "../components/AlertsPanel";
+import ImdWarningsPanel from "../components/ImdWarningsPanel";
 import RainfallChart from "../components/RainfallChart";
 import {
   getSummaryStats,
@@ -271,6 +272,11 @@ export default function Overview() {
               )}
             />
           </div>
+
+          <ImdWarningsPanel
+            state={selectedState}
+            stateName={selectedState ? t(`states.${selectedState}`, { defaultValue: selectedState }) : t("states.all")}
+          />
 
           {/* Rainfall trend — full width.
               DRAFT 3: the "Recent Alerts" card that used to sit beside this

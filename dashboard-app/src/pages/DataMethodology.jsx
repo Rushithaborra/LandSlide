@@ -22,10 +22,11 @@ const BADGE = {
   unverified: "bg-risk-moderateSoft text-risk-moderate dark:bg-risk-moderate/10 dark:text-risk-moderateOn",
   derived: "bg-teal-100 text-teal-700 dark:bg-teal-600/20 dark:text-teal-100",
   switchedOff: "bg-risk-highSoft text-risk-high dark:bg-risk-high/10 dark:text-risk-highOn",
+  manual: "bg-risk-moderateSoft text-risk-moderate dark:bg-risk-moderate/10 dark:text-risk-moderateOn",
   simulated: "bg-paper-100 text-paper-600 dark:bg-night-800 dark:text-paper-400",
 };
 
-const STATUS_ORDER = ["live", "unverified", "derived", "switchedOff", "simulated"];
+const STATUS_ORDER = ["live", "unverified", "derived", "manual", "switchedOff", "simulated"];
 
 export default function DataMethodology() {
   const { t, i18n } = useTranslation();

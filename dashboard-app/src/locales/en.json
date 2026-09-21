@@ -175,7 +175,7 @@
       "aiSummaries": "AI summaries of citizen reports (Gemini)",
       "photoStorage": "Citizen-report photo storage (Supabase)",
       "dem": "Copernicus GLO-30 elevation + OpenStreetMap roads",
-      "imd": "IMD rainfall API",
+      "imd": "IMD API (district warnings)",
       "sentinel": "Sentinel-2 imagery"
     },
     "status": {
@@ -183,7 +183,8 @@
       "notConnected": "Not connected",
       "stale": "Out of date",
       "unknown": "Could not check",
-      "offline": "Used offline"
+      "offline": "Used offline",
+      "snapshot": "Manual snapshot"
     },
     "detail": {
       "updatedAgo": "Rainfall updated {{ago}}",
@@ -195,7 +196,8 @@
       "offline": "Used offline to train the models",
       "imd": "Portal access has been granted, but nothing is connected yet: the key works only from one fixed IP address",
       "sentinel": "Not used in this build",
-      "checkFailed": "The server could not be reached"
+      "checkFailed": "The server could not be reached",
+      "imdSnapshot": "Fetched by hand {{ago}}; not automatic"
     }
   },
   "citizenReports": {
@@ -605,7 +607,7 @@
           },
           {
             "q": "Which parts of this dashboard are real, and which are sample?",
-            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim and Assam (also shown in the scrolling strip at the top and in the notification bell), citizen reports, the landslide records on the Incidents page (all eight states), the Data & Observations status, and SMS and phone calls (trial account). Sample for now: only the profile panel. IMD data is not connected."
+            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim and Assam (also shown in the scrolling strip at the top and in the notification bell), citizen reports, the landslide records on the Incidents page (all eight states), the Data & Observations status, and SMS and phone calls (trial account). Sample for now: only the profile panel. IMD's district rain warnings appear only as a snapshot fetched by hand; nothing from IMD updates automatically."
           },
           {
             "q": "What does the Data & Observations page tell me?",
@@ -751,7 +753,8 @@
       "unverified": "Real — cited source not independently verified",
       "derived": "Team-derived rule, not literature-sourced",
       "switchedOff": "Real source — switched off",
-      "simulated": "Simulated — not wired up"
+      "simulated": "Simulated — not wired up",
+      "manual": "Real — pushed by hand, not automatic"
     },
     "footer": "This page is maintained by hand alongside the engineering docs (README.md) — if a source's status changes there, it should change here too. Access: the map, alerts, rainfall and 'Check my area' are public by design. Actions and personal data (verifying reports, reporters' phone numbers, broadcasts, contacts, updating risk scores) need an officer key — one shared key, not personal accounts.",
     "sections": [
@@ -799,9 +802,9 @@
             "detail": "Daily rainfall: the past 20 days plus a 3-day forecast. A GitHub Actions job fetches it every hour for the highest-risk zones and stores it; for any other place it is fetched live in the browser when you look. It is the only rainfall source actually wired up."
           },
           {
-            "status": "simulated",
+            "status": "manual",
             "name": "IMD (India Meteorological Department)",
-            "detail": "The pitch deck's tech-stack slide names IMD as the primary rainfall source, with Open-Meteo as the fallback. IMD has since granted access to its API portal, but nothing is wired in yet — its key works only from one fixed IP address, which this system's hosting does not have. Open-Meteo is what is actually live, not IMD."
+            "detail": "IMD has granted access to its API portal, and the dashboard can show a snapshot of its district rain warnings for the next 5 days, fetched by hand from one laptop before a demo. The key works only from one fixed IP address, which this system's hosting does not have, so nothing updates automatically. Open-Meteo feeds the rainfall data and this system's own alerts, not IMD."
           },
           {
             "status": "unverified",
@@ -958,6 +961,28 @@
       "clinic": "Clinic",
       "police": "Police",
       "fire_station": "Fire station"
+    }
+  },
+  "imdWarnings": {
+    "title": "IMD rain warnings",
+    "note": "Official district forecasts from the India Meteorological Department for the next 5 days. They warn about rainfall, not landslides, and are separate from this system's own alerts.",
+    "issuedFetched": "Issued by IMD on {{date}} · fetched {{ago}} by hand — not updated automatically.",
+    "old": "This snapshot is more than two days old.",
+    "noSnapshot": "No IMD warnings have been loaded yet.",
+    "notListed": "IMD's warnings feed does not list {{state}}'s districts, so no IMD warnings can be shown here. That does not mean there is no warning.",
+    "none": "IMD lists {{count}} districts here and has no heavy-rain warning for the next 5 days.",
+    "day": "day {{n}} ({{date}})",
+    "more": "+{{count}} more districts",
+    "kind": {
+      "heavy": "Heavy rain",
+      "very_heavy": "Very heavy rain",
+      "extremely_heavy": "Extremely heavy rain"
+    },
+    "color": {
+      "1": "Red",
+      "2": "Orange",
+      "3": "Yellow",
+      "4": "Green"
     }
   }
 }

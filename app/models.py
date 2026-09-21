@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from geoalchemy2 import Geometry
-from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import CheckConstraint, Date, DateTime, Float, ForeignKey, Integer, SmallInteger, String
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -161,6 +161,24 @@ class LandslideRecord(Base):
     movement: Mapped[str | None] = mapped_column(String, nullable=True)
     history_note: Mapped[str | None] = mapped_column(String, nullable=True)
     source: Mapped[str] = mapped_column(String, nullable=False, default="Geological Survey of India landslide inventory")
+
+
+class ImdWarning(Base):
+    """One district's IMD warning for one of the next five days, from a pushed snapshot
+    (migrations/018_imd_warnings.sql). Replaced wholesale on every push."""
+
+    __tablename__ = "imd_warnings"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    state: Mapped[str] = mapped_column(String, nullable=False)
+    district: Mapped[str] = mapped_column(String, nullable=False)
+    obj_id: Mapped[str] = mapped_column(String, nullable=False)
+    day: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    valid_date: Mapped[date] = mapped_column(Date, nullable=False)
+    codes: Mapped[str] = mapped_column(String, nullable=False)
+    color: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 class AlertBroadcast(Base):

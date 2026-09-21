@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import RecentAlertsTable from "../components/RecentAlertsTable";
 import LoadError from "../components/LoadError";
+import ImdWarningsPanel from "../components/ImdWarningsPanel";
 import BroadcastComposerModal from "../components/BroadcastComposerModal";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { useAlertStream } from "../hooks/useAlertStream";
@@ -32,6 +33,7 @@ export default function Alerts() {
 
   return (
     <DashboardLayout title={t("alerts.title")} subtitle={t("alerts.subtitle")}>
+      <ImdWarningsPanel state={state} stateName={stateName} className="mb-4" />
       {error && !alerts ? (
         <LoadError message={error} onRetry={retry} />
       ) : (
