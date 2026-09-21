@@ -118,7 +118,8 @@
     "showing": "Showing {{from}}–{{to}} of {{total}}",
     "pageOf": "Page {{page}} of {{pages}}",
     "prev": "Previous page",
-    "next": "Next page"
+    "next": "Next page",
+    "download": "Download CSV ({{count, number}})"
   },
   "highwayCorridors": {
     "title": "Highway Corridors",
@@ -511,8 +512,8 @@
             "a": "An alert is raised once and stays active while the rain keeps crossing its danger level. If the recent rain later gets clearly heavier — at least half a danger level higher than when the alert was last raised or updated — the alert is updated: it shows 'Rain worsened … ago' with how far above the danger level the rain is now, moves to the top of the list, shows as unread again in the bell, and the zone's subscribers get an update SMS. This is checked every hour and at most once every 6 hours per alert. The alert's own sentence does not change. Alerts that already existed before this feature start being measured at their next refresh and send nothing at first."
           },
           {
-            "q": "Why does Assam show no alerts?",
-            "a": "Rain alerts are switched on for Sikkim only. Assam's rainfall danger level comes from a study of Guwahati and has not been checked for the whole state, so switching it on now would raise false alarms. The Assam view says 'Alerting not enabled' instead of showing 0, so a blank is not mistaken for safety."
+            "q": "Which states raise rain alerts, and how?",
+            "a": "Rain alerts use two rules. Sikkim uses its own published landslide study. Every other state uses the India Meteorological Department's national 'heavy rain' level: 64.5 mm in a day (51.6 mm on a high-risk road). That is a rainfall category, not a landslide-specific threshold. Alerts are raised only in states the team has switched on; where they are off, the page says 'Alerting not enabled' instead of showing 0, so a blank is not mistaken for safety."
           },
           {
             "q": "What does the 'Broadcast' button on an alert row do?",
@@ -780,7 +781,12 @@
           {
             "status": "switchedOff",
             "name": "Rainfall threshold (Assam)",
-            "detail": "From a real Guwahati study (Bhusan et al., 2014), with the coefficient re-derived and checked against the paper. It describes one city, not all of Assam, so rain alerts stay switched off there: applying it statewide would flag ordinary monsoon rain."
+            "detail": "From a real Guwahati study (Bhusan et al., 2014), with the coefficient re-derived and checked against the paper. It describes one city, not all of Assam, and it sits below ordinary monsoon rain (all 25 of Assam's highest-risk zones were over it in a normal monsoon month), so it is not used to alert. Assam uses the IMD baseline below."
+          },
+          {
+            "status": "unverified",
+            "name": "Rainfall baseline for states without their own threshold (IMD heavy rain)",
+            "detail": "The India Meteorological Department's 'heavy rain' level: 64.5 mm or more in 24 hours. It is a rainfall category IMD uses for its own warnings, not a landslide-specific threshold, so it is a baseline for a state with no published landslide threshold of its own, not a claim about exactly when slides start. One 24-hour window only; the team's susceptibility rule lowers it by 20% for high-risk roads. Confirmed from published summaries, not from IMD's own page."
           },
           {
             "status": "derived",

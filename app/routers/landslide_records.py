@@ -1,4 +1,8 @@
+import csv
+import io
+
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
@@ -7,6 +11,9 @@ from app.models import LandslideRecord
 from app.schemas import CountOut, LandslideRecordOut, LandslideRecordsOut, LandslideSummaryOut
 
 router = APIRouter(prefix="/landslide-records", tags=["landslide-records"])
+
+_ORDER = (LandslideRecord.state, LandslideRecord.district, LandslideRecord.slide_name, LandslideRecord.id)
+EXPORT_COLUMNS = ("state", "district", "slide_name", "location", "slide_no", "activity", "material", "movement", "history_note", "lat", "lng")
 
 
 def _filters(state: str | None, district: str | None, activity: str | None, q: str | None) -> list:
@@ -44,7 +51,7 @@ def list_records(
         db.execute(
             select(LandslideRecord)
             .where(*conditions)
-            .order_by(LandslideRecord.state, LandslideRecord.district, LandslideRecord.slide_name, LandslideRecord.id)
+            .order_by(*_ORDER)
             .limit(limit)
             .offset(offset)
         )
@@ -52,6 +59,38 @@ def list_records(
         .all()
     )
     return LandslideRecordsOut(total=total, items=items)
+
+
+def _safe_cell(value):
+    """A spreadsheet runs a cell that starts with = + - @ as a formula; the survey's free
+    text is not ours, so those are neutralised with a leading apostrophe."""
+    if isinstance(value, str) and value.startswith(("=", "+", "-", "@", "\t", "\r")):
+        return "'" + value
+    return value
+
+
+@router.get("/export.csv")
+def export_records(
+    state: str | None = None,
+    district: str | None = None,
+    activity: str | None = None,
+    q: str | None = Query(None, max_length=100),
+    db: Session = Depends(get_db),
+):
+    """The same records and filters as the list, all of them, as a CSV file for
+    Excel or a report (a state's inventory is a few hundred to a few thousand rows)."""
+    rows = db.execute(select(LandslideRecord).where(*_filters(state, district, activity, q)).order_by(*_ORDER)).scalars().all()
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(EXPORT_COLUMNS)
+    for r in rows:
+        writer.writerow([_safe_cell(getattr(r, c)) for c in EXPORT_COLUMNS])
+    name = f"landslide-records-{(state or 'all-states').lower().replace(' ', '-')}.csv"
+    return Response(
+        content="\ufeff" + out.getvalue(),  # BOM so Excel reads it as UTF-8
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{name}"'},
+    )
 
 
 @router.get("/summary", response_model=LandslideSummaryOut)

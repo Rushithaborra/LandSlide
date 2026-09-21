@@ -119,6 +119,19 @@ def test_the_summary_reports_what_is_loaded(client):
     assert body == {"total": 0, "districts": [], "activities": []}
 
 
+def test_the_download_is_a_csv_of_the_filtered_records(client):
+    c, db = client
+    db.execute.return_value.scalars.return_value.all.return_value = [record_obj(slide_name="Ghat, near bridge"), record_obj(slide_name="=SUM(A1)")]
+    res = c.get("/landslide-records/export.csv", params={"state": "Assam", "district": "Cachar"})
+    assert res.status_code == 200 and res.headers["content-type"].startswith("text/csv")
+    assert 'filename="landslide-records-assam.csv"' in res.headers["content-disposition"]
+    lines = res.content.decode("utf-8-sig").splitlines()
+    assert lines[0].startswith("state,district,slide_name") and lines[0].endswith("lat,lng")
+    assert '"Ghat, near bridge"' in lines[1]  # a comma inside a value is quoted, not a new column
+    assert "'=SUM(A1)" in lines[2]  # a formula typed into the source text is not run by Excel
+    assert "state = 'Assam'" in sql(db.execute.call_args.args[0]) and "district = 'Cachar'" in sql(db.execute.call_args.args[0])
+
+
 # --- corridors: cleaned up ------------------------------------------------------------
 
 

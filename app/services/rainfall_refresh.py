@@ -97,7 +97,7 @@ def select_zones(db: Session, per_state: int) -> list[ZoneTarget]:
     plus every zone in an alerting state that currently has an active alert,
     wherever it ranks: otherwise an alert on a zone outside the top few would
     never be re-checked, and could never clear."""
-    states = [s for (s,) in db.execute(select(Zone.state).distinct()).all() if get_rainfall_threshold(s) is not None]
+    states = [s for (s,) in db.execute(select(Zone.state).distinct()).all()]
     targets: list[ZoneTarget] = []
     for state in sorted(states):
         rows = db.execute(
@@ -118,7 +118,7 @@ def select_zones(db: Session, per_state: int) -> list[ZoneTarget]:
     targets.extend(
         ZoneTarget(*r)
         for r in with_alerts
-        if r.id not in have and can_alert(r.state) and get_rainfall_threshold(r.state) is not None
+        if r.id not in have and can_alert(r.state)
     )
     return targets
 

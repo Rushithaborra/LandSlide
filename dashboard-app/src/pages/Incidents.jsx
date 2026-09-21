@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Info, MapPin, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Info, MapPin, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../layouts/DashboardLayout";
 import LoadError from "../components/LoadError";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { useRegion } from "../context/RegionContext";
-import { getLandslideRecords, getLandslideSummary, RECORDS_PAGE_SIZE } from "../services/api";
+import { getLandslideRecords, getLandslideSummary, landslideRecordsCsvUrl, RECORDS_PAGE_SIZE } from "../services/api";
 
 // Activity status as recorded by the survey. Colour only hints; the word is always shown.
 const ACTIVITY_STYLE = {
@@ -106,6 +106,16 @@ export default function Incidents() {
                 </option>
               ))}
             </select>
+            {data && data.total > 0 && (
+              <a
+                href={landslideRecordsCsvUrl({ state, district, activity, q })}
+                download
+                className="inline-flex items-center gap-1.5 rounded-lg border border-paper-200 px-3 py-2 text-sm font-medium text-teal-600 hover:bg-paper-50 dark:border-night-700 dark:hover:bg-night-800"
+              >
+                <Download size={15} />
+                {t("incidents.download", { count: data.total })}
+              </a>
+            )}
           </div>
 
           {!data ? (

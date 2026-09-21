@@ -144,19 +144,17 @@ def get_zone_threshold(zone_id: uuid.UUID, db: Session = Depends(get_db)):
     100mm constant (dashboard-app/src/data/mockData.js) that had no
     relationship to what actually fires an alert (app.services.alert_engine,
     scaled by this zone's own risk_tier). Returns null, not an invented
-    number, when this zone's state has no configured threshold (e.g.
-    Mizoram today) -- same "don't guess" rule the alert engine itself
-    already follows in check_and_trigger."""
+    number, when this zone's state is not on the alerting list -- the same
+    rule the alert engine itself follows in check_and_trigger."""
     zone = db.get(Zone, zone_id)
     if zone is None:
         raise HTTPException(status_code=404, detail="Zone not found")
 
-    config = get_rainfall_threshold(zone.state)
-    # Also null for a state that has a threshold configured but isn't trusted to
-    # alert (see Settings.rainfall_alert_states): the chart's "danger" line must
-    # not show a number the system doesn't stand behind.
-    if config is None or not can_alert(zone.state):
+    # Null for a state that isn't trusted to alert (see Settings.rainfall_alert_states):
+    # the chart's "danger" line must not show a number the system doesn't stand behind.
+    if not can_alert(zone.state):
         return None
+    config = get_rainfall_threshold(zone.state)
 
     risk_tier = zone.risk_tier or "moderate"
     return RainfallThresholdOut(

@@ -52,11 +52,12 @@ class Settings(BaseSettings):
     # States whose rainfall threshold may fire ALERTS (and SMS). Deliberately an
     # explicit list, default Sikkim only (what production has always done): a
     # state can have a threshold configured for display and data refresh without
-    # being trusted to alert. Assam's Guwahati equation, for one, has an
-    # Guwahati equation was configured in the wrong units (fixed 2026-09-20; see
-    # .env.example) and is still fit to only 19 landslides in one city, so it stays
-    # off this list until someone decides it is fit for state-wide alerting. Add a
-    # state here (RAINFALL_ALERT_STATES=["sikkim","assam"]) only after that call.
+    # being trusted to alert. Assam's Guwahati equation, for one, is fit to only 19
+    # landslides in one city and sits below ordinary monsoon rain (all 25 of Assam's
+    # highest-risk zones were over it in mid-September), so it must not be the rule
+    # that alerts. To switch a state on, remove its own RAINFALL_THRESHOLDS__<STATE>__*
+    # block if that block is not fit for the whole state (the IMD baseline below then
+    # applies) and add it here (RAINFALL_ALERT_STATES=["sikkim","assam"]).
     rainfall_alert_states: list[str] = ["sikkim"]
 
     # Auto-resolve (app/services/alert_engine.has_cleared): an alert closes itself
@@ -143,13 +144,36 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-def get_rainfall_threshold(state: str) -> RainfallThresholdConfig | None:
+# The baseline for a state with no published landslide threshold of its own: the India
+# Meteorological Department's "heavy rain" category, 64.5 mm or more in 24 hours
+# (heavy 64.5-115.5, very heavy 115.6-204.4, extremely heavy 204.5+). It is a rainfall
+# category the IMD uses for its own warnings, NOT a landslide-specific threshold, and the
+# team's susceptibility scaling still applies on top (a high-risk road alerts at 80% of
+# it). One 24-hour window only: the multi-day windows of an intensity-duration curve are
+# what made Assam's Guwahati equation fire all monsoon. Nothing here is borrowed from
+# another state's landslide study.
+IMD_HEAVY_RAIN = RainfallThresholdConfig(
+    region="IMD heavy-rain level (national baseline)",
+    equation_type="fixed_daily_amount",
+    coefficient=64.5,
+    exponent=0.0,
+    durations_days=[1],
+    source=(
+        "India Meteorological Department rainfall categories: 'heavy rain' is 64.5-115.5 mm in 24 hours. "
+        "A rainfall category, not a landslide-specific threshold."
+    ),
+    verified_against_primary_text=False,  # confirmed from several published summaries, not IMD's own page
+)
+
+
+def get_rainfall_threshold(state: str) -> RainfallThresholdConfig:
+    """This state's own configured threshold if it has one, else the IMD baseline. Never
+    another state's number."""
     per_state = settings.rainfall_thresholds.get(state.lower())
     if per_state is not None:
         return per_state
-    # Backward-compat fallback: Sikkim's threshold has always lived in the
-    # single original field (still true in production today), not the new
-    # per-state dict.
-    if state == "Sikkim":
+    # Backward-compat: Sikkim's threshold has always lived in the single original
+    # field (still true in production today), not the per-state dict.
+    if state == "Sikkim" and settings.rainfall_threshold is not None:
         return settings.rainfall_threshold
-    return None
+    return IMD_HEAVY_RAIN

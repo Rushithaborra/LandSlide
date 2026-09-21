@@ -217,14 +217,7 @@ def check_and_trigger(db: Session, zone_id) -> Alert | None:
         print(f"[ALERT] zone={zone_id} state={zone.state!r} is not on the alerting list -- skipping")
         return None
 
-    config = get_rainfall_threshold(zone.state)
-    if config is None:
-        # Honest gap, not a bug: this zone's state has no literature-sourced
-        # threshold configured yet (e.g. Mizoram, pending a citable I-D
-        # equation) -- skip alerting rather than borrow another state's
-        # geologically-unrelated number.
-        print(f"[ALERT] zone={zone_id} state={zone.state!r} has no configured rainfall threshold -- skipping")
-        return None
+    config = get_rainfall_threshold(zone.state)  # the state's own, else the IMD baseline
 
     readings = (
         db.query(RainfallReading)

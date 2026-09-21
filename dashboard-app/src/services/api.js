@@ -810,6 +810,16 @@ export async function deleteAuthorityContact(contactId) {
 // GET /landslide-records. No date and no severity: the inventories have neither.
 export const RECORDS_PAGE_SIZE = 50;
 
+/** Link that downloads every record matching these filters as a CSV file (all pages). */
+export function landslideRecordsCsvUrl({ state, district, activity, q } = {}) {
+  const params = new URLSearchParams();
+  if (state) params.set("state", state);
+  if (district) params.set("district", district);
+  if (activity) params.set("activity", activity);
+  if (q && q.trim()) params.set("q", q.trim());
+  return `${BASE_URL}/landslide-records/export.csv?${params}`;
+}
+
 export async function getLandslideRecords({ state, district, activity, q, page = 0 } = {}) {
   const params = new URLSearchParams({ limit: RECORDS_PAGE_SIZE, offset: page * RECORDS_PAGE_SIZE });
   if (state) params.set("state", state);
