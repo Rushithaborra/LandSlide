@@ -68,10 +68,13 @@ export default function ImdWarningsPanel({ state, stateName, className = "" }) {
       <p className="mb-3 text-xs text-paper-600 dark:text-paper-400">{t("imdWarnings.note")}</p>
       {body}
       {data.issuedAt && (
-        <p className="mt-3 text-[11px] text-paper-500">
-          {t("imdWarnings.issuedFetched", { date: ddmmyyyy(data.issuedAt), ago: agoLabel(data.fetchedAt, t) })}
-          {old && <span className="ml-1 font-medium text-risk-moderate dark:text-risk-moderateOn">{t("imdWarnings.old")}</span>}
-        </p>
+        <>
+          <p className="mt-3 text-[11px] text-paper-500">
+            {t("imdWarnings.issuedFetched", { date: ddmmyyyy(data.issuedAt), ago: agoLabel(data.fetchedAt, t) })}
+            {old && <span className="ml-1 font-medium text-risk-moderate dark:text-risk-moderateOn">{t("imdWarnings.old")}</span>}
+          </p>
+          <p className="mt-1 text-[11px] text-paper-400">{t("imdWarnings.disclaimer")}</p>
+        </>
       )}
     </div>
   );
