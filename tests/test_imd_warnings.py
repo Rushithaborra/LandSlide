@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import settings
 from app.database import get_db
 from app.main import app
 from app.models import ImdWarning
@@ -15,7 +16,11 @@ FETCHED = datetime(2026, 9, 21, 17, 0, tzinfo=timezone.utc)
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
+    # These tests are about the endpoint's own logic, not auth (that's test_security.py's job) --
+    # pin api_key to disabled so a real key sitting in the local .env (for push_imd_warnings.py)
+    # can never make POST /imd/warnings 401 here instead of validating/writing as expected.
+    monkeypatch.setattr(settings, "api_key", None)
     db = MagicMock()
     app.dependency_overrides[get_db] = lambda: db
     yield TestClient(app), db
