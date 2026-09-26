@@ -725,6 +725,16 @@ export async function getAreaRisk(lat, lng, radiusKm = 3) {
     distanceKm: nearby.distance_km,
     counts: nearby.counts,
     activeAlerts: nearby.active_alerts,
+    // Only set when `zone` above is null: real data exists, just not this close --
+    // e.g. a search that geocoded to a whole state's own broad centroid.
+    nearestBeyondRadius: nearby.nearest_beyond_radius && {
+      name: nearby.nearest_beyond_radius.name,
+      state: nearby.nearest_beyond_radius.state,
+      tier: nearby.nearest_beyond_radius.risk_tier,
+      lat: nearby.nearest_beyond_radius.centroid_lat,
+      lng: nearby.nearest_beyond_radius.centroid_lng,
+    },
+    nearestBeyondRadiusKm: nearby.nearest_beyond_radius_km,
   };
 }
 

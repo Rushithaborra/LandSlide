@@ -43,6 +43,12 @@ class AreaRiskOut(BaseModel):
     # can mislead when a high-risk stretch is just past it.
     counts: dict[str, int]
     active_alerts: int  # active rainfall alerts on segments within the radius
+    # Populated only when `zone` is None: the honest middle ground between "no
+    # data here" and silence, for a point that lands just outside the radius --
+    # e.g. geocoding a whole state's own broad centroid, which can be many km
+    # from the nearest real road corridor even though the state has real data.
+    nearest_beyond_radius: ZoneOut | None = None
+    nearest_beyond_radius_km: float | None = None
 
 
 class NearbyPlaceOut(BaseModel):

@@ -252,24 +252,49 @@ export default function CheckArea() {
           </div>
         )}
 
-        {phase === "done" && result && <Assessment result={result} speech={speech} />}
+        {phase === "done" && result && (
+          <Assessment result={result} speech={speech} onCheckNearest={(far) => assess({ name: far.name, detail: "", lat: far.lat, lng: far.lng })} />
+        )}
       </div>
     </DashboardLayout>
   );
 }
 
-function Assessment({ result, speech }) {
+function Assessment({ result, speech, onCheckNearest }) {
   const { t } = useTranslation();
   const { place, risk, rain, alertingHere } = result;
   const zone = risk.zone;
   const tier = zone ? zone.tier || "unscored" : null;
 
   if (!zone) {
+    const far = risk.nearestBeyondRadius;
     return (
       <div className="rounded-xl border border-paper-200 bg-white p-5 dark:border-night-700 dark:bg-night-900">
         <h2 className="font-serif text-lg font-semibold text-ink-900 dark:text-paper-100">{place.name}</h2>
-        <p className="mt-3 text-base font-medium text-ink-900 dark:text-paper-100">{t("checkArea.notFoundTitle")}</p>
-        <p className="mt-1 text-sm text-paper-600 dark:text-paper-400">{t("checkArea.notFoundBody")}</p>
+        {far ? (
+          <>
+            {/* This search matched a broad area (often a whole state's own centroid, e.g. typing
+                "Assam"), which can land many km from any mapped road even where real data exists --
+                say that plainly instead of implying the state has no data. */}
+            <p className="mt-3 text-base font-medium text-ink-900 dark:text-paper-100">{t("checkArea.notFoundNearbyTitle")}</p>
+            <p className="mt-1 text-sm text-paper-600 dark:text-paper-400">
+              {t("checkArea.notFoundNearbyBody", { km: risk.nearestBeyondRadiusKm, state: t(`states.${far.state}`, { defaultValue: far.state }) })}
+            </p>
+            <button
+              type="button"
+              onClick={() => onCheckNearest(far)}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-paper-200 px-3 py-2 text-sm font-medium text-teal-600 hover:bg-paper-50 dark:border-night-700 dark:hover:bg-night-800"
+            >
+              <MapPin size={15} />
+              {t("checkArea.checkNearestInstead", { name: far.name })}
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="mt-3 text-base font-medium text-ink-900 dark:text-paper-100">{t("checkArea.notFoundTitle")}</p>
+            <p className="mt-1 text-sm text-paper-600 dark:text-paper-400">{t("checkArea.notFoundBody")}</p>
+          </>
+        )}
         <Emergency className="mt-4" />
       </div>
     );

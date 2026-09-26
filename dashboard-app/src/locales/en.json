@@ -371,7 +371,10 @@
     "stop": "Stop",
     "notFoundTitle": "This place is not assessed yet",
     "notFoundBody": "Our map covers road stretches in Sikkim and the other north-east states where we have data. Try a bigger town nearby or a main road.",
-    "disclaimer": "The risk level is estimated from the shape of the land by a computer model, and compared with other places in the same state. It does not predict a particular landslide. Always follow warnings from your local authority."
+    "disclaimer": "The risk level is estimated from the shape of the land by a computer model, and compared with other places in the same state. It does not predict a particular landslide. Always follow warnings from your local authority.",
+    "notFoundNearbyTitle": "No mapped road right at this exact spot",
+    "notFoundNearbyBody": "This looks like a search for the whole area rather than one village or road, so it did not land near a specific mapped stretch. {{state}} does have real data — the nearest mapped road we track is about {{km}} km away.",
+    "checkNearestInstead": "Check risk near {{name}} instead"
   },
   "help": {
     "title": "Help",

@@ -94,6 +94,10 @@ def list_zones(
 
 
 KM_PER_DEGREE = 111.32
+# How far /zones/near will look for a "nearest anyway" answer once nothing is within
+# the requested radius -- generous enough to catch "this state has real data, just not
+# within a few km of this exact point" without pulling in an unrelated state's zones.
+NEAREST_FALLBACK_KM = 100
 
 
 @router.get("/near", response_model=AreaRiskOut)
@@ -137,6 +141,30 @@ def area_risk(
             )
         )
     nearest = rows[0] if rows else None
+
+    # Nothing within the requested radius: before saying "not assessed", check whether
+    # real data exists a bit further out -- this is exactly what happens when a search
+    # geocodes to a whole state's own administrative centroid (e.g. typing "Assam"),
+    # which can land tens of km from the nearest actual road corridor even though the
+    # state has thousands of real, scored zones. Only one extra query, and only here.
+    nearest_beyond_radius, nearest_beyond_radius_km = None, None
+    if nearest is None:
+        dlat2 = NEAREST_FALLBACK_KM / KM_PER_DEGREE
+        dlng2 = NEAREST_FALLBACK_KM / (KM_PER_DEGREE * max(math.cos(math.radians(lat)), 0.01))
+        far = db.execute(
+            select(Zone, dist_km.label("dist"))
+            .options(ZONE_LIST_COLUMNS)
+            .where(
+                Zone.centroid_lat.between(lat - dlat2, lat + dlat2),
+                Zone.centroid_lng.between(lng - dlng2, lng + dlng2),
+                dist_km <= NEAREST_FALLBACK_KM,
+            )
+            .order_by("dist")
+            .limit(1)
+        ).first()
+        if far:
+            nearest_beyond_radius, nearest_beyond_radius_km = ZoneOut.model_validate(far[0]), round(far[1], 1)
+
     return AreaRiskOut(
         lat=lat,
         lng=lng,
@@ -145,6 +173,8 @@ def area_risk(
         distance_km=round(nearest[1], 2) if nearest else None,
         counts=counts,
         active_alerts=active or 0,
+        nearest_beyond_radius=nearest_beyond_radius,
+        nearest_beyond_radius_km=nearest_beyond_radius_km,
     )
 
 
