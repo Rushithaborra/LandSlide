@@ -157,10 +157,23 @@ export const citizenReports = [
 // unconfirmed rather than presented as verified (same honesty pattern as
 // the Data Sources & Methodology page and RAINFALL_THRESHOLD__VERIFIED_AGAINST_PRIMARY_TEXT
 // in app/config.py -- don't claim confirmation that hasn't happened).
+// Per-state SDMA control-room numbers sourced from each state's own official
+// site 2026-09-26 (asdma.assam.gov.in, sdma-arunachal.in, msdma.gov.in,
+// dmr.mizoram.gov.in, nsdma.nagaland.gov.in, tdma.tripura.gov.in; Manipur's
+// number is corroborated across secondary listings only, manipursdma.com
+// itself did not resolve) -- real numbers, still marked unverified per the
+// same rule, since none has been call-tested.
 export const emergencyContacts = [
   { name: "National Emergency Number", jurisdiction: "All India — Police / Fire / Ambulance", phone: "112", verified: true, state: null },
   { name: "Emergency Medical & Ambulance", jurisdiction: "All India", phone: "108", verified: true, state: null },
   { name: "Sikkim State Emergency Operations Centre", jurisdiction: "Sikkim SDMA control room", phone: "1070", verified: false, state: "Sikkim" },
+  { name: "Assam State Emergency Operation Centre", jurisdiction: "Assam SDMA control room", phone: "1070 / 1079", verified: false, state: "Assam" },
+  { name: "Arunachal Pradesh State Emergency Operation Centre", jurisdiction: "Arunachal Pradesh SDMA control room", phone: "1070 / +91 94360 74396", verified: false, state: "Arunachal Pradesh" },
+  { name: "Manipur State Emergency Operation Centre", jurisdiction: "Manipur SDMA control room", phone: "1070 / 0385-2443441", verified: false, state: "Manipur" },
+  { name: "Meghalaya State Emergency Operations Centre", jurisdiction: "Meghalaya SDMA control room", phone: "1070 / 0364-2502098", verified: false, state: "Meghalaya" },
+  { name: "Mizoram State Emergency Operation Centre", jurisdiction: "Mizoram SDMA control room", phone: "1070 / 9366331931", verified: false, state: "Mizoram" },
+  { name: "Nagaland State Emergency Operation Centre", jurisdiction: "Nagaland SDMA control room", phone: "1070 / 0370-2291122", verified: false, state: "Nagaland" },
+  { name: "Tripura State Emergency Operation Centre", jurisdiction: "Tripura SDMA control room", phone: "1070", verified: false, state: "Tripura" },
   { name: "NDRF — nearest response unit", jurisdiction: "North Eastern Region", phone: "Confirm with NDRF HQ before use", verified: false, state: null },
   { name: "BRO — NH10 maintenance (Project Swastik)", jurisdiction: "Sikkim highway clearance", phone: "Confirm with BRO before use", verified: false, state: "Sikkim" },
 ];
