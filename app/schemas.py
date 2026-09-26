@@ -326,9 +326,12 @@ class RainfallZoneIn(BaseModel):
 
 
 class RainfallIngestIn(BaseModel):
-    """POST /rainfall/ingest body: daily rainfall the caller fetched from Open-Meteo."""
+    """POST /rainfall/ingest body: daily rainfall the caller fetched from Open-Meteo.
+    max_length is a sanity cap, not a real limit from anywhere external -- it was 500
+    when RAINFALL_REFRESH_ZONES_PER_STATE was 25 (~227 zones with Sikkim's own extras);
+    raised once that setting went to 100 (~802 zones) started tripping it for real."""
 
-    readings: list[RainfallZoneIn] = Field(max_length=500)
+    readings: list[RainfallZoneIn] = Field(max_length=2000)
 
 
 class RainfallThresholdOut(BaseModel):
