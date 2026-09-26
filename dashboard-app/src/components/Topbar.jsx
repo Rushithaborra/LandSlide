@@ -33,7 +33,12 @@ export default function Topbar({ title, subtitle, onMenuClick }) {
         >
           <Menu size={20} />
         </button>
-        <div className="min-w-[96px] flex-1">
+        {/* A smaller floor than before (was 96px): on a narrow phone the icon row
+            (state selector, SOS, officer lock, bell, avatar) can leave less than
+            that, and the old floor overflowed past its own flex space and
+            visually overlapped those icons. 64px plus `truncate` below still
+            shows a few real characters instead of one, without overlapping. */}
+        <div className="min-w-[64px] flex-1">
           <h1 className="font-serif text-lg font-semibold text-ink-900 leading-none truncate dark:text-paper-100">{title}</h1>
           {subtitle && <p className="text-xs text-paper-600 mt-1 truncate dark:text-paper-400">{subtitle}</p>}
         </div>

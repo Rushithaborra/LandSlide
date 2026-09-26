@@ -419,7 +419,7 @@
           },
           {
             "q": "Why does it say 'not assessed' or 'rain alerts are not switched on'?",
-            "a": "Our map covers road stretches in the north-east states where we have data. If your place is far from any road we have assessed, we say so instead of guessing. Rain alerts are switched on for Sikkim only for now. Other states still show risk levels and rainfall, but no alerts yet."
+            "a": "Our map covers road stretches in the north-east states where we have data. If your place is far from any road we have assessed, we say so instead of guessing. Rain alerts are switched on for all eight states now, using each state's own real threshold (Sikkim's own published study, or the India Meteorological Department's heavy-rain level where a state has no dedicated study). A state can honestly show zero active alerts simply because its rain has not yet crossed that line."
           },
           {
             "q": "Who do I call in an emergency?",
@@ -499,7 +499,7 @@
           },
           {
             "q": "What does the dashed line on the rainfall chart mean?",
-            "a": "It is the daily rainfall danger level for that zone. It comes from published research on rain and landslides for the region, and is lowered for zones with higher risk. It is drawn only for states where rain alerts are switched on (Sikkim today). For Sikkim the research source has not yet been checked against the paper's full text, so treat the level as a working value."
+            "a": "It is the daily rainfall danger level for that zone. Sikkim's line comes from published research on rain and landslides in Sikkim; every other state uses the India Meteorological Department's heavy-rain level, since no dedicated landslide study exists for it yet. It is drawn only for states where rain alerts are switched on (all eight today). Sikkim's own source has not yet been checked against the paper's full text; the IMD line is a rainfall category, not a landslide-specific threshold — treat both as working values, not final ones."
           },
           {
             "q": "A village I know is at risk is not shown on the map. Why?",
@@ -611,7 +611,7 @@
           },
           {
             "q": "Which parts of this dashboard are real, and which are sample?",
-            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for Sikkim and Assam (also shown in the scrolling strip at the top and in the notification bell), citizen reports, the landslide records on the Incidents page (all eight states), the Data & Observations status, and SMS and phone calls (trial account). Sample for now: only the profile panel. IMD's district rain warnings appear only as a snapshot fetched by hand; nothing from IMD updates automatically."
+            "a": "Real: risk zones and scores (from the model), rainfall (Open-Meteo, hourly), rain alerts for all eight states (also shown in the scrolling strip at the top and in the notification bell), citizen reports, the landslide records on the Incidents page (all eight states), the Data & Observations status, and SMS and phone calls (trial account). Sample for now: only the profile panel. IMD's district rain warnings appear only as a snapshot fetched by hand; nothing from IMD updates automatically."
           },
           {
             "q": "What does the Data & Observations page tell me?",
@@ -744,7 +744,8 @@
       "Alert": "Alerts",
       "Incident": "Incidents",
       "Citizen report": "Citizen reports"
-    }
+    },
+    "checkAreaInstead": "Check risk near “{{query}}” instead"
   },
   "methodology": {
     "title": "Data Sources & Methodology",
@@ -773,7 +774,7 @@
           {
             "status": "live",
             "name": "OpenStreetMap road network",
-            "detail": "Each state's road geometry via the Overpass API, cut into corridor segments of about 500 m. Each segment is one prediction unit, so the map covers road corridors, not the whole state. Today: 104,145 segments across 7 states (Tripura is not loaded yet)."
+            "detail": "Each state's road geometry via the Overpass API, cut into corridor segments of about 500 m. Each segment is one prediction unit, so the map covers road corridors, not the whole state. Today: 109,030 segments across all eight states."
           },
           {
             "status": "live",

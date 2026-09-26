@@ -5,16 +5,17 @@ Backend scope only: API, DB schema, rainfall ingestion, rule-based alert
 trigger, citizen report intake. See `CLAUDE.md` for the full project brief,
 and `docs/` for the team roadmap, the internal 4-day plan, and the pitch deck.
 
-**Multi-state (NER expansion), as of 2026-09-20:** seven states now have real,
-scored zones live -- **104,145 in total**: Sikkim 3,921, Meghalaya 10,596,
-Manipur 8,400, Nagaland 10,232, Mizoram 8,310, Arunachal Pradesh 14,851 and
-Assam 47,835. Each of the six newer states has its own Random Forest (never
-pooled across states) trained on real GSI landslide records plus terrain,
-soil, RUSLE-erosion and rainfall-erosivity features, validated with spatial
-block cross-validation (ROC-AUC: Assam 0.95, Meghalaya 0.86, Manipur 0.82,
-Arunachal Pradesh 0.82, Nagaland 0.74, Mizoram 0.71; Sikkim 0.74), and
-scored on ~500 m OSM road corridors. Tripura is **not** modeled (only 66 public
-landslide records). Three limits to state plainly if asked:
+**Multi-state (NER expansion), as of 2026-09-26:** all eight NER states now have
+real, scored zones live -- **109,030 in total**: Sikkim 3,921, Assam 47,835,
+Meghalaya 10,596, Manipur 8,400, Nagaland 10,232, Mizoram 8,310, Arunachal
+Pradesh 14,851 and Tripura 4,885. Each state's own Random Forest or logistic
+regression (never pooled across states) is trained on real GSI landslide
+records plus terrain, soil, RUSLE-erosion and rainfall-erosivity features,
+validated with spatial block cross-validation (ROC-AUC: Assam 0.95, Meghalaya
+0.86, Manipur 0.82, Arunachal Pradesh 0.82, Nagaland 0.74, Mizoram 0.71,
+Sikkim 0.74, Tripura 0.92 -- Tripura's number is the least stable, trained on
+only 127 points, the smallest of any state), and scored on ~500 m OSM road
+corridors. Three limits to state plainly if asked:
 - **Risk tiers are per-state thirds**, so "high" means the top third of that
   state's own scores, not a common absolute level. Assam's "high" tier starts at
   a score of 0.047 (most of it is flat floodplain), so cross-state high-risk

@@ -15,10 +15,10 @@ import { alertSentence } from "../utils/localizedText";
  * keyboard navigation (arrow keys, Enter, Escape), the loading state, the
  * "no results" state, click-outside-to-close, and the Ctrl+K / Cmd+K shortcut.
  *
- * LINK SPOT M (src/services/api.js → searchAll)
- *   Today it filters the local `searchIndex`. To go live, the backend team
- *   replaces that function body with a fetch to GET /api/search?q=...
- *   NOTHING IN THIS FILE CHANGES when that happens.
+ * searchAll (src/services/api.js) hits the real backend -- zone names,
+ * active alerts, citizen reports (needs the officer key; skipped without it)
+ * and landslide-record incidents. It only matches those NAMES, not arbitrary
+ * place names, so "nothing found" offers Check my area instead of a dead end.
  *
  * Why the delay: typing "mangan" would fire six searches, one per letter.
  * We wait 200 ms after the last keystroke before asking — this is called
@@ -193,9 +193,19 @@ export default function SearchBox() {
           className="absolute right-0 top-full mt-2 max-h-[26rem] w-[26rem] overflow-y-auto rounded-xl border border-paper-200 bg-white py-2 shadow-xl dark:border-night-700 dark:bg-night-900"
         >
           {!loading && ordered.length === 0 && (
-            <p className="px-4 py-6 text-center text-sm text-paper-500">
-              {t("search.nothing", { query })}
-            </p>
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm text-paper-500">{t("search.nothing", { query })}</p>
+              {/* This only searches road/alert/report/incident NAMES -- a real village or town
+                  typed here (not an error, not "no data") won't match any of those, so the
+                  dead end this used to be is fixed by offering the actual place-lookup instead. */}
+              <button
+                type="button"
+                onClick={() => goTo({ to: `/check-area?q=${encodeURIComponent(query)}` })}
+                className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:underline"
+              >
+                {t("search.checkAreaInstead", { query })}
+              </button>
+            </div>
           )}
 
           {TYPE_ORDER.map((type) => {

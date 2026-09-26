@@ -16,7 +16,7 @@ export default function StateSelector() {
       value={state}
       onChange={(e) => setState(e.target.value)}
       aria-label={t("states.aria")}
-      className="w-20 truncate rounded-lg border border-paper-200 bg-white px-2.5 py-1.5 text-xs font-medium text-paper-700 hover:bg-paper-50 sm:w-auto dark:border-night-700 dark:bg-night-800 dark:text-paper-300 dark:hover:bg-night-700"
+      className="w-16 truncate rounded-lg border border-paper-200 bg-white px-2.5 py-1.5 text-xs font-medium text-paper-700 hover:bg-paper-50 sm:w-auto dark:border-night-700 dark:bg-night-800 dark:text-paper-300 dark:hover:bg-night-700"
     >
       <option value="">{t("states.all")}</option>
       {NER_STATES.map((s) => (
