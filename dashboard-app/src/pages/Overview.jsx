@@ -8,6 +8,7 @@ import RiskMap from "../components/RiskMap";
 import RiskLegend from "../components/RiskLegend";
 import AlertsPanel from "../components/AlertsPanel";
 import ImdWarningsPanel from "../components/ImdWarningsPanel";
+import RainfallHeadroomPanel from "../components/RainfallHeadroomPanel";
 import RainfallChart from "../components/RainfallChart";
 import {
   getSummaryStats,
@@ -272,6 +273,8 @@ export default function Overview() {
               )}
             />
           </div>
+
+          <RainfallHeadroomPanel />
 
           <ImdWarningsPanel
             state={selectedState}
