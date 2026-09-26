@@ -1,12 +1,15 @@
 import uuid
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import get_rainfall_threshold, settings
 from app.database import get_db
 from app.models import RainfallReading, Zone
 from app.schemas import (
+    RainfallHeadroomOut,
     RainfallIngestIn,
     RainfallReadingOut,
     RainfallRefreshIfStaleOut,
@@ -14,10 +17,11 @@ from app.schemas import (
     RainfallStatusOut,
     RainfallTargetOut,
     RainfallThresholdOut,
+    StateHeadroomOut,
 )
 from app.security import require_officer_key
 from app.services import open_meteo
-from app.services.alert_engine import can_alert, check_and_trigger, intensity_duration_threshold
+from app.services.alert_engine import can_alert, check_and_trigger, drop_forecast_days, intensity_duration_threshold, strongest_ratio
 from app.services.rainfall_refresh import (
     ingest_rainfall,
     record_refresh,
@@ -96,6 +100,65 @@ def refresh_if_stale_endpoint(db: Session = Depends(get_db)):
     one refresh runs at a time, and what it fetches and alerts on is fixed by
     configuration -- a caller can only make it run when it was due anyway."""
     return refresh_if_stale(db, settings.rainfall_refresh_max_age_minutes, settings.rainfall_refresh_zones_per_state)
+
+
+@router.get("/headroom", response_model=RainfallHeadroomOut)
+def rainfall_headroom(db: Session = Depends(get_db)):
+    """How close every state's real, currently-monitored rainfall is to actually
+    alerting, using each state's own monitored zones and its own real threshold --
+    the same strongest_ratio the "rain worsened" feature already computes, not a
+    new metric. For a state whose Active Alerts count is honestly 0 because
+    nothing has crossed its line yet, this shows real numbers proving the rule is
+    live and watching, rather than leaving an empty count to speak for itself.
+
+    Must be declared before /{zone_id} below -- FastAPI matches routes in
+    definition order, and {zone_id} would otherwise swallow "headroom" as if it
+    were a zone id."""
+    targets = select_zones(db, settings.rainfall_refresh_zones_per_state)
+    if not targets:
+        return RainfallHeadroomOut(states=[])
+
+    zone_ids = [t.id for t in targets]
+    cutoff = datetime.now(timezone.utc) - timedelta(days=31)
+    rows = db.execute(
+        select(RainfallReading.zone_id, RainfallReading.timestamp, RainfallReading.intensity_mm).where(
+            RainfallReading.zone_id.in_(zone_ids), RainfallReading.timestamp >= cutoff
+        )
+    ).all()
+    by_zone: dict[uuid.UUID, dict] = {}
+    for zone_id, ts, mm in rows:
+        by_zone.setdefault(zone_id, {})[ts.date()] = mm
+
+    # The single most-threatened monitored zone per state (highest ratio), computed
+    # once per zone that has stored rainfall -- not a new query per zone.
+    best: dict[str, tuple[float, uuid.UUID, str]] = {}
+    for t in targets:
+        daily = by_zone.get(t.id)
+        if not daily:
+            continue
+        config = get_rainfall_threshold(t.state)
+        tier = t.risk_tier or "moderate"
+        ratio = strongest_ratio(drop_forecast_days(daily), config, tier)
+        if ratio is None:
+            continue
+        if t.state not in best or ratio > best[t.state][0]:
+            best[t.state] = (ratio, t.id, config.source)
+
+    names = dict(db.execute(select(Zone.id, Zone.name).where(Zone.id.in_([zid for _, zid, _ in best.values()]))).all()) if best else {}
+    tiers = {t.id: (t.risk_tier or "moderate") for t in targets}
+
+    states_out = [
+        StateHeadroomOut(
+            state=state,
+            alerting_enabled=can_alert(state),
+            zone_name=names.get(best[state][1]) if state in best else None,
+            risk_tier=tiers.get(best[state][1]) if state in best else None,
+            ratio=round(best[state][0], 2) if state in best else None,
+            threshold_source=best[state][2] if state in best else None,
+        )
+        for state in sorted({t.state for t in targets})
+    ]
+    return RainfallHeadroomOut(states=states_out)
 
 
 @router.post("/{zone_id}/fetch", response_model=list[RainfallReadingOut], dependencies=[Depends(require_officer_key)])

@@ -32,7 +32,8 @@
     "statusResolved": "Resolved",
     "resolvedAuto": "Closed automatically: the rainfall stayed below the alert threshold for several days in a row",
     "resolvedOfficer": "Closed by an officer",
-    "resolvedUnknown": "Resolved"
+    "resolvedUnknown": "Resolved",
+    "state": "State"
   },
   "sidebar": {
     "appNameLine1": "Landslide",
@@ -988,5 +989,15 @@
       "4": "Green"
     },
     "disclaimer": "IMD provides this data as-is: it may be delayed, incomplete or later revised, and IMD does not guarantee its accuracy. This system, not IMD, is responsible for how it is used here."
+  },
+  "headroom": {
+    "title": "Every state's real rainfall against its own real danger level",
+    "note": "This is not a list of alerts — it shows how close each state's rain is to its own real threshold right now, using the same rule the alert engine itself checks. A state can show far below its line and still be watched hourly.",
+    "status": "How close to the danger level",
+    "watching": "Alerts switched on here",
+    "yes": "Yes",
+    "no": "Not yet",
+    "noData": "No rainfall stored yet",
+    "percentOfLine": "{{pct}}% of the danger level"
   }
 }

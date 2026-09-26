@@ -865,6 +865,20 @@ export async function getLandslideSummary(state) {
   return getJSON(state ? `/landslide-records/summary?state=${encodeURIComponent(state)}` : "/landslide-records/summary");
 }
 
+// Every state's real rainfall against its own real threshold (GET /rainfall/headroom),
+// regardless of the state selector -- see RainfallHeadroomPanel.
+export async function getRainfallHeadroom() {
+  const r = await getJSON("/rainfall/headroom");
+  return r.states.map((s) => ({
+    state: s.state,
+    alertingEnabled: s.alerting_enabled,
+    zoneName: s.zone_name,
+    riskTier: s.risk_tier,
+    ratio: s.ratio,
+    thresholdSource: s.threshold_source,
+  }));
+}
+
 export async function getImdWarnings(state) {
   const r = await getJSON(state ? `/imd/warnings?state=${encodeURIComponent(state)}` : "/imd/warnings");
   return {

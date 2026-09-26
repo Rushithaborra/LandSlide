@@ -346,6 +346,26 @@ class RainfallThresholdOut(BaseModel):
     verified_against_primary_text: bool
 
 
+class StateHeadroomOut(BaseModel):
+    """One state's real closeness to alerting -- the same strongest_ratio the
+    "rain worsened" feature already computes, not a new metric. 1.0 means this
+    state's most-threatened monitored zone is exactly at its danger level; below
+    1 means it hasn't crossed yet. Answers "is this state's alert engine really
+    watching" with real numbers, for a state whose Active Alerts count is
+    honestly 0 because nothing has crossed there yet."""
+
+    state: str
+    alerting_enabled: bool
+    zone_name: str | None  # None only if this state has no stored rainfall yet
+    risk_tier: str | None
+    ratio: float | None
+    threshold_source: str | None  # config.source: which real rule this state uses
+
+
+class RainfallHeadroomOut(BaseModel):
+    states: list[StateHeadroomOut]
+
+
 class AlertOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
