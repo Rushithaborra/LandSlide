@@ -18,6 +18,12 @@ class ZoneOut(BaseModel):
     # Centroid of the stored polygon -- for map pins, not the full geometry.
     centroid_lat: float
     centroid_lng: float
+    # True only for the handful of zones per state the scheduled refresh
+    # actually fetches rainfall for (app.services.rainfall_refresh.select_zones)
+    # -- most zones have never had a single rainfall reading. False here means
+    # "not checked", never "checked and safe"; the frontend must show those two
+    # differently instead of letting an unmonitored zone look risk-free.
+    rainfall_monitored: bool = False
 
 
 class NearestSaferOut(ZoneOut):
@@ -122,6 +128,7 @@ class MapZoneOut(BaseModel):
     risk_tier: str | None
     centroid_lat: float
     centroid_lng: float
+    rainfall_monitored: bool = False
 
 
 class MapClusterOut(BaseModel):
@@ -136,6 +143,7 @@ class MapClusterOut(BaseModel):
     moderate: int
     low: int
     unscored: int
+    monitored: int  # of `count`, how many actually have live rainfall checked
     bounds: list[float]
 
 
@@ -159,6 +167,7 @@ class ZoneStatsOut(BaseModel):
     moderate: int
     low: int
     unscored: int
+    monitored: int  # of `total`, how many currently have live rainfall checked
     bounds: list[float] | None  # min_lat, min_lng, max_lat, max_lng; None if no zones
 
 
@@ -374,6 +383,11 @@ class StateHeadroomOut(BaseModel):
     ratio: float | None
     threshold_source: str | None  # config.source: which real rule this state uses
     top_zones: list[ZoneHeadroomOut] = []  # up to 5 real monitored zones, closest first
+    # How much of this state is actually watched -- distinguishes "genuinely
+    # below the line" from "most of the state was never checked", so a 0 here
+    # is never read as proof of safety for zones outside monitored_zone_count.
+    monitored_zone_count: int
+    total_zone_count: int
 
 
 class RainfallHeadroomOut(BaseModel):

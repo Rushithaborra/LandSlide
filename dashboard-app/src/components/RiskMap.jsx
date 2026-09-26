@@ -39,14 +39,19 @@ const levelColor = {
 // Icons are cached by look: a view can hold ~1,500 zone pins, and building a
 // fresh divIcon for each on every re-render is needless work.
 const iconCache = new Map();
-function riskDivIcon(color, diameter) {
-  const key = `${color}|${diameter}`;
+// `monitored` doesn't change the risk-tier colour (that's real ML output for
+// every scored zone, monitored or not) -- it only swaps a solid ring for a
+// dashed, lower-opacity one, so a never-checked zone never reads as "checked
+// and safe" at a glance, without hiding its real susceptibility score.
+function riskDivIcon(color, diameter, monitored) {
+  const key = `${color}|${diameter}|${monitored}`;
   if (!iconCache.has(key)) {
+    const border = monitored ? "1.5px solid rgba(255,255,255,0.65)" : "1.5px dashed rgba(255,255,255,0.85)";
     iconCache.set(
       key,
       L.divIcon({
         className: "",
-        html: `<div style="width:${diameter}px;height:${diameter}px;border-radius:50%;background:${color};opacity:0.88;border:1.5px solid rgba(255,255,255,0.65);box-shadow:0 0 2px rgba(0,0,0,0.4);"></div>`,
+        html: `<div style="width:${diameter}px;height:${diameter}px;border-radius:50%;background:${color};opacity:${monitored ? 0.88 : 0.5};border:${border};box-shadow:0 0 2px rgba(0,0,0,0.4);"></div>`,
         iconSize: [diameter, diameter],
         iconAnchor: [diameter / 2, diameter / 2],
       }),
@@ -86,6 +91,7 @@ function ZoneMarker({ zone }) {
       icon={riskDivIcon(
         levelColor[zone.level] || levelColor.Unscored,
         zone.susceptibility != null ? 8 + zone.susceptibility * 10 : 8,
+        zone.rainfallMonitored,
       )}
       eventHandlers={{ click: () => navigate(`/zones/${zone.id}`) }}
     >
@@ -95,6 +101,8 @@ function ZoneMarker({ zone }) {
         {t("map.risk", { level: t(`severity.${zone.level}`, { defaultValue: zone.level }) })}
         {zone.level !== "Unscored" && ` ${t("map.relative", { state: t(`states.${zone.state}`, { defaultValue: zone.state }) })}`}
         {zone.susceptibility != null && ` · ${t("map.susceptibility", { pct: (zone.susceptibility * 100).toFixed(0) })}`}
+        <br />
+        {zone.rainfallMonitored ? t("map.rainfallChecked") : t("map.notMonitored")}
         <br />
         <em>{t("map.clickDetails")}</em>
       </Tooltip>
@@ -126,6 +134,12 @@ function ClusterMarker({ cluster }) {
         })}
         {cluster.unscored > 0 && ` · ${t("map.notScored", { count: cluster.unscored.toLocaleString() })}`}
         <br />
+        {cluster.monitored != null && (
+          <>
+            {t("map.clusterMonitored", { monitored: cluster.monitored.toLocaleString(), count: cluster.count.toLocaleString() })}
+            <br />
+          </>
+        )}
         <em>{t("map.clickZoom")}</em>
       </Tooltip>
     </Marker>

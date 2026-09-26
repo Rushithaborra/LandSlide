@@ -1,8 +1,9 @@
 import uuid
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import get_rainfall_threshold, settings
@@ -154,6 +155,12 @@ def rainfall_headroom(db: Session = Depends(get_db)):
     names = dict(db.execute(select(Zone.id, Zone.name).where(Zone.id.in_(all_zone_ids))).all()) if all_zone_ids else {}
     tiers = {t.id: (t.risk_tier or "moderate") for t in targets}
 
+    # How much of each state is actually watched, not just how close the
+    # watched part is -- a 0.09 ratio and "9 of 14,851 zones monitored" are
+    # both real, and a judge needs the second number to trust the first.
+    monitored_counts = Counter(t.state for t in targets)
+    total_counts = dict(db.execute(select(Zone.state, func.count()).group_by(Zone.state)).all())
+
     states_out = []
     for state in sorted({t.state for t in targets}):
         rows = sorted(by_state.get(state, []), key=lambda r: r[0], reverse=True)
@@ -171,6 +178,8 @@ def rainfall_headroom(db: Session = Depends(get_db)):
                     for ratio, zid, _ in rows[:TOP_ZONES_PER_STATE]
                     if zid in names
                 ],
+                monitored_zone_count=monitored_counts.get(state, 0),
+                total_zone_count=total_counts.get(state, 0),
             )
         )
     return RainfallHeadroomOut(states=states_out)

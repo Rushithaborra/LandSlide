@@ -240,6 +240,7 @@
     "modelVersion": "Model version",
     "lastUpdated": "Last updated",
     "rainfallHistory": "Rainfall history & forecast",
+    "notMonitored": "This zone isn't part of the live rainfall-monitoring set right now — its risk score is real, but recent rainfall here hasn't been automatically checked against an alert threshold. The reading below, if shown, was fetched live just for this page.",
     "noRainfallData": "Rainfall could not be loaded right now.",
     "alertsForZone": "Alerts for this zone",
     "noAlerts": "No alerts have fired for this zone yet.",
@@ -723,6 +724,9 @@
     "clusterZones": "{{count}} zones",
     "clusterCounts": "{{high}} high · {{moderate}} moderate · {{low}} low",
     "notScored": "{{count}} not yet scored",
+    "rainfallChecked": "Checked for live rainfall",
+    "notMonitored": "Not monitored for live rainfall — insufficient data, not confirmed safe",
+    "clusterMonitored": "{{monitored}} of {{count}} checked for live rainfall",
     "clickZoom": "Click to zoom in",
     "loadFailed": "Couldn't load map data.",
     "retry": "Retry",
@@ -1000,6 +1004,8 @@
     "no": "Not yet",
     "noData": "No rainfall stored yet",
     "percentOfLine": "{{pct}}% of the danger level",
-    "watchListNote": "The real monitored zones closest to this state's own line right now, closest first — none of these have crossed it. A real crossing shows up in Active Alerts instead."
+    "watchListNote": "The real monitored zones closest to this state's own line right now, closest first — none of these have crossed it. A real crossing shows up in Active Alerts instead.",
+    "coverage": "{{monitored, number}} of {{total, number}} zones monitored ({{pct}}%)",
+    "coverageNote": "The rest of this state hasn't been checked for live rainfall — that's insufficient data, not confirmed zero risk."
   }
 }

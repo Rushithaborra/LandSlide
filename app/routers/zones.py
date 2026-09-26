@@ -2,9 +2,10 @@ import math
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
+from sqlalchemy import false, func, select
 from sqlalchemy.orm import Session, load_only
 
+from app.config import settings
 from app.database import get_db
 from app.models import Alert, Zone
 from app.security import require_officer_key
@@ -18,6 +19,7 @@ from app.schemas import (
     ZoneOut,
     ZoneStatsOut,
 )
+from app.services.rainfall_refresh import select_zones
 
 # ZoneOut never includes the full polygon `geometry` column (only its
 # precomputed centroid), but a plain `db.query(Zone)` hydrates it anyway --
@@ -38,6 +40,22 @@ MAP_COLUMNS = load_only(
 )
 
 router = APIRouter(prefix="/zones", tags=["zones"])
+
+
+def _monitored_ids(db: Session) -> set[uuid.UUID]:
+    """Zone ids the scheduled rainfall refresh actually fetches right now --
+    select_zones() is the one real definition of "monitored" (also used by
+    /rainfall/refresh, /rainfall/ingest and /rainfall/headroom), reused here
+    rather than re-derived, so the map, the zone list and the stats endpoint
+    can never disagree with each other or with what the scheduler itself
+    checks. A handful of small queries regardless of how many zones exist
+    (one per state plus one for active alerts), not one per zone."""
+    return {t.id for t in select_zones(db, settings.rainfall_refresh_zones_per_state)}
+
+
+def _mark_monitored(zone_out: ZoneOut, monitored: set[uuid.UUID]) -> ZoneOut:
+    return zone_out.model_copy(update={"rainfall_monitored": zone_out.id in monitored})
+
 
 # A real, demonstrated production bug: GET /zones had no limit at all, and
 # returning every matching row (already a ~45-60s load at Sikkim's 3,921
@@ -90,7 +108,9 @@ def list_zones(
     # zones share a score with another today), since Postgres doesn't
     # promise a stable order among equal keys between separate requests.
     query = query.order_by(Zone.susceptibility_score.desc().nulls_last(), Zone.id)
-    return query.offset(offset).limit(limit).all()
+    rows = query.offset(offset).limit(limit).all()
+    monitored = _monitored_ids(db)
+    return [_mark_monitored(ZoneOut.model_validate(z), monitored) for z in rows]
 
 
 KM_PER_DEGREE = 111.32
@@ -141,6 +161,7 @@ def area_risk(
             )
         )
     nearest = rows[0] if rows else None
+    monitored = _monitored_ids(db)
 
     # Nothing within the requested radius: before saying "not assessed", check whether
     # real data exists a bit further out -- this is exactly what happens when a search
@@ -163,13 +184,14 @@ def area_risk(
             .limit(1)
         ).first()
         if far:
-            nearest_beyond_radius, nearest_beyond_radius_km = ZoneOut.model_validate(far[0]), round(far[1], 1)
+            nearest_beyond_radius = _mark_monitored(ZoneOut.model_validate(far[0]), monitored)
+            nearest_beyond_radius_km = round(far[1], 1)
 
     return AreaRiskOut(
         lat=lat,
         lng=lng,
         radius_km=radius_km,
-        zone=ZoneOut.model_validate(nearest[0]) if nearest else None,
+        zone=_mark_monitored(ZoneOut.model_validate(nearest[0]), monitored) if nearest else None,
         distance_km=round(nearest[1], 2) if nearest else None,
         counts=counts,
         active_alerts=active or 0,
@@ -205,8 +227,16 @@ def map_view(
             db.query(Zone).options(MAP_COLUMNS).filter(*in_view)
             .order_by(Zone.susceptibility_score.desc().nulls_last(), Zone.id).all()
         )
-        return MapViewOut(mode="zones", total=total, zones=[MapZoneOut.model_validate(z) for z in zones])
+        monitored = _monitored_ids(db)
+        return MapViewOut(
+            mode="zones", total=total,
+            zones=[
+                MapZoneOut.model_validate(z).model_copy(update={"rainfall_monitored": z.id in monitored})
+                for z in zones
+            ],
+        )
 
+    monitored = _monitored_ids(db)
     cell = grid_cell_degrees(max(max_lat - min_lat, max_lng - min_lng))
     cell_y = func.floor(Zone.centroid_lat / cell)
     cell_x = func.floor(Zone.centroid_lng / cell)
@@ -217,6 +247,7 @@ def map_view(
             func.count().filter(Zone.risk_tier == "moderate"),
             func.count().filter(Zone.risk_tier == "low"),
             func.count().filter(Zone.risk_tier.is_(None)),
+            func.count().filter(Zone.id.in_(monitored)) if monitored else func.count().filter(false()),
             func.min(Zone.centroid_lat), func.min(Zone.centroid_lng),
             func.max(Zone.centroid_lat), func.max(Zone.centroid_lng),
         )
@@ -225,7 +256,7 @@ def map_view(
     ).all()
     clusters = [
         MapClusterOut(lat=r[0], lng=r[1], count=r[2], high=r[3], moderate=r[4], low=r[5], unscored=r[6],
-                      bounds=[r[7], r[8], r[9], r[10]])
+                      monitored=r[7], bounds=[r[8], r[9], r[10], r[11]])
         for r in rows
     ]
     return MapViewOut(mode="clusters", total=total, clusters=clusters)
@@ -235,18 +266,20 @@ def map_view(
 def zone_stats(state: str | None = None, db: Session = Depends(get_db)):
     """Counts over EVERY zone (a capped /zones page can't answer "how many
     high-risk zones are there") and the extent to fit the map to."""
+    monitored = _monitored_ids(db)
     query = select(
         func.count(),
         func.count().filter(Zone.risk_tier == "high"),
         func.count().filter(Zone.risk_tier == "moderate"),
         func.count().filter(Zone.risk_tier == "low"),
         func.count().filter(Zone.risk_tier.is_(None)),
+        func.count().filter(Zone.id.in_(monitored)) if monitored else func.count().filter(false()),
         func.min(Zone.centroid_lat), func.min(Zone.centroid_lng),
         func.max(Zone.centroid_lat), func.max(Zone.centroid_lng),
     )
     if state:
         query = query.where(Zone.state == state)
-    total, high, moderate, low, unscored, min_lat, min_lng, max_lat, max_lng = db.execute(query).one()
+    total, high, moderate, low, unscored, monitored_count, min_lat, min_lng, max_lat, max_lng = db.execute(query).one()
     # Rounded outward to 4 decimals (~11 m): the database driver returns
     # coordinates rounded to 15 digits, so the exact min/max can land a hair
     # inside the zone that defines it and a bounding-box query with them
@@ -257,7 +290,7 @@ def zone_stats(state: str | None = None, db: Session = Depends(get_db)):
          math.ceil(max_lat * pad) / pad, math.ceil(max_lng * pad) / pad]
         if total else None
     )
-    return ZoneStatsOut(total=total, high=high, moderate=moderate, low=low, unscored=unscored, bounds=bounds)
+    return ZoneStatsOut(total=total, high=high, moderate=moderate, low=low, unscored=unscored, monitored=monitored_count, bounds=bounds)
 
 
 # Which tiers count as "safer" than a zone of a given tier. An unscored zone
@@ -298,7 +331,7 @@ def nearest_safer_zone(zone_id: uuid.UUID, db: Session = Depends(get_db)):
     if nearest is None:
         return None
     return NearestSaferOut(
-        **ZoneOut.model_validate(nearest).model_dump(),
+        **_mark_monitored(ZoneOut.model_validate(nearest), _monitored_ids(db)).model_dump(),
         distance_km=_haversine_km(zone.centroid_lat, zone.centroid_lng, nearest.centroid_lat, nearest.centroid_lng),
     )
 
@@ -308,7 +341,7 @@ def get_zone(zone_id: uuid.UUID, db: Session = Depends(get_db)):
     zone = db.get(Zone, zone_id)
     if zone is None:
         raise HTTPException(status_code=404, detail="Zone not found")
-    return zone
+    return _mark_monitored(ZoneOut.model_validate(zone), _monitored_ids(db))
 
 
 @router.put("/{zone_id}/susceptibility", response_model=ZoneOut, dependencies=[Depends(require_officer_key)])

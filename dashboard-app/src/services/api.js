@@ -506,6 +506,11 @@ function shapeZone(z) {
     // marker/tooltip instead of silently looking like the safest zone on
     // the map).
     susceptibility: z.susceptibility_score,
+    // False for the vast majority of zones -- only the highest-susceptibility
+    // handful per state ever gets a live rainfall check. False means "never
+    // checked", not "checked and safe"; RiskMap.jsx must draw those two
+    // differently, or an unmonitored zone looks exactly like a safe one.
+    rainfallMonitored: z.rainfall_monitored,
   };
 }
 
@@ -651,6 +656,7 @@ export async function getZoneById(zoneId) {
     susceptibility: z.susceptibility_score,
     modelVersion: z.model_version,
     lastUpdated: z.last_updated,
+    rainfallMonitored: z.rainfall_monitored,
   };
 }
 
@@ -879,6 +885,13 @@ export async function getRainfallHeadroom() {
     // Up to 5 real monitored zones closest to (but under) this state's own line --
     // none of these are alerts; a real crossing shows up in Active Alerts instead.
     topZones: (s.top_zones || []).map((z) => ({ zoneName: z.zone_name, riskTier: z.risk_tier, ratio: z.ratio })),
+    // How much of the state the ratio above actually speaks for -- a state can
+    // show 0 active alerts because every zone it checks is genuinely under the
+    // line, or because almost none of its zones are checked at all. Both are
+    // real; they are not the same claim, and the caller must be able to tell
+    // them apart instead of reading one 0 as proof of the other.
+    monitoredZoneCount: s.monitored_zone_count,
+    totalZoneCount: s.total_zone_count,
   }));
 }
 

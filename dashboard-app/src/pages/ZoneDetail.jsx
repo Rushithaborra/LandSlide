@@ -134,6 +134,11 @@ export default function ZoneDetail() {
               <h3 className="mb-2 font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">
                 {t("zoneDetail.rainfallHistory")}
               </h3>
+              {!zone.rainfallMonitored && (
+                <p className="mb-3 rounded-lg border border-risk-moderate/30 bg-risk-moderateSoft px-3 py-2 text-xs text-risk-moderate dark:bg-risk-moderate/10 dark:text-risk-moderateOn">
+                  {t("zoneDetail.notMonitored")}
+                </p>
+              )}
               {!rainfall ? (
                 <p className="text-sm text-paper-500">{t("common.loading")}</p>
               ) : rainfall.readings.length === 0 ? (

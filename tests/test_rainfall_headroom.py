@@ -46,16 +46,19 @@ def test_reports_the_real_ratio_and_the_real_alerting_flag_per_state(client):
     db.execute.side_effect = [
         SimpleNamespace(all=lambda: [readings_row(HIGH_ZONE, 40.0), readings_row(LOW_ZONE, 60.0)]),
         SimpleNamespace(all=lambda: [(HIGH_ZONE, "NH27 (1_00_001)"), (LOW_ZONE, "SH-5 (2_00_002)")]),
+        SimpleNamespace(all=lambda: [("Assam", 47835), ("Meghalaya", 10596)]),
     ]
     body = c.get("/rainfall/headroom").json()
     by_state = {s["state"]: s for s in body["states"]}
     assert by_state["Assam"] == {
         "state": "Assam", "alerting_enabled": True, "zone_name": "NH27 (1_00_001)", "risk_tier": "high", "ratio": 1.0, "threshold_source": "a real study",
         "top_zones": [{"zone_name": "NH27 (1_00_001)", "risk_tier": "high", "ratio": 1.0}],
+        "monitored_zone_count": 1, "total_zone_count": 47835,
     }
     # Meghalaya has REALLY crossed its own line (ratio 1.2) but alerting_enabled is honestly False --
     # the two facts are independent, and this must never blend them into one misleading number.
     assert by_state["Meghalaya"]["ratio"] == 1.2 and by_state["Meghalaya"]["alerting_enabled"] is False
+    assert by_state["Meghalaya"]["monitored_zone_count"] == 1 and by_state["Meghalaya"]["total_zone_count"] == 10596
 
 
 def test_the_watch_list_is_every_monitored_zones_own_real_ratio_closest_first(monkeypatch):
@@ -69,20 +72,33 @@ def test_the_watch_list_is_every_monitored_zones_own_real_ratio_closest_first(mo
         db.execute.side_effect = [
             SimpleNamespace(all=lambda: [readings_row(z1, 10.0), readings_row(z2, 45.0), readings_row(z3, 30.0)]),  # ratios: 0.25, 0.9, 0.6
             SimpleNamespace(all=lambda: [(z1, "road A"), (z2, "road B"), (z3, "road C")]),
+            SimpleNamespace(all=lambda: [("Manipur", 8400)]),
         ]
-        top = TestClient(app).get("/rainfall/headroom").json()["states"][0]["top_zones"]
+        state = TestClient(app).get("/rainfall/headroom").json()["states"][0]
+        top = state["top_zones"]
         assert [z["zone_name"] for z in top] == ["road B", "road C", "road A"]  # 0.9, 0.6, 0.25 -- closest first
         assert all(z["ratio"] < 1 for z in top)  # none of these are an actual crossing
+        # All 3 zones were monitored (selected by select_zones); the fact none has
+        # crossed yet is meaningful precisely because it's a real fraction of a
+        # real total, not "we don't know" dressed up as a percentage.
+        assert state["monitored_zone_count"] == 3 and state["total_zone_count"] == 8400
     finally:
         app.dependency_overrides.pop(get_db, None)
 
 
 def test_a_state_with_no_stored_rainfall_yet_reports_nulls_not_a_guess(client):
     c, db = client
-    db.execute.side_effect = [SimpleNamespace(all=lambda: []), SimpleNamespace(all=lambda: [])]
+    db.execute.side_effect = [
+        SimpleNamespace(all=lambda: []),
+        SimpleNamespace(all=lambda: [("Assam", 47835), ("Meghalaya", 10596)]),
+    ]
     body = c.get("/rainfall/headroom").json()
     for s in body["states"]:
         assert s["ratio"] is None and s["zone_name"] is None and s["risk_tier"] is None and s["threshold_source"] is None and s["top_zones"] == []
+        # No stored rainfall yet is different from "not monitored" -- both fixture
+        # zones were still selected by select_zones, so monitored_zone_count must
+        # stay 1, not silently drop to 0 alongside the missing ratio.
+        assert s["monitored_zone_count"] == 1 and s["total_zone_count"] > 0
 
 
 def test_no_monitored_zones_at_all_returns_an_empty_list_not_an_error(monkeypatch):

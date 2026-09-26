@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from app.database import get_db
 from app.main import app
+from app.routers import zones as zones_router
 
 
 def _zone(tier, name="NH10 (1_00_001)"):
@@ -22,7 +23,14 @@ def _zone(tier, name="NH10 (1_00_001)"):
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
+    # select_zones (and so _monitored_ids) is replaced outright rather than
+    # sequenced through db.execute -- these tests are about distance/counting,
+    # not monitoring status, and select_zones's own several queries would
+    # otherwise consume the same db.execute mock these tests set up for the
+    # area-risk query itself. Real monitoring propagation is covered in
+    # test_zone_monitoring.py.
+    monkeypatch.setattr(zones_router, "select_zones", lambda db, per_state: [])
     db = MagicMock()
     app.dependency_overrides[get_db] = lambda: db
     yield TestClient(app), db
@@ -38,6 +46,17 @@ def test_reports_the_nearest_zone_and_counts_tiers_in_the_radius(client):
     assert body["zone"]["risk_tier"] == "low" and body["distance_km"] == 0.12
     assert body["counts"] == {"high": 2, "moderate": 1, "low": 1, "unscored": 1}  # the nearest alone would hide the two high ones
     assert body["active_alerts"] == 2 and body["radius_km"] == 3.0
+    assert body["zone"]["rainfall_monitored"] is False  # select_zones returns nothing monitored in this fixture
+
+
+def test_the_nearest_zone_is_flagged_when_it_is_actually_monitored(client, monkeypatch):
+    c, db = client
+    nearest = _zone("high")
+    monkeypatch.setattr(zones_router, "select_zones", lambda db, per_state: [SimpleNamespace(id=nearest.id)])
+    db.execute.return_value.all.return_value = [(nearest, 0.5)]
+    db.scalar.return_value = 0
+    body = c.get("/zones/near", params={"lat": 27.3, "lng": 88.6}).json()
+    assert body["zone"]["id"] == str(nearest.id) and body["zone"]["rainfall_monitored"] is True
 
 
 def test_nothing_assessed_nearby_or_further_out_says_so_instead_of_guessing(client):

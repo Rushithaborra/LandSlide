@@ -39,14 +39,16 @@ export default function RainfallHeadroomPanel({ className = "" }) {
         <Gauge size={16} className="text-teal-600" />
         <h2 className="font-serif text-[15px] font-semibold text-ink-900 dark:text-paper-100">{t("headroom.title")}</h2>
       </div>
-      <p className="mb-3 text-xs text-paper-600 dark:text-paper-400">{t("headroom.note")}</p>
+      <p className="text-xs text-paper-600 dark:text-paper-400">{t("headroom.note")}</p>
+      <p className="mb-3 text-xs text-paper-500">{t("headroom.coverageNote")}</p>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-paper-500">
               <th className="pb-2 pr-3 font-medium">{t("table.state")}</th>
               <th className="pb-2 pr-3 font-medium">{t("headroom.status")}</th>
-              <th className="pb-2 font-medium">{t("headroom.watching")}</th>
+              <th className="pb-2 pr-3 font-medium">{t("headroom.watching")}</th>
+              <th className="pb-2 font-medium">{t("headroom.coverage")}</th>
             </tr>
           </thead>
           <tbody>
@@ -77,11 +79,18 @@ export default function RainfallHeadroomPanel({ className = "" }) {
                         </span>
                       )}
                     </td>
-                    <td className="py-2 text-paper-600 dark:text-paper-400">{t(s.alertingEnabled ? "headroom.yes" : "headroom.no")}</td>
+                    <td className="py-2 pr-3 text-paper-600 dark:text-paper-400">{t(s.alertingEnabled ? "headroom.yes" : "headroom.no")}</td>
+                    <td className="py-2 whitespace-nowrap text-xs text-paper-600 dark:text-paper-400">
+                      {t("headroom.coverage", {
+                        monitored: s.monitoredZoneCount,
+                        total: s.totalZoneCount,
+                        pct: s.totalZoneCount ? +((s.monitoredZoneCount / s.totalZoneCount) * 100).toFixed(2) : 0,
+                      })}
+                    </td>
                   </tr>
                   {isOpen && canExpand && (
                     <tr>
-                      <td colSpan={3} className="bg-paper-50 px-3 pb-3 pt-1 dark:bg-night-800">
+                      <td colSpan={4} className="bg-paper-50 px-3 pb-3 pt-1 dark:bg-night-800">
                         <p className="mb-1.5 text-xs text-paper-500">{t("headroom.watchListNote")}</p>
                         <ul className="space-y-1">
                           {s.topZones.map((z) => (
