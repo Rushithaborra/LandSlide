@@ -814,7 +814,7 @@
           {
             "status": "unverified",
             "name": "Rainfall intensity-duration threshold (Sikkim)",
-            "detail": "Harilal, Madhu, Ramesh & Pullarkatt (2019), Landslides 16(12), DOI 10.1007/s10346-019-01244-1 — a real, Sikkim-specific paper. It is paywalled, so its coefficients have not yet been independently confirmed against the primary text. Sikkim is the only state where rain alerts are switched on."
+            "detail": "Harilal, Madhu, Ramesh & Pullarkatt (2019), Landslides 16(12), DOI 10.1007/s10346-019-01244-1 — a real, Sikkim-specific paper. It is paywalled, so its coefficients have not yet been independently confirmed against the primary text. Sikkim is the only state with its own dedicated threshold; every other state alerts against the IMD heavy-rain baseline below."
           },
           {
             "status": "switchedOff",
