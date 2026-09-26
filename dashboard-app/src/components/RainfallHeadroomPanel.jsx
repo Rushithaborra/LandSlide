@@ -48,7 +48,7 @@ export default function RainfallHeadroomPanel({ className = "" }) {
               <th className="pb-2 pr-3 font-medium">{t("table.state")}</th>
               <th className="pb-2 pr-3 font-medium">{t("headroom.status")}</th>
               <th className="pb-2 pr-3 font-medium">{t("headroom.watching")}</th>
-              <th className="pb-2 font-medium">{t("headroom.coverage")}</th>
+              <th className="pb-2 font-medium">{t("headroom.coverageHeader")}</th>
             </tr>
           </thead>
           <tbody>

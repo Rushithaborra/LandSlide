@@ -1005,6 +1005,7 @@
     "noData": "No rainfall stored yet",
     "percentOfLine": "{{pct}}% of the danger level",
     "watchListNote": "The real monitored zones closest to this state's own line right now, closest first — none of these have crossed it. A real crossing shows up in Active Alerts instead.",
+    "coverageHeader": "Live rainfall coverage",
     "coverage": "{{monitored, number}} of {{total, number}} zones monitored ({{pct}}%)",
     "coverageNote": "The rest of this state hasn't been checked for live rainfall — that's insufficient data, not confirmed zero risk."
   }
