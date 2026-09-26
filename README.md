@@ -606,3 +606,30 @@ so. (2) Only the issue date is used, because the feed's own timestamp has no sta
 snapshot: it does not update itself. (4) IMD's terms of use for public display were not published on
 the pages read; check the portal's Terms & Conditions before showing this publicly. (5) Nothing in
 the alert engine uses IMD; Open-Meteo feeds rainfall and the system's own alerts.
+
+## IMD station-rainfall logger (real gauges vs Open-Meteo, for later comparison)
+`scripts/imd_station_logger.py` polls IMD's real AWS/ARG rain-gauge stations across
+the north-east (`aws_data`, 202 stations with usable coordinates) and Open-Meteo's
+estimate at those exact same coordinates, one poll at a time, into a local SQLite
+file (`data/interim/imd_station_log.db`, gitignored -- a research artifact, not part
+of the deployed system). This is the proper, point-to-point version of the earlier
+rough district-level comparison (Open-Meteo read ~1.37x IMD's district averages, but
+that compared a whole district's average to one hill point, not a fair test). A first
+poll already shows a real, large single-point disagreement (Lengpui KVK, Mizoram: IMD
+31.0mm vs Open-Meteo 4.8mm on the same morning) worth a proper multi-week look before
+trusting either number over the other.
+
+Runs only from this laptop (IMD's key is bound to one registered IP -- see
+`app/services/imd.py`), on a Windows Task Scheduler job (`IMD Station Rainfall
+Logger`, every 6 hours, via `scripts/run_imd_station_logger.ps1`, which also appends
+each run's output to `data/interim/imd_station_logger.log` so a gap is visible, not
+silent). **This machine's public IP has changed three times in one week** (a home
+connection, not a fixed address) -- every time it does, the IMD key silently stops
+working (HTTP 403) until it is regenerated for the new IP at
+https://api.imd.gov.in/public/index.php (API Keys -- portal caps at 2 Dev keys, so an
+old dead one usually needs deleting first) and `.env`'s `IMD_API_KEY` updated. Check
+`data/interim/imd_station_logger.log` periodically for gaps caused by this.
+
+No comparison/analysis script yet -- that is deliberately deferred until a few weeks
+of real polls have accumulated (a same-day, same-poll comparison is not what this is
+for).
