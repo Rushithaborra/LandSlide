@@ -70,6 +70,18 @@ def fetch_chunk(targets: list[dict]) -> list[dict]:
     ]
 
 
+def exit_code_for(result: dict, failures: list[str]) -> int:
+    """0 only if the run actually left the backend with fresher data. A run
+    that fetched successfully from Open-Meteo but ends with the backend
+    reporting zones_refreshed=0 (e.g. the runner's target list no longer
+    matches the backend's own re-selection by the time it posts, minutes
+    later) must show red, not green -- a silent "success" here is exactly
+    the kind of gap that let a real stale-data incident go unnoticed."""
+    if result.get("zones_refreshed", 0) == 0:
+        return 1
+    return 1 if failures else 0  # a partially-failed run is stored, but shows red so it gets noticed
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--no-alerts", action="store_true", help="store rainfall only; don't trigger alerts/SMS")
@@ -108,7 +120,13 @@ def main() -> int:
     print(json.dumps({k: v for k, v in result.items() if k != "errors"}))
     if result.get("errors"):
         print("backend reported:", result["errors"], file=sys.stderr)
-    return 1 if failures else 0  # a partially-failed run is stored, but shows red so it gets noticed
+    if result.get("zones_refreshed", 0) == 0:
+        print(
+            f"::error::Fetched data for {len(readings)} zones from Open-Meteo, but the backend recorded "
+            "0 as refreshed -- nothing was actually stored, so this run must not show green.",
+            file=sys.stderr,
+        )
+    return exit_code_for(result, failures)
 
 
 if __name__ == "__main__":

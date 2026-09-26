@@ -73,7 +73,18 @@ target selection, so the runner only ever supplies numbers. **Why the runner
 fetches:** Open-Meteo returns HTTP 429 to the shared outgoing IPs of free hosts,
 and Render's was being refused (seen live 2026-09-20), so the backend's own
 fetch (`POST /rainfall/refresh`) is kept only as a fallback. The free Render
-server also sleeps when idle, so the timer lives outside it.
+server also sleeps when idle, so the timer lives outside it. **GitHub's own
+hourly schedule can run hours late on free/public repos**, so an external cron
+(cron-job.org, set up 2026-09-26) also dispatches the same workflow every hour
+via its API, using a fine-grained token scoped only to `Actions: write` on this
+repo. Even Open-Meteo's rate limits can hit the runner itself, though: a real
+GitHub-triggered run on 2026-09-26 finished in its usual ~4.5 minutes with no
+chunk errors, yet the backend recorded 0 zones refreshed -- and the runner
+script did not notice, reporting success anyway (caught by re-running the same
+script locally moments later, which worked instantly). Fixed same day: the
+script now checks the backend's own `zones_refreshed` count and fails the run
+(visible as red on GitHub) whenever it is 0, instead of a silent, misleading
+green (`exit_code_for`, `tests/test_refresh_rainfall_from_runner.py`).
 Each run refreshes the 25 highest-risk zones (`RAINFALL_REFRESH_ZONES_PER_STATE`)
 of every state that has zones (every state now has a rule: its own, else the IMD
 baseline), then fires alerts, and SMS if Twilio
