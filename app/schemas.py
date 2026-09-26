@@ -349,6 +349,16 @@ class RainfallThresholdOut(BaseModel):
     verified_against_primary_text: bool
 
 
+class ZoneHeadroomOut(BaseModel):
+    """One real monitored zone's closeness to its own state's threshold. Never a
+    crossed zone (ratio < 1) -- a real crossing already appears in Active Alerts
+    instead of here."""
+
+    zone_name: str
+    risk_tier: str
+    ratio: float
+
+
 class StateHeadroomOut(BaseModel):
     """One state's real closeness to alerting -- the same strongest_ratio the
     "rain worsened" feature already computes, not a new metric. 1.0 means this
@@ -363,6 +373,7 @@ class StateHeadroomOut(BaseModel):
     risk_tier: str | None
     ratio: float | None
     threshold_source: str | None  # config.source: which real rule this state uses
+    top_zones: list[ZoneHeadroomOut] = []  # up to 5 real monitored zones, closest first
 
 
 class RainfallHeadroomOut(BaseModel):

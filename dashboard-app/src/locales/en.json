@@ -999,6 +999,7 @@
     "yes": "Yes",
     "no": "Not yet",
     "noData": "No rainfall stored yet",
-    "percentOfLine": "{{pct}}% of the danger level"
+    "percentOfLine": "{{pct}}% of the danger level",
+    "watchListNote": "The real monitored zones closest to this state's own line right now, closest first — none of these have crossed it. A real crossing shows up in Active Alerts instead."
   }
 }

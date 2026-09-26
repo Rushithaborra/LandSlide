@@ -51,10 +51,30 @@ def test_reports_the_real_ratio_and_the_real_alerting_flag_per_state(client):
     by_state = {s["state"]: s for s in body["states"]}
     assert by_state["Assam"] == {
         "state": "Assam", "alerting_enabled": True, "zone_name": "NH27 (1_00_001)", "risk_tier": "high", "ratio": 1.0, "threshold_source": "a real study",
+        "top_zones": [{"zone_name": "NH27 (1_00_001)", "risk_tier": "high", "ratio": 1.0}],
     }
     # Meghalaya has REALLY crossed its own line (ratio 1.2) but alerting_enabled is honestly False --
     # the two facts are independent, and this must never blend them into one misleading number.
     assert by_state["Meghalaya"]["ratio"] == 1.2 and by_state["Meghalaya"]["alerting_enabled"] is False
+
+
+def test_the_watch_list_is_every_monitored_zones_own_real_ratio_closest_first(monkeypatch):
+    z1, z2, z3 = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    monkeypatch.setattr(rainfall_router, "select_zones", lambda db, n: [target(z1, "Manipur", "high"), target(z2, "Manipur", "moderate"), target(z3, "Manipur", "low")])
+    monkeypatch.setattr(rainfall_router, "get_rainfall_threshold", lambda state: CONFIG)
+    monkeypatch.setattr(rainfall_router, "can_alert", lambda state: True)
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
+    try:
+        db.execute.side_effect = [
+            SimpleNamespace(all=lambda: [readings_row(z1, 10.0), readings_row(z2, 45.0), readings_row(z3, 30.0)]),  # ratios: 0.25, 0.9, 0.6
+            SimpleNamespace(all=lambda: [(z1, "road A"), (z2, "road B"), (z3, "road C")]),
+        ]
+        top = TestClient(app).get("/rainfall/headroom").json()["states"][0]["top_zones"]
+        assert [z["zone_name"] for z in top] == ["road B", "road C", "road A"]  # 0.9, 0.6, 0.25 -- closest first
+        assert all(z["ratio"] < 1 for z in top)  # none of these are an actual crossing
+    finally:
+        app.dependency_overrides.pop(get_db, None)
 
 
 def test_a_state_with_no_stored_rainfall_yet_reports_nulls_not_a_guess(client):
@@ -62,7 +82,7 @@ def test_a_state_with_no_stored_rainfall_yet_reports_nulls_not_a_guess(client):
     db.execute.side_effect = [SimpleNamespace(all=lambda: []), SimpleNamespace(all=lambda: [])]
     body = c.get("/rainfall/headroom").json()
     for s in body["states"]:
-        assert s["ratio"] is None and s["zone_name"] is None and s["risk_tier"] is None and s["threshold_source"] is None
+        assert s["ratio"] is None and s["zone_name"] is None and s["risk_tier"] is None and s["threshold_source"] is None and s["top_zones"] == []
 
 
 def test_no_monitored_zones_at_all_returns_an_empty_list_not_an_error(monkeypatch):

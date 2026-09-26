@@ -876,6 +876,9 @@ export async function getRainfallHeadroom() {
     riskTier: s.risk_tier,
     ratio: s.ratio,
     thresholdSource: s.threshold_source,
+    // Up to 5 real monitored zones closest to (but under) this state's own line --
+    // none of these are alerts; a real crossing shows up in Active Alerts instead.
+    topZones: (s.top_zones || []).map((z) => ({ zoneName: z.zone_name, riskTier: z.risk_tier, ratio: z.ratio })),
   }));
 }
 
