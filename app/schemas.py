@@ -418,6 +418,25 @@ class AlertOut(BaseModel):
     worsened_at: datetime | None = None
     worsened_count: int = 0
     peak_ratio: float | None = None
+    # Active alerts only: the shortest rainfall window that is over its danger level
+    # TODAY (None = no window is over it now, or no stored rain to check), and whether
+    # that window is long enough (LONG_WINDOW_DAYS) that the alert reflects weeks of
+    # accumulated rain rather than a current storm. Display-only.
+    driving_window_days: int | None = None
+    long_window_alert: bool = False
+
+
+class AlertSummaryOut(BaseModel):
+    """GET /alerts/summary -- what the active-alert count actually rests on."""
+
+    active_alerts: int
+    # Zones given identical recent rainfall data share a weather-model cell, so the
+    # number of alerts overstates how many independent rain observations back them.
+    distinct_rainfall_records: int
+    long_window_alerts: int  # driven only by a window of long_window_days or more
+    long_window_days: int
+    not_currently_over: int  # still open, but no window is over its line today
+    no_rainfall_data: int  # no stored rain to check against
 
 
 class GenerateBulletinIn(BaseModel):

@@ -278,6 +278,10 @@ function shapeAlert(a) {
     // the zone's rain is doing now (latest observed day, never a forecast).
     rainNowMm: a.latest_rainfall_mm ?? null,
     rainNowDate: a.latest_rainfall_date ? `${a.latest_rainfall_date}T00:00:00Z` : null,
+    // The shortest rainfall window over its danger level TODAY, and whether that is a
+    // weeks-long window (rain accumulated over time, not a storm now). Active alerts only.
+    drivingWindowDays: a.driving_window_days ?? null,
+    longWindow: Boolean(a.long_window_alert),
   };
 }
 
@@ -343,11 +347,12 @@ export async function getSummaryStats(state) {
   // and alerts are filtered by state server-side. Both used to be derived by
   // downloading every zone of the state, which capped out at a few thousand
   // and stops working entirely at tens of thousands.
-  const [stats, alerts, topZones, rainStatus] = await Promise.all([
+  const [stats, alerts, topZones, rainStatus, alertSummary] = await Promise.all([
     getZoneStats(state),
     getJSON(alertsPath(state)),
     getJSON(topZonesPath(state)),
     getRainfallStatus(),
+    getAlertSummary(state),
   ]);
   // A state that is refreshed but not switched on for alerting (Assam today) would
   // show "0 alerts", which reads as "no danger" when it really means "not
@@ -391,7 +396,15 @@ export async function getSummaryStats(state) {
     // `note` = { key, params } for a translation string; `state` is the raw state name.
     activeAlerts: alertingOff
       ? { value: "—", note: { key: "overview.alertingOff", params: { state } }, trend: "flat" }
-      : { value: activeAlerts.length, note: { key: "overview.zonesAffected", params: { count: affectedZoneIds.size } }, trend: activeAlerts.length > 0 ? "up" : "flat" },
+      : {
+          value: activeAlerts.length,
+          // "102 road segments" and "27 distinct rainfall records" are different claims: segments
+          // that were given identical rain data are one weather observation, not many.
+          note: alertSummary && alertSummary.records > 0
+            ? { key: "overview.alertsEvidence", params: { segments: alertSummary.activeAlerts, records: alertSummary.records } }
+            : { key: "overview.zonesAffected", params: { count: affectedZoneIds.size } },
+          trend: activeAlerts.length > 0 ? "up" : "flat",
+        },
     affectedVillages: alertingOff
       ? { value: "—", note: { key: "overview.alertingOff", params: { state } }, trend: "flat" }
       : { value: affectedZoneIds.size, note: { key: "overview.zonesWithAlert" }, trend: "flat" },
@@ -873,6 +886,24 @@ export async function getLandslideSummary(state) {
 
 // Every state's real rainfall against its own real threshold (GET /rainfall/headroom),
 // regardless of the state selector -- see RainfallHeadroomPanel.
+// What the active-alert count rests on (GET /alerts/summary). Supplementary: if it can't
+// be read the page falls back to the plain count instead of failing.
+export async function getAlertSummary(state) {
+  try {
+    const r = await getJSON(state ? `/alerts/summary?state=${encodeURIComponent(state)}` : "/alerts/summary");
+    return {
+      activeAlerts: r.active_alerts,
+      records: r.distinct_rainfall_records,
+      longWindowAlerts: r.long_window_alerts,
+      longWindowDays: r.long_window_days,
+      notCurrentlyOver: r.not_currently_over,
+      noRainfallData: r.no_rainfall_data,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function getRainfallHeadroom() {
   const r = await getJSON("/rainfall/headroom");
   return r.states.map((s) => ({

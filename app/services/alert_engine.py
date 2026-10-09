@@ -137,6 +137,33 @@ def strongest_ratio(
     return best
 
 
+# An alert whose shortest crossing window is at least this many days is driven by
+# rain accumulated over weeks, not a storm happening now. A presentation threshold
+# only (what the dashboard flags) -- it never changes whether an alert opens or closes.
+LONG_WINDOW_DAYS = 10
+
+
+def driving_window_days(
+    daily_totals: dict[date, float], config: RainfallThresholdConfig, risk_tier: str = "moderate"
+) -> int | None:
+    """Pure: the shortest window whose mean rain is over its danger level today -- the
+    window that is actually "driving" an alert -- or None if no window is over it now.
+    Forecast days are ignored, as everywhere in alert evaluation."""
+    observed = drop_forecast_days(daily_totals)
+    if not observed:
+        return None
+    crossing = evaluate_daily_rainfall(observed, config=config, risk_tier=risk_tier)
+    return None if crossing is None else crossing.duration_days
+
+
+def rainfall_signature(daily_totals: dict[date, float], days: int = 10) -> tuple[float, ...]:
+    """Pure: the last `days` observed days of rain, rounded to 0.1 mm. Zones whose
+    signatures are identical were given the same rainfall data -- they share a
+    weather-model cell -- so they are one piece of weather evidence, not several."""
+    observed = drop_forecast_days(daily_totals)
+    return tuple(round(observed[d], 1) for d in sorted(observed)[-days:])
+
+
 def has_worsened(baseline_ratio: float, current_ratio: float, step: float | None = None) -> bool:
     """Pure: is the rain at least `step` (default RAINFALL_ESCALATION_STEP) danger
     levels further above the level than it was when the alert was last raised or

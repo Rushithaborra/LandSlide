@@ -2,6 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { agoLabel, alertSentence, dayWord } from "../utils/localizedText";
+import LongWindowNote from "./LongWindowNote";
 import WorsenedNote from "./WorsenedNote";
 
 const severityStyle = {
@@ -51,6 +52,7 @@ export default function AlertsPanel({ alerts, emptyText }) {
                 </p>
               )}
               <WorsenedNote worsenedAt={a.worsenedAt} peakRatio={a.peakRatio} className="mt-1 text-[11px]" />
+              <LongWindowNote longWindow={a.longWindow} days={a.drivingWindowDays} className="mt-1 text-[11px]" />
               <span
                 className={`inline-block mt-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${
                   severityStyle[a.severity] || "bg-paper-100 text-paper-600"

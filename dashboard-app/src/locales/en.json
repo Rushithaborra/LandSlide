@@ -86,6 +86,7 @@
     "checkAreaTitle": "Check your village's landslide risk",
     "zonesAffected_one": "{{count}} zone affected",
     "zonesAffected_other": "{{count}} zones affected",
+    "alertsEvidence": "{{segments}} road segments · {{records}} distinct rainfall records",
     "zonesWithAlert": "Zones with an active alert",
     "alertingOff": "Alerting not enabled for {{state}}",
     "noDataYet": "No data yet",
@@ -1008,5 +1009,16 @@
     "coverageHeader": "Live rainfall coverage",
     "coverage": "{{monitored, number}} of {{total, number}} zones monitored ({{pct}}%)",
     "coverageNote": "The rest of this state hasn't been checked for live rainfall — that's insufficient data, not confirmed zero risk."
+  },
+  "alertWindow": {
+    "note": "Today the shortest window over its line is {{days}} days — accumulated rain, not a current storm"
+  },
+  "alertEvidence": {
+    "title": "What these alerts rest on",
+    "records": "{{segments}} road segments are under alert, but they share only {{records}} distinct rainfall records.",
+    "long": "{{count}} are driven only by a window of {{days}} days or longer: rain accumulated over weeks, not a storm happening now.",
+    "notOver": "{{count}} are still open although no rainfall window is over its line today (the cautious auto-close rule keeps them open).",
+    "noData": "{{count}} have no stored rainfall to check.",
+    "note": "Road segments given identical rain data sit in the same weather-model cell, so they count as one observation. Every alert is still valid by the system's own rule; this only shows how much weather evidence stands behind the count."
   }
 }

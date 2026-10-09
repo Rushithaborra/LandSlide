@@ -152,3 +152,50 @@ def test_forecast_alone_cannot_breach_threshold():
     totals = {today: 5.0, today + timedelta(days=1): 999.0}
     filtered = drop_forecast_days(totals)
     assert evaluate_daily_rainfall(filtered, config=TEST_CONFIG) is None
+
+
+# --- what is actually driving an alert -----------------------------------
+
+from app.services.alert_engine import LONG_WINDOW_DAYS, driving_window_days, rainfall_signature  # noqa: E402
+
+# threshold(D) = 40/D (moderate): 1 day -> 40, 3 -> 13.3, 10 -> 4, 20 -> 2 mm/day.
+LONG_CONFIG = RainfallThresholdConfig(
+    region="test-fixture", coefficient=40.0, exponent=-1.0, durations_days=[1, 3, 10, 20], source="synthetic, for unit tests only"
+)
+
+
+def _recent(mm_by_age: dict[int, float]) -> dict[date, float]:
+    today = datetime.now(timezone.utc).date()
+    return {today - timedelta(days=age): mm for age, mm in mm_by_age.items()}
+
+
+def test_weeks_of_steady_rain_with_a_calm_today_is_driven_by_the_long_window():
+    """3 mm/day for 20 days: every short window is far under its line, only the 20-day
+    mean (3.0 vs 2.0) is over -- the alert reflects accumulated rain, not a storm now."""
+    window = driving_window_days(_recent({age: 3.0 for age in range(20)}), LONG_CONFIG)
+    assert window == 20 and window >= LONG_WINDOW_DAYS
+
+
+def test_a_storm_today_is_driven_by_the_one_day_window():
+    daily = _recent({0: 50.0, **{age: 0.0 for age in range(1, 20)}})
+    assert driving_window_days(daily, LONG_CONFIG) == 1
+
+
+def test_nothing_over_its_line_has_no_driving_window():
+    assert driving_window_days(_recent({age: 1.0 for age in range(20)}), LONG_CONFIG) is None
+
+
+def test_forecast_rain_never_drives_an_alert():
+    daily = _recent({age: 0.0 for age in range(20)})
+    daily[datetime.now(timezone.utc).date() + timedelta(days=1)] = 500.0
+    assert driving_window_days(daily, LONG_CONFIG) is None
+    assert driving_window_days({}, LONG_CONFIG) is None
+
+
+def test_identical_rain_has_an_identical_signature_and_forecast_days_are_left_out():
+    a = _recent({age: 3.04 for age in range(12)})
+    b = _recent({age: 3.0 for age in range(12)})
+    b[datetime.now(timezone.utc).date() + timedelta(days=2)] = 99.0  # forecast: ignored
+    assert rainfall_signature(a) == rainfall_signature(b) and len(rainfall_signature(a)) == 10
+    assert rainfall_signature(_recent({age: 3.0 for age in range(12)})) != rainfall_signature(_recent({age: 4.0 for age in range(12)}))
+    assert rainfall_signature({}) == ()

@@ -5,6 +5,7 @@ import RecentAlertsTable from "../components/RecentAlertsTable";
 import LoadError from "../components/LoadError";
 import ImdWarningsPanel from "../components/ImdWarningsPanel";
 import RainfallHeadroomPanel from "../components/RainfallHeadroomPanel";
+import AlertEvidencePanel from "../components/AlertEvidencePanel";
 import BroadcastComposerModal from "../components/BroadcastComposerModal";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { useAlertStream } from "../hooks/useAlertStream";
@@ -34,6 +35,7 @@ export default function Alerts() {
 
   return (
     <DashboardLayout title={t("alerts.title")} subtitle={t("alerts.subtitle")}>
+      <AlertEvidencePanel state={state} className="mb-4" />
       <RainfallHeadroomPanel className="mb-4" />
       <ImdWarningsPanel state={state} stateName={stateName} className="mb-4" />
       {error && !alerts ? (

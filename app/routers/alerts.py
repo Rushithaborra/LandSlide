@@ -1,7 +1,7 @@
 import asyncio
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -9,10 +9,12 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 from starlette.concurrency import run_in_threadpool
 
+from app.config import get_rainfall_threshold
 from app.database import SessionLocal, get_db
 from app.models import Alert, AlertBroadcast, RainfallReading, Zone
 from app.security import require_officer_key
-from app.schemas import AlertOut, BroadcastIn, BroadcastOut, GenerateBulletinIn, GenerateBulletinOut
+from app.schemas import AlertOut, AlertSummaryOut, BroadcastIn, BroadcastOut, GenerateBulletinIn, GenerateBulletinOut
+from app.services.alert_engine import LONG_WINDOW_DAYS, driving_window_days, rainfall_signature
 from app.services.bulletin import generate_bulletin
 from app.services.sms_alerts import escalate_critical_alert, twilio_configured
 
@@ -95,7 +97,60 @@ def list_alerts(status: str | None = None, state: str | None = None, db: Session
         query = query.filter(Alert.zone.has(Zone.state == state))
     alerts = query.order_by(_ACTIVITY.desc()).all()  # newest activity first: a worsened alert moves up
     _attach_latest_rainfall(db, alerts)
+    drivers = _rainfall_drivers(db, alerts)
+    for a in alerts:
+        window = drivers.get(a.zone_id, (None, ()))[0]
+        a.driving_window_days = window
+        a.long_window_alert = window is not None and window >= LONG_WINDOW_DAYS
     return alerts
+
+
+@router.get("/summary", response_model=AlertSummaryOut)
+def alert_summary(state: str | None = None, db: Session = Depends(get_db)):
+    """What the active-alert count rests on: how many distinct rainfall records sit
+    behind it, and how many alerts are driven only by weeks-long accumulated rain.
+    Display-only -- computed from the same rule the engine uses, it changes nothing
+    about which alerts open or close."""
+    query = db.query(Alert).options(joinedload(Alert.zone)).filter(Alert.status == "active")
+    if state:
+        query = query.filter(Alert.zone.has(Zone.state == state))
+    alerts = query.all()
+    drivers = _rainfall_drivers(db, alerts)
+    windows = [drivers[a.zone_id][0] for a in alerts if a.zone_id in drivers]
+    return AlertSummaryOut(
+        active_alerts=len(alerts),
+        distinct_rainfall_records=len({signature for _, signature in drivers.values()}),
+        long_window_alerts=sum(1 for w in windows if w is not None and w >= LONG_WINDOW_DAYS),
+        long_window_days=LONG_WINDOW_DAYS,
+        not_currently_over=sum(1 for w in windows if w is None),
+        no_rainfall_data=sum(1 for a in alerts if a.zone_id not in drivers),
+    )
+
+
+def _rainfall_drivers(db: Session, alerts: list[Alert]) -> dict[uuid.UUID, tuple[int | None, tuple[float, ...]]]:
+    """For each ACTIVE alert's zone that has stored rainfall: (the shortest window over
+    its danger level today, or None if none is; the recent-rain signature). One query for
+    all zones. Zones with no stored rainfall are absent, never guessed."""
+    active = [a for a in alerts if a.status == "active" and a.zone is not None]
+    zone_ids = {a.zone_id for a in active}
+    if not zone_ids:
+        return {}
+    cutoff = datetime.now(timezone.utc) - timedelta(days=31)
+    rows = db.execute(
+        select(RainfallReading.zone_id, RainfallReading.timestamp, RainfallReading.intensity_mm)
+        .where(RainfallReading.zone_id.in_(zone_ids), RainfallReading.timestamp >= cutoff)
+    ).all()
+    by_zone: dict[uuid.UUID, dict] = {}
+    for zone_id, ts, mm in rows:
+        by_zone.setdefault(zone_id, {})[ts.date()] = mm
+    out = {}
+    for a in active:
+        signature = rainfall_signature(by_zone.get(a.zone_id, {}))
+        if not signature:  # nothing observed yet (none stored, or only forecast days)
+            continue
+        window = driving_window_days(by_zone[a.zone_id], get_rainfall_threshold(a.zone.state), a.zone.risk_tier or "moderate")
+        out[a.zone_id] = (window, signature)
+    return out
 
 
 def _attach_latest_rainfall(db: Session, alerts: list[Alert]) -> None:
