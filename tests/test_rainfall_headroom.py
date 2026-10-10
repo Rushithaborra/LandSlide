@@ -110,3 +110,25 @@ def test_no_monitored_zones_at_all_returns_an_empty_list_not_an_error(monkeypatc
         db.execute.assert_not_called()
     finally:
         app.dependency_overrides.pop(get_db, None)
+
+
+def test_a_repeat_request_within_the_minute_is_served_from_cache_not_the_database(client):
+    c, db = client
+    db.execute.side_effect = [
+        SimpleNamespace(all=lambda: [readings_row(HIGH_ZONE, 40.0), readings_row(LOW_ZONE, 60.0)]),
+        SimpleNamespace(all=lambda: [(HIGH_ZONE, "NH27 (1_00_001)"), (LOW_ZONE, "SH-5 (2_00_002)")]),
+        SimpleNamespace(all=lambda: [("Assam", 47835), ("Meghalaya", 10596)]),
+    ]
+    first = c.get("/rainfall/headroom").json()
+    calls_after_first = db.execute.call_count
+    assert c.get("/rainfall/headroom").json() == first
+    assert db.execute.call_count == calls_after_first  # the second answer touched no table
+
+
+def test_a_failed_computation_is_never_cached(client):
+    c, db = client
+    db.execute.side_effect = RuntimeError("database hiccup")
+    with pytest.raises(RuntimeError):
+        c.get("/rainfall/headroom")
+    db.execute.side_effect = [SimpleNamespace(all=lambda: []), SimpleNamespace(all=lambda: [])]
+    assert c.get("/rainfall/headroom").status_code == 200  # recovered on the very next request

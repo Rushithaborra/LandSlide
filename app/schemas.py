@@ -489,10 +489,13 @@ class AuthorityContactOut(BaseModel):
     state: str | None = None
 
 
+MAX_DESCRIPTION_CHARS = 2000
+
+
 class Coords(BaseModel):
-    lat: float
-    lng: float
-    accuracy: float | None = None
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+    accuracy: float | None = Field(default=None, ge=0)
 
 
 class CitizenReportIn(BaseModel):
@@ -510,10 +513,12 @@ class CitizenReportIn(BaseModel):
     # when GPS fails. See the model_validator below -- at least one of the
     # two is still required.
     coords: Coords | None = None
-    place_name: str | None = Field(default=None, alias="placeName")
-    description: str = Field(min_length=5)
-    reporter_name: str | None = Field(default=None, alias="reporterName")
-    reporter_phone: str | None = Field(default=None, alias="reporterPhone")
+    # Upper bounds on a public form: these strings are stored, shown to officers, and (the
+    # description) sent to Gemini, so an unbounded one is a cost and storage hole.
+    place_name: str | None = Field(default=None, alias="placeName", max_length=200)
+    description: str = Field(min_length=5, max_length=MAX_DESCRIPTION_CHARS)
+    reporter_name: str | None = Field(default=None, alias="reporterName", max_length=100)
+    reporter_phone: str | None = Field(default=None, alias="reporterPhone", max_length=32)
     captured_at: datetime = Field(alias="capturedAt")
     # Not part of the documented frontend payload today -- optional, for
     # offline-queue-safe retries (see reports.py: dedupes on this if sent).
@@ -528,7 +533,7 @@ class CitizenReportIn(BaseModel):
 
 
 class PolishDescriptionIn(BaseModel):
-    description: str = Field(min_length=5)
+    description: str = Field(min_length=5, max_length=MAX_DESCRIPTION_CHARS)
 
 
 class PolishDescriptionOut(BaseModel):

@@ -10,7 +10,7 @@ import BroadcastComposerModal from "../components/BroadcastComposerModal";
 import { useAsyncData } from "../hooks/useAsyncData";
 import { useAlertStream } from "../hooks/useAlertStream";
 import { useRegion } from "../context/RegionContext";
-import { getRecentAlerts, getRainfallStatus } from "../services/api";
+import { getRecentAlerts, getRainfallStatus, getAlertSummary } from "../services/api";
 
 /**
  * LINK SPOT B/C (Stage 3 Risk Fusion + Stage 5 Notification & Alert Dispatch)
@@ -21,6 +21,7 @@ export default function Alerts() {
   const { t } = useTranslation();
   const { state } = useRegion();
   const { data: alerts, error, retry } = useAsyncData(() => getRecentAlerts(state), [state]);
+  const { data: alertSummary, retry: retrySummary } = useAsyncData(() => getAlertSummary(state), [state]);
   const { data: rainStatus } = useAsyncData(getRainfallStatus);
   const stateName = state ? t(`states.${state}`, { defaultValue: state }) : t("states.all");
   // A state that is refreshed but not switched on for alerting has no alerts because it
@@ -30,12 +31,15 @@ export default function Alerts() {
   const [broadcastTarget, setBroadcastTarget] = useState(null);
 
   // A new alert should appear in this table the moment it fires, not only
-  // when the officer happens to refresh.
-  useAlertStream(retry);
+  // when the officer happens to refresh -- and the evidence panel's counts with it.
+  useAlertStream(() => {
+    retry();
+    retrySummary();
+  });
 
   return (
     <DashboardLayout title={t("alerts.title")} subtitle={t("alerts.subtitle")}>
-      <AlertEvidencePanel state={state} className="mb-4" />
+      <AlertEvidencePanel summary={alertSummary} className="mb-4" />
       <RainfallHeadroomPanel className="mb-4" />
       <ImdWarningsPanel state={state} stateName={stateName} className="mb-4" />
       {error && !alerts ? (

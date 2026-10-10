@@ -1,3 +1,4 @@
+import time
 import uuid
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -106,9 +107,32 @@ def refresh_if_stale_endpoint(db: Session = Depends(get_db)):
 
 TOP_ZONES_PER_STATE = 5
 
+# Headroom is about 14 sequential queries, including a ~9,000-row rainfall fetch, and every
+# Overview or Alerts page open runs it -- measured at ~6 s, and N visitors meant N times that
+# against a small free-tier database. The numbers only move when the hourly rainfall refresh
+# runs, and the panel is supplementary, so a minute-old answer costs nothing.
+HEADROOM_CACHE_TTL_S = 60.0
+_headroom_cache: tuple[float, RainfallHeadroomOut] | None = None
+
+
+def clear_headroom_cache() -> None:
+    global _headroom_cache
+    _headroom_cache = None
+
 
 @router.get("/headroom", response_model=RainfallHeadroomOut)
 def rainfall_headroom(db: Session = Depends(get_db)):
+    """See _compute_headroom. Cached briefly: an error is never cached (it propagates)."""
+    global _headroom_cache
+    now = time.monotonic()
+    if _headroom_cache is not None and now - _headroom_cache[0] < HEADROOM_CACHE_TTL_S:
+        return _headroom_cache[1]
+    result = _compute_headroom(db)
+    _headroom_cache = (now, result)
+    return result
+
+
+def _compute_headroom(db: Session) -> RainfallHeadroomOut:
     """How close every state's real, currently-monitored rainfall is to actually
     alerting, using each state's own monitored zones and its own real threshold --
     the same strongest_ratio the "rain worsened" feature already computes, not a

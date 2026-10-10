@@ -87,9 +87,13 @@ class Settings(BaseSettings):
     rainfall_refresh_max_age_minutes: int = 150
 
     # Scheduled rainfall refresh (app/services/rainfall_refresh.py): how many of
-    # each state's highest-risk zones to refresh per run. Only states with a
-    # configured rainfall threshold are refreshed (others can't alert).
-    rainfall_refresh_zones_per_state: int = 25
+    # each state's highest-susceptibility zones get live rainfall per run (every
+    # state is refreshed; a zone with an active alert is always included on top).
+    # 100 is what production runs -- the default matches it so a missing environment
+    # variable cannot silently cut coverage to a quarter. It is also the number the
+    # dashboard shows as "N of Total zones monitored", and its cost is Open-Meteo
+    # calls per hour, so raise it deliberately.
+    rainfall_refresh_zones_per_state: int = 100
 
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
 

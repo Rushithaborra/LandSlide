@@ -50,7 +50,9 @@ async function checkBackendHealth() {
 // Falls back to the raw string when `detail` isn't the pydantic list shape.
 function parseBackendError(detail) {
   if (Array.isArray(detail)) {
-    return detail.map((d) => d.msg).join(" · ");
+    // Name the field when the server does ("description: String should have at most
+    // 2000 characters"), so a rejected report says WHICH box to fix.
+    return detail.map((d) => (d.loc?.length ? `${d.loc[d.loc.length - 1]}: ${d.msg}` : d.msg)).join(" · ");
   }
   if (typeof detail === "string") return detail;
   return "Something went wrong sending the report — try again.";
@@ -95,7 +97,18 @@ async function submitReport(payload, photoFile) {
     throw err;
   }
 
-  const body = await res.json();
+  // The free-tier server answers with an HTML error page (not JSON) while it wakes or
+  // redeploys. Reading that as JSON threw "Unexpected token '<'" -- gibberish for a
+  // citizen mid-report. The report is kept (same client_report_id), so Send is safe to retry.
+  let body = null;
+  try {
+    body = await res.json();
+  } catch {
+    // non-JSON response, handled just below
+  }
+  if (body === null) {
+    throw new Error("The server isn't ready yet (it may be waking up). Wait a few seconds and tap Send again — your report is kept.");
+  }
   if (!res.ok) {
     throw new Error(parseBackendError(body.detail));
   }

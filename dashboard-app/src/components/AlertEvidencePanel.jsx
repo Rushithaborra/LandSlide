@@ -1,7 +1,5 @@
 import { Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useAsyncData } from "../hooks/useAsyncData";
-import { getAlertSummary } from "../services/api";
 
 /**
  * What the active-alert count actually rests on. "102 alerts" counts road segments; segments
@@ -9,9 +7,8 @@ import { getAlertSummary } from "../services/api";
  * a weeks-long window reflects accumulated rain, not a storm now. All real counts from the
  * same rule the alert engine uses -- this panel explains the number, it never changes it.
  */
-export default function AlertEvidencePanel({ state, className = "" }) {
+export default function AlertEvidencePanel({ summary: data, className = "" }) {
   const { t } = useTranslation();
-  const { data } = useAsyncData(() => getAlertSummary(state), [state]);
   if (!data || data.activeAlerts === 0) return null; // supplementary; the alerts table works without it
 
   const lines = [

@@ -86,14 +86,16 @@ script locally moments later, which worked instantly). Fixed same day: the
 script now checks the backend's own `zones_refreshed` count and fails the run
 (visible as red on GitHub) whenever it is 0, instead of a silent, misleading
 green (`exit_code_for`, `tests/test_refresh_rainfall_from_runner.py`).
-Each run refreshes the 25 highest-risk zones (`RAINFALL_REFRESH_ZONES_PER_STATE`)
-of every state that has zones (every state now has a rule: its own, else the IMD
-baseline), then fires alerts, and SMS if Twilio
+Each run refreshes the 100 highest-susceptibility zones (`RAINFALL_REFRESH_ZONES_PER_STATE`)
+of every state that has zones, plus any zone with an active alert (802 zones today of 109,030, about 0.7%;
+every state has a rule: its own, else the IMD baseline), then fires alerts, and SMS if Twilio
 is configured, for any zone whose fresh rainfall crosses its threshold **in a
-state on the alerting list** (`RAINFALL_ALERT_STATES`, default Sikkim only). A state
-not on the list is refreshed but does not alert (see above). It reads
-the 20-day Open-Meteo window in one request per 25 zones (~3-8 s per run, ~72
-Open-Meteo requests a day against a 10,000/day free limit). A zone that already
+state on the alerting list** (`RAINFALL_ALERT_STATES`: the code default is Sikkim only; production lists all
+eight). A state not on the list is refreshed but does not alert (see above). It reads
+the 20-day Open-Meteo window in one request per 25 zones (33 requests a run, about 800 a day if each request
+counts once). Open-Meteo's pricing page gives a 10,000 calls/day free limit but does not say how a
+multi-location request is counted, so that headroom is **unconfirmed**: what is measured is that the last run
+refreshed all 802 zones with 0 failed. Raise coverage in steps and watch `zones_failed`. A zone that already
 has an active alert is not alerted again, and a refresh replaces the same days,
 so repeating a run is safe. The runner needs the repository secret
 `OFFICER_API_KEY` (the same value as `API_KEY` on Render); until then the job

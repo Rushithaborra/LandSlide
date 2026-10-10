@@ -29,7 +29,8 @@ export default function RainfallHeadroomPanel({ className = "" }) {
   const toggle = (state) =>
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.has(state) ? next.delete(state) : next.add(state);
+      if (next.has(state)) next.delete(state);
+      else next.add(state);
       return next;
     });
 

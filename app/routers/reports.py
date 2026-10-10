@@ -1,4 +1,3 @@
-import pathlib
 import uuid
 
 import httpx
@@ -18,6 +17,8 @@ from app.services.triage_summary import generate_triage_summary
 from app.security import require_officer_key
 
 router = APIRouter(prefix="/reports", tags=["citizen-reports"])
+
+PHOTO_EXTENSIONS = {"image/jpeg": ".jpg", "image/png": ".png", "image/heic": ".heic", "image/heif": ".heif"}
 
 
 @router.post("/polish-description", response_model=PolishDescriptionOut)
@@ -46,12 +47,14 @@ def _save_photo(photo: UploadFile) -> str:
                    f"expected one of {settings.allowed_photo_content_types}",
         )
 
-    contents = photo.file.read()
+    # Read one byte past the limit, not the whole upload: this endpoint is public, and
+    # reading everything first let one huge file exhaust a small free-tier instance's
+    # memory before the size check ever ran.
+    contents = photo.file.read(settings.max_photo_size_bytes + 1)
     if len(contents) > settings.max_photo_size_bytes:
         raise HTTPException(
             status_code=422,
-            detail=f"photo too large ({len(contents)} bytes), "
-                   f"max is {settings.max_photo_size_bytes} bytes",
+            detail=f"photo too large, max is {settings.max_photo_size_bytes} bytes",
         )
 
     if not settings.supabase_url or not settings.supabase_service_role_key:
@@ -60,8 +63,9 @@ def _save_photo(photo: UploadFile) -> str:
             detail="photo upload is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing)",
         )
 
-    extension = pathlib.Path(photo.filename or "").suffix or ".jpg"
-    filename = f"{uuid.uuid4()}{extension}"
+    # The extension comes from the validated content type, never from the client's
+    # filename -- a public upload must not get to choose what it is stored as.
+    filename = f"{uuid.uuid4()}{PHOTO_EXTENSIONS.get(photo.content_type, '')}"
     upload_url = f"{settings.supabase_url}/storage/v1/object/{settings.supabase_storage_bucket}/{filename}"
 
     response = httpx.post(
