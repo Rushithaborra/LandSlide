@@ -1020,5 +1020,9 @@
     "notOver": "{{count}} are still open although no rainfall window is over its line today (the cautious auto-close rule keeps them open).",
     "noData": "{{count}} have no stored rainfall to check.",
     "note": "Road segments given identical rain data sit in the same weather-model cell, so they count as one observation. Every alert is still valid by the system's own rule; this only shows how much weather evidence stands behind the count."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page doesn't exist or has moved. Pick a page from the sidebar, or go back to the overview."
   }
 }

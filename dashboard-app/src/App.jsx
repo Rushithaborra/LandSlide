@@ -13,6 +13,7 @@ import DataMethodology from "./pages/DataMethodology";
 import CitizenReports from "./pages/CitizenReports";
 import HelpDocs from "./pages/HelpDocs";
 import CheckArea from "./pages/CheckArea";
+import NotFound from "./pages/NotFound";
 
 /**
  * All page routes live here. Match this list against the sidebar links in
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="/data-methodology" element={<DataMethodology />} />
             <Route path="/citizen-reports" element={<CitizenReports />} />
             <Route path="/help" element={<HelpDocs />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </RegionProvider>
