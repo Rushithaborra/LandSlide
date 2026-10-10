@@ -1,8 +1,9 @@
 import math
+import time
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import false, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, load_only
 
 from app.config import settings
@@ -42,7 +43,21 @@ MAP_COLUMNS = load_only(
 router = APIRouter(prefix="/zones", tags=["zones"])
 
 
-def _monitored_ids(db: Session) -> set[uuid.UUID]:
+# select_zones() is ~10 sequential round trips (one per state plus the active
+# alerts), measured at ~1.4 s -- paid on every /zones, /zones/map and
+# /zones/stats call before this cache. The set only changes when the hourly
+# rainfall refresh runs or an alert fires, and it only drives a "monitored"
+# badge, so a minute of staleness costs nothing and saves that on every request.
+MONITORED_CACHE_TTL_S = 60.0
+_monitored_cache: tuple[float, frozenset[uuid.UUID]] | None = None
+
+
+def clear_monitored_cache() -> None:
+    global _monitored_cache
+    _monitored_cache = None
+
+
+def _monitored_ids(db: Session) -> frozenset[uuid.UUID]:
     """Zone ids the scheduled rainfall refresh actually fetches right now --
     select_zones() is the one real definition of "monitored" (also used by
     /rainfall/refresh, /rainfall/ingest and /rainfall/headroom), reused here
@@ -50,11 +65,30 @@ def _monitored_ids(db: Session) -> set[uuid.UUID]:
     can never disagree with each other or with what the scheduler itself
     checks. A handful of small queries regardless of how many zones exist
     (one per state plus one for active alerts), not one per zone."""
-    return {t.id for t in select_zones(db, settings.rainfall_refresh_zones_per_state)}
+    global _monitored_cache
+    now = time.monotonic()
+    if _monitored_cache is not None and now - _monitored_cache[0] < MONITORED_CACHE_TTL_S:
+        return _monitored_cache[1]
+    ids = frozenset(t.id for t in select_zones(db, settings.rainfall_refresh_zones_per_state))
+    _monitored_cache = (now, ids)
+    return ids
 
 
-def _mark_monitored(zone_out: ZoneOut, monitored: set[uuid.UUID]) -> ZoneOut:
+def _mark_monitored(zone_out: ZoneOut, monitored: frozenset[uuid.UUID]) -> ZoneOut:
     return zone_out.model_copy(update={"rainfall_monitored": zone_out.id in monitored})
+
+
+def _count_monitored(db: Session, monitored: frozenset[uuid.UUID], state: str | None) -> int:
+    """How many monitored zones are in `state` (every state if None). Its own
+    primary-key lookup on purpose: putting `id IN (...)` inside the big
+    whole-table aggregates made Postgres give up the index-only scan for a
+    full sequential read of the 220 MB table -- 9.1 s against 48 ms."""
+    if not monitored:
+        return 0
+    query = select(func.count()).select_from(Zone).where(Zone.id.in_(list(monitored)))
+    if state:
+        query = query.where(Zone.state == state)
+    return db.scalar(query)
 
 
 # A real, demonstrated production bug: GET /zones had no limit at all, and
@@ -247,16 +281,31 @@ def map_view(
             func.count().filter(Zone.risk_tier == "moderate"),
             func.count().filter(Zone.risk_tier == "low"),
             func.count().filter(Zone.risk_tier.is_(None)),
-            func.count().filter(Zone.id.in_(monitored)) if monitored else func.count().filter(false()),
             func.min(Zone.centroid_lat), func.min(Zone.centroid_lng),
             func.max(Zone.centroid_lat), func.max(Zone.centroid_lng),
+            cell_y, cell_x,
         )
         .where(*in_view)
         .group_by(cell_y, cell_x)
     ).all()
+    # Per-cell monitored counts come from a second query over just the
+    # monitored ids (a primary-key lookup), keyed by the very same cell
+    # expressions so a zone can never land in a different cell than its
+    # cluster -- not from a FILTER inside the query above, which turned the
+    # whole-region map into a full-table scan (see _count_monitored).
+    monitored_by_cell: dict = {}
+    if monitored:
+        monitored_by_cell = {
+            (y, x): n
+            for y, x, n in db.execute(
+                select(cell_y, cell_x, func.count())
+                .where(*in_view, Zone.id.in_(list(monitored)))
+                .group_by(cell_y, cell_x)
+            ).all()
+        }
     clusters = [
         MapClusterOut(lat=r[0], lng=r[1], count=r[2], high=r[3], moderate=r[4], low=r[5], unscored=r[6],
-                      monitored=r[7], bounds=[r[8], r[9], r[10], r[11]])
+                      monitored=monitored_by_cell.get((r[11], r[12]), 0), bounds=[r[7], r[8], r[9], r[10]])
         for r in rows
     ]
     return MapViewOut(mode="clusters", total=total, clusters=clusters)
@@ -266,20 +315,19 @@ def map_view(
 def zone_stats(state: str | None = None, db: Session = Depends(get_db)):
     """Counts over EVERY zone (a capped /zones page can't answer "how many
     high-risk zones are there") and the extent to fit the map to."""
-    monitored = _monitored_ids(db)
     query = select(
         func.count(),
         func.count().filter(Zone.risk_tier == "high"),
         func.count().filter(Zone.risk_tier == "moderate"),
         func.count().filter(Zone.risk_tier == "low"),
         func.count().filter(Zone.risk_tier.is_(None)),
-        func.count().filter(Zone.id.in_(monitored)) if monitored else func.count().filter(false()),
         func.min(Zone.centroid_lat), func.min(Zone.centroid_lng),
         func.max(Zone.centroid_lat), func.max(Zone.centroid_lng),
     )
     if state:
         query = query.where(Zone.state == state)
-    total, high, moderate, low, unscored, monitored_count, min_lat, min_lng, max_lat, max_lng = db.execute(query).one()
+    total, high, moderate, low, unscored, min_lat, min_lng, max_lat, max_lng = db.execute(query).one()
+    monitored_count = _count_monitored(db, _monitored_ids(db), state)
     # Rounded outward to 4 decimals (~11 m): the database driver returns
     # coordinates rounded to 15 digits, so the exact min/max can land a hair
     # inside the zone that defines it and a bounding-box query with them

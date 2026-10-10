@@ -61,10 +61,20 @@ def test_single_zone_lookup_reports_its_own_monitoring_status(client):
 
 def test_zone_stats_reports_how_many_of_the_total_are_monitored(client):
     c, db = client
-    # total, high, moderate, low, unscored, monitored, min_lat, min_lng, max_lat, max_lng
-    db.execute.return_value.one.return_value = (100, 40, 30, 20, 10, 1, 27.0, 88.0, 28.0, 89.0)
+    # total, high, moderate, low, unscored, min_lat, min_lng, max_lat, max_lng
+    db.execute.return_value.one.return_value = (100, 40, 30, 20, 10, 27.0, 88.0, 28.0, 89.0)
+    db.scalar.return_value = 1  # the separate primary-key count of monitored zones
     body = c.get("/zones/stats").json()
     assert body["total"] == 100 and body["monitored"] == 1
+
+
+def test_zone_stats_skips_the_monitored_query_when_nothing_is_monitored(client, monkeypatch):
+    c, db = client
+    monkeypatch.setattr(zones_router, "select_zones", lambda db, per_state: [])
+    db.execute.return_value.one.return_value = (100, 40, 30, 20, 10, 27.0, 88.0, 28.0, 89.0)
+    body = c.get("/zones/stats").json()
+    assert body["monitored"] == 0
+    db.scalar.assert_not_called()
 
 
 def test_map_zones_mode_flags_each_pin(client):
@@ -80,15 +90,41 @@ def test_map_zones_mode_flags_each_pin(client):
     assert by_id[str(UNMONITORED)]["rainfall_monitored"] is False
 
 
+def _cluster_queries(db, cluster_rows, monitored_rows):
+    """Cluster mode now runs two queries: the grid aggregate, then the monitored
+    count per cell. Hand back each one's rows in the order they are issued."""
+    db.query.return_value.select_from.return_value.filter.return_value.scalar.return_value = 5000
+    first, second = MagicMock(), MagicMock()
+    first.all.return_value = cluster_rows
+    second.all.return_value = monitored_rows
+    db.execute.side_effect = [first, second]
+
+
 def test_map_cluster_mode_reports_how_many_in_the_cell_are_monitored(client):
     c, db = client
-    # Above MAP_MAX_INDIVIDUAL_ZONES so the backend switches to grid clusters.
-    db.query.return_value.select_from.return_value.filter.return_value.scalar.return_value = 5000
-    # lat, lng, count, high, moderate, low, unscored, monitored, min_lat, min_lng, max_lat, max_lng
-    db.execute.return_value.all.return_value = [(27.5, 88.5, 3000, 1000, 1000, 900, 100, 1, 27.0, 88.0, 28.0, 89.0)]
+    # lat, lng, count, high, moderate, low, unscored, min_lat, min_lng, max_lat, max_lng, cell_y, cell_x
+    _cluster_queries(
+        db,
+        cluster_rows=[(27.5, 88.5, 3000, 1000, 1000, 900, 100, 27.0, 88.0, 28.0, 89.0, 27.0, 88.0)],
+        monitored_rows=[(27.0, 88.0, 1)],  # cell_y, cell_x, monitored count
+    )
     body = c.get("/zones/map", params={"min_lat": 27, "min_lng": 88, "max_lat": 28, "max_lng": 89}).json()
     assert body["mode"] == "clusters"
     assert body["clusters"][0]["count"] == 3000 and body["clusters"][0]["monitored"] == 1
+
+
+def test_map_cluster_monitored_count_belongs_to_its_own_cell_only(client):
+    c, db = client
+    _cluster_queries(
+        db,
+        cluster_rows=[
+            (27.5, 88.5, 3000, 1000, 1000, 900, 100, 27.0, 88.0, 28.0, 89.0, 27.0, 88.0),
+            (28.5, 89.5, 2000, 700, 700, 600, 0, 28.0, 89.0, 29.0, 90.0, 28.0, 89.0),
+        ],
+        monitored_rows=[(28.0, 89.0, 4)],  # only the SECOND cell holds monitored zones
+    )
+    clusters = c.get("/zones/map", params={"min_lat": 27, "min_lng": 88, "max_lat": 29, "max_lng": 90}).json()["clusters"]
+    assert [cl["monitored"] for cl in clusters] == [0, 4]
 
 
 def test_area_around_a_monitored_zone_flags_it_too(client):
@@ -98,3 +134,19 @@ def test_area_around_a_monitored_zone_flags_it_too(client):
     db.scalar.return_value = 0
     body = c.get("/zones/near", params={"lat": 27.3, "lng": 88.6}).json()
     assert body["zone"]["rainfall_monitored"] is True
+
+
+def test_monitored_set_is_cached_within_its_ttl_and_refreshed_after(monkeypatch):
+    calls = []
+    monkeypatch.setattr(zones_router, "select_zones", lambda db, per_state: calls.append(1) or [SimpleNamespace(id=MONITORED)])
+    now = [1000.0]
+    monkeypatch.setattr(zones_router.time, "monotonic", lambda: now[0])
+
+    assert zones_router._monitored_ids(None) == {MONITORED}
+    now[0] += zones_router.MONITORED_CACHE_TTL_S - 1
+    zones_router._monitored_ids(None)
+    assert len(calls) == 1  # still inside the TTL: no second round of queries
+
+    now[0] += 2  # past the TTL
+    zones_router._monitored_ids(None)
+    assert len(calls) == 2
