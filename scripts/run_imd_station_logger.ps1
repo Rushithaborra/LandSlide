@@ -3,6 +3,9 @@
 # breaking after the ISP rotates the address, which has happened several times)
 # is visible later instead of silently missing data for weeks.
 $root = "C:\Users\kilar\Landslide ai"
+# app/config.py reads .env by relative path, and Task Scheduler starts this in
+# C:\Windows\System32 -- without this, every scheduled run fails "not configured".
+Set-Location $root
 $log = Join-Path $root "data\interim\imd_station_logger.log"
 New-Item -ItemType Directory -Force -Path (Split-Path $log) | Out-Null
 Add-Content -Path $log -Value "=== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -Encoding utf8
