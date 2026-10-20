@@ -26,6 +26,7 @@ import httpx
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from app.config import get_rainfall_threshold  # noqa: E402
 from app.services.alert_engine import intensity_duration_threshold  # noqa: E402
 
 from scripts.ml.ml_config import DEFAULT_CONFIG, MlConfig  # noqa: E402
@@ -99,12 +100,15 @@ def run_case_study(config: MlConfig = DEFAULT_CONFIG) -> pd.DataFrame:
     events = extract_clean_dated_events(config.paths.gsi_sikkim_csv)
     print(f"{len(events)} clean single-dated Sikkim events found for the case study.")
 
+    # The engine's thresholds are per state and take their config explicitly (NER expansion);
+    # this script's call predates that and had stopped working.
+    rain_rule = get_rainfall_threshold("Sikkim")
     rows = []
     for _, ev in events.iterrows():
         rainfall = cumulative_pre_event_rainfall(ev["Latitude"], ev["Longitude"], ev["event_datetime"])
-        threshold_1d = intensity_duration_threshold(1, risk_tier="moderate")
-        threshold_3d = intensity_duration_threshold(3, risk_tier="moderate")
-        threshold_7d = intensity_duration_threshold(7, risk_tier="moderate")
+        threshold_1d = intensity_duration_threshold(1, rain_rule, "moderate")
+        threshold_3d = intensity_duration_threshold(3, rain_rule, "moderate")
+        threshold_7d = intensity_duration_threshold(7, rain_rule, "moderate")
         rows.append({
             "Slide_No": ev["Slide_No"], "District": ev["District"], "Slide_Name": ev["Slide_Name"],
             "event_datetime": ev["event_datetime"], "time_assumed_midnight": ev["time_assumed_midnight"],
