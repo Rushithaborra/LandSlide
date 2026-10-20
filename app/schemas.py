@@ -277,7 +277,9 @@ class ImdWarningsOut(BaseModel):
     issued_at: datetime | None  # None: no snapshot has been pushed yet
     fetched_at: datetime | None
     districts_covered: int  # districts IMD's feed lists for this selection (0 = IMD does not list them)
-    districts: list[ImdWarningDistrictOut]  # only those with a rain warning on some day
+    districts: list[ImdWarningDistrictOut]  # only those with a rain warning on a day that is not yet past
+    valid_until: date | None = None  # the last day any warning in the snapshot is for
+    expired: bool = False  # every warning in the snapshot is for a day that has passed
 
 
 class IntegrationsOut(BaseModel):

@@ -932,6 +932,9 @@ export async function getImdWarnings(state) {
     issuedAt: r.issued_at,
     fetchedAt: r.fetched_at,
     coveredCount: r.districts_covered,
+    // Every warning in the snapshot is for a day that has passed (the server drops past days).
+    expired: Boolean(r.expired),
+    validUntil: r.valid_until || null,
     districts: r.districts.map((d) => ({
       state: d.state,
       district: d.district,

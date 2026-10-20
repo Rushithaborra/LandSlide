@@ -10,6 +10,7 @@ from app.config import settings
 from app.database import get_db
 from app.main import app
 from app.models import ImdWarning
+from app.routers import imd as imd_router
 
 ISSUED = datetime(2026, 9, 21, 9, 22, tzinfo=timezone.utc)
 FETCHED = datetime(2026, 9, 21, 17, 0, tzinfo=timezone.utc)
@@ -21,6 +22,9 @@ def client(monkeypatch):
     # pin api_key to disabled so a real key sitting in the local .env (for push_imd_warnings.py)
     # can never make POST /imd/warnings 401 here instead of validating/writing as expected.
     monkeypatch.setattr(settings, "api_key", None)
+    # "Today" is pinned: the sample warnings are for 22 Sep 2026, and whether they are still a
+    # forecast depends on the real date -- these tests must not start failing as time passes.
+    monkeypatch.setattr(imd_router, "_today_ist", lambda: date(2026, 9, 21))
     db = MagicMock()
     app.dependency_overrides[get_db] = lambda: db
     yield TestClient(app), db
@@ -86,8 +90,53 @@ def test_before_any_snapshot_the_dates_are_null(client):
     db.execute.return_value.scalars.return_value.all.return_value = []
     db.scalar.return_value = 0
     body = c.get("/imd/warnings").json()
-    assert body == {"issued_at": None, "fetched_at": None, "districts_covered": 0, "districts": []}
+    assert body == {"issued_at": None, "fetched_at": None, "districts_covered": 0, "districts": [], "valid_until": None, "expired": False}
 
 
 def test_the_model_matches_the_migration_columns():
     assert {c.name for c in ImdWarning.__table__.columns} == {"id", "state", "district", "obj_id", "day", "valid_date", "codes", "color", "issued_at", "fetched_at"}
+
+
+def test_a_snapshot_whose_every_warning_is_past_is_expired_not_a_calm_forecast(client, monkeypatch):
+    """The real case that showed on the live dashboard: a hand-pushed snapshot kept listing "day 4
+    (29/09)" three weeks later. Its districts must not come back as if they were a forecast."""
+    c, db = client
+    monkeypatch.setattr(imd_router, "_today_ist", lambda: date(2026, 10, 20))
+    db.execute.return_value.scalars.return_value.all.return_value = [
+        stored(day=2, valid_date=date(2026, 9, 22)),
+        stored(day=5, valid_date=date(2026, 9, 25), district="KAMRUP", obj_id="11"),
+    ]
+    body = c.get("/imd/warnings").json()
+    assert body["expired"] is True and body["valid_until"] == "2026-09-25"
+    assert body["districts"] == []  # past warnings are history, not shown as a forecast
+    assert body["districts_covered"] == 2  # IMD did list these districts: expired is not "not listed"
+
+
+def test_past_days_are_dropped_but_today_and_later_are_kept(client, monkeypatch):
+    c, db = client
+    monkeypatch.setattr(imd_router, "_today_ist", lambda: date(2026, 9, 22))
+    db.execute.return_value.scalars.return_value.all.return_value = [
+        stored(day=1, valid_date=date(2026, 9, 21)),  # yesterday
+        stored(day=2, valid_date=date(2026, 9, 22)),  # today: still in force
+        stored(day=3, valid_date=date(2026, 9, 23)),
+    ]
+    body = c.get("/imd/warnings").json()
+    assert body["expired"] is False and body["valid_until"] == "2026-09-23"
+    assert [d["day"] for d in body["districts"][0]["days"]] == [2, 3]
+
+
+def test_expiry_uses_the_india_date_not_the_servers_utc_date():
+    from datetime import datetime, timezone
+
+    # 20:00 UTC on 21 Sep is already 01:30 IST on 22 Sep: a warning for 21 Sep is past in India.
+    class FakeNow(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 9, 21, 20, 0, tzinfo=timezone.utc).astimezone(tz)
+
+    original = imd_router.datetime
+    imd_router.datetime = FakeNow
+    try:
+        assert imd_router._today_ist() == date(2026, 9, 22)
+    finally:
+        imd_router.datetime = original

@@ -978,6 +978,7 @@
     "note": "Official district forecasts from the India Meteorological Department for the next 5 days. They warn about rainfall, not landslides, and are separate from this system's own alerts.",
     "issuedFetched": "Issued by IMD on {{date}} · fetched {{ago}} by hand — not updated automatically.",
     "old": "This snapshot is more than two days old.",
+    "expired": "This IMD snapshot has expired: its last warning was for {{date}}, so it no longer says anything about the coming days. Check IMD directly for current warnings.",
     "noSnapshot": "No IMD warnings have been loaded yet.",
     "notListed": "IMD's warnings feed does not list {{state}}'s districts, so no IMD warnings can be shown here. That does not mean there is no warning.",
     "none": "IMD lists {{count}} districts here and has no heavy-rain warning for the next 5 days.",

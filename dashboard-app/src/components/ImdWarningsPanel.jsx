@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CloudRain } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAsyncData } from "../hooks/useAsyncData";
@@ -28,14 +29,17 @@ const ddmmyyyy = (iso) => `${ddmm(iso)}/${iso.slice(0, 4)}`;
 export default function ImdWarningsPanel({ state, stateName, className = "" }) {
   const { t } = useTranslation();
   const { data } = useAsyncData(() => getImdWarnings(state), [state]);
+  const [now] = useState(() => Date.now()); // read once at mount: calling Date.now() during render is impure
   if (!data) return null; // loading or unreachable: this panel is supplementary, the page works without it
 
-  const old = data.fetchedAt && Date.now() - new Date(data.fetchedAt).getTime() > OLD_AFTER_MS;
+  const old = data.fetchedAt && now - new Date(data.fetchedAt).getTime() > OLD_AFTER_MS;
   const shown = data.districts.slice(0, VISIBLE_DISTRICTS);
 
   let body;
   if (!data.issuedAt) body = <p className="text-sm text-paper-500">{t("imdWarnings.noSnapshot")}</p>;
   else if (data.coveredCount === 0) body = <p className="text-sm text-paper-500">{t("imdWarnings.notListed", { state: stateName })}</p>;
+  else if (data.expired)
+    body = <p className="text-sm font-medium text-risk-moderate dark:text-risk-moderateOn">{t("imdWarnings.expired", { date: ddmmyyyy(data.validUntil) })}</p>;
   else if (data.districts.length === 0) body = <p className="text-sm text-paper-500">{t("imdWarnings.none", { count: data.coveredCount })}</p>;
   else
     body = (

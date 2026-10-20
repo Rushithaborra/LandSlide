@@ -1,3 +1,5 @@
+from datetime import date, datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
@@ -8,6 +10,14 @@ from app.schemas import ImdWarningDayOut, ImdWarningDistrictOut, ImdWarningsIn, 
 from app.security import require_officer_key
 
 router = APIRouter(prefix="/imd", tags=["imd"])
+
+# IMD's valid_date is an India calendar date, so "today" for expiry is India's, not the server's UTC.
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def _today_ist() -> date:
+    return datetime.now(IST).date()
+
 
 # IMD's rain-warning codes (its API reference): 2 heavy, 16 very heavy, 17 extremely heavy rain.
 RAIN_KINDS = {2: "heavy", 16: "very_heavy", 17: "extremely_heavy"}
@@ -35,7 +45,9 @@ def list_warnings(state: str | None = None, db: Session = Depends(get_db)):
     """The rain warnings in the latest IMD snapshot, for one state or all. Public. It says
     when IMD issued them and how many districts IMD's feed lists here, so an empty list can
     be told apart from a state IMD's feed does not cover. These are rainfall warnings,
-    not landslide alerts."""
+    not landslide alerts. A warning for a day that has already passed is history, not a
+    forecast, so it is left out; when every warning in the snapshot is past, `expired` says
+    so instead of the list looking like "IMD has no warning"."""
     where = [ImdWarning.state == state] if state else []
     rows = db.execute(select(ImdWarning).where(*where).order_by(ImdWarning.state, ImdWarning.district, ImdWarning.day)).scalars().all()
     if not rows:
@@ -45,11 +57,15 @@ def list_warnings(state: str | None = None, db: Session = Depends(get_db)):
         newest = db.execute(select(func.max(ImdWarning.issued_at), func.max(ImdWarning.fetched_at))).one()
         return ImdWarningsOut(issued_at=newest[0], fetched_at=newest[1], districts_covered=0, districts=[])
 
+    today = _today_ist()
+    valid_until = max(r.valid_date for r in rows)
     districts: dict[tuple[str, str], list[ImdWarningDayOut]] = {}
     seen: set[tuple[str, str]] = set()
     for r in rows:
         key = (r.state, r.district)
         seen.add(key)
+        if r.valid_date < today:
+            continue
         kinds = sorted({RAIN_KINDS[c] for c in map(int, r.codes.split(",")) if c in RAIN_KINDS}, key=SEVERITY.index)
         if kinds:
             districts.setdefault(key, []).append(ImdWarningDayOut(day=r.day, valid_date=r.valid_date, kinds=kinds, color=r.color))
@@ -58,4 +74,6 @@ def list_warnings(state: str | None = None, db: Session = Depends(get_db)):
         fetched_at=max(r.fetched_at for r in rows),
         districts_covered=len(seen),
         districts=[ImdWarningDistrictOut(state=s, district=d, days=days) for (s, d), days in districts.items()],
+        valid_until=valid_until,
+        expired=valid_until < today,
     )
