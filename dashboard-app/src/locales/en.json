@@ -527,11 +527,11 @@
           },
           {
             "q": "Does the public get warned automatically?",
-            "a": "Partly. When a rain alert is raised in Sikkim, the system sends an SMS to subscribed citizen numbers automatically. It is a real SMS service (Twilio), but on a trial account it can only reach numbers verified in advance, so it is not yet a state-wide public warning system. Your job on the ground stays the same."
+            "a": "Not yet. The system can send an automatic SMS when a rain alert is raised (it is a real service, Twilio), but no citizen is subscribed: there is no public sign-up, and filing a report does not add your number to any alert list. Today the only real messages are phone calls to registered officials on Critical broadcasts, and the Twilio account is a trial that can only reach numbers verified in advance. Your job on the ground stays the same."
           },
           {
             "q": "Who exactly receives those SMS messages?",
-            "a": "People who have submitted a citizen report (their phone number is kept for this), plus the officials on the Authority Contacts page for Critical broadcasts. There is no public sign-up yet, so a village not receiving warnings has simply not been added."
+            "a": "Today, no citizens. There is no public sign-up, and filing a citizen report does not add your number to any alert list. Registered officials on the Authority Contacts page get a phone call for Critical broadcasts. A village not receiving warnings has simply not been added, because adding villages is not built yet."
           },
           {
             "q": "Where does the scrolling text at the top of the screen come from?",
