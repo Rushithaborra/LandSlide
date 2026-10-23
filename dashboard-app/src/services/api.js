@@ -1157,7 +1157,8 @@ export async function searchAll(query) {
     results.push({
       id: rec.id,
       type: "Incident",
-      title: rec.slide_name || rec.location || rec.slide_no,
+      // Some GSI records carry no name, location or slide number at all, only a district.
+      title: rec.slide_name || rec.location || rec.slide_no || rec.district || rec.state,
       subtitle: [rec.district, rec.state].filter(Boolean).join(", "),
       to: `/incidents?q=${encodeURIComponent(rec.slide_name || rec.location || "")}`,
     });
