@@ -22,6 +22,11 @@ CREATE TABLE IF NOT EXISTS alert_subscriptions (
 );
 CREATE INDEX IF NOT EXISTS idx_alert_subscriptions_area ON alert_subscriptions (lat, lng);
 
+-- Row-level security ON with no policies: Supabase's public REST API (anon key) can read or write
+-- nothing in this table. The backend connects as the postgres role, which bypasses RLS, so it is
+-- unaffected. Push endpoints and keys are credentials-adjacent and should never be world-readable.
+ALTER TABLE alert_subscriptions ENABLE ROW LEVEL SECURITY;
+
 -- When subscribers were told an alert had reached Warning level (a crossing in a short
 -- window), so each alert notifies once on reaching it. Null = not notified (yet).
 ALTER TABLE alerts ADD COLUMN IF NOT EXISTS warning_notified_at TIMESTAMPTZ;
