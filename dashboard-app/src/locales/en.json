@@ -898,6 +898,16 @@
         "items": [
           {
             "status": "live",
+            "name": "Browser notifications (Alert me)",
+            "detail": "Real and opt-in. A resident taps Alert me on Check my area, and their browser's own push subscription and the place they picked are stored in our database: no phone number, no account. When a Warning is raised within 3 km of that place (the default), the browser shows a notification, once per alert and at most once every 6 hours per person. Messages travel through the browser makers' own push services, which can delay or drop them, so this is not an official or guaranteed warning channel. Tested end to end on one Android phone (Chrome). iPhone only allows it from a site added to the Home Screen, and that has not yet been shown to work."
+          },
+          {
+            "status": "derived",
+            "name": "Warning vs watch (when a notification is sent)",
+            "detail": "An alert counts as a Warning, and sends notifications, only when rain crossed its danger level over a short window of 3 days or less. If only a long window (10 to 20 days) crossed, the alert stays on this dashboard as a watch and notifies nobody. The 3-day limit is the team's own choice, set from a check against Sikkim's 68 dated landslide records: the 1-day window crossed on about 1 in 5 ordinary monsoon days (18%) and caught 23 of the 68 slides; the 3-day window crossed on about half of ordinary days (52%) and caught 48 of the 68. That check used Sikkim's threshold, which is itself not yet independently verified, and does not prove the same for other states. The limit is a server setting and can be tightened."
+          },
+          {
+            "status": "live",
             "name": "Twilio SMS & voice",
             "detail": "Real dispatch — a critical broadcast has placed an actual phone call, confirmed by the recipient. It runs on a trial account, so only phone numbers manually verified in the Twilio console currently receive anything."
           },
