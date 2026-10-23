@@ -17,3 +17,4 @@ httpx==0.28.1
 python-dotenv==1.0.1
 twilio==9.11.1
 google-genai==2.23.0
+pywebpush==2.5.0

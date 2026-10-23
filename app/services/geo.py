@@ -59,3 +59,11 @@ def state_from_place_name(db: Session, place_name: str, timeout: float = 4.0) ->
         return None
     states = {state_at(db, float(m["lat"]), float(m["lon"])) for m in matches}
     return states.pop() if len(states) == 1 and None not in states else None
+
+
+def distance_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Equirectangular distance in km -- the same method /zones/near uses, plenty accurate
+    over the few km a notification radius spans."""
+    dlat = (lat2 - lat1) * KM_PER_DEGREE
+    dlng = (lng2 - lng1) * KM_PER_DEGREE * math.cos(math.radians((lat1 + lat2) / 2))
+    return math.hypot(dlat, dlng)

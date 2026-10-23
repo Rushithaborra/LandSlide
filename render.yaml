@@ -29,6 +29,10 @@ services:
         sync: false  # Project Settings -> API -> service_role key (not anon/public)
       - key: API_KEY
         sync: false  # officer access key -- set in the dashboard; generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+      - key: VAPID_PUBLIC_KEY
+        sync: false  # browser-notification key pair: python scripts/generate_vapid_keys.py, then copy both here
+      - key: VAPID_PRIVATE_KEY
+        sync: false  # a SECRET -- never commit or paste it anywhere
       - key: SUPABASE_STORAGE_BUCKET
         value: citizen-reports
       - key: RAINFALL_THRESHOLD__REGION

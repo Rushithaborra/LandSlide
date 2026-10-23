@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import alerts, authority_contacts, corridors, imd, landslide_records, rainfall, reports, surroundings, system, zones
+from app.routers import alerts, authority_contacts, corridors, imd, landslide_records, rainfall, reports, subscriptions, surroundings, system, zones
 from app.security import auth_enabled
 
 app = FastAPI(title="Landslide Early Warning System — Backend")
@@ -19,6 +19,7 @@ app.include_router(landslide_records.router)
 app.include_router(rainfall.router)
 app.include_router(alerts.router)
 app.include_router(reports.router)
+app.include_router(subscriptions.router)
 app.include_router(corridors.router)
 app.include_router(authority_contacts.router)
 app.include_router(system.router)

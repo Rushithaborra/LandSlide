@@ -104,6 +104,9 @@ class Alert(Base):
     peak_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
     worsened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     worsened_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    # When opted-in subscribers were notified that this alert reached Warning level
+    # (migrations/019_alert_subscriptions.sql); null = not notified.
+    warning_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     __table_args__ = (
         CheckConstraint("status IN ('active','resolved')"),
@@ -124,6 +127,32 @@ class Alert(Base):
     @property
     def risk_tier(self) -> str | None:
         return self.zone.risk_tier
+
+
+class AlertSubscription(Base):
+    """A resident's own opt-in to warnings near a point (migrations/019). `endpoint` is the
+    browser push endpoint for 'webpush' (a phone number for a future 'sms' channel)."""
+
+    __tablename__ = "alert_subscriptions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    channel: Mapped[str] = mapped_column(String, nullable=False)
+    endpoint: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    p256dh: Mapped[str | None] = mapped_column(String, nullable=True)
+    auth: Mapped[str | None] = mapped_column(String, nullable=True)
+    lat: Mapped[float] = mapped_column(Float, nullable=False)
+    lng: Mapped[float] = mapped_column(Float, nullable=False)
+    radius_km: Mapped[float] = mapped_column(Float, nullable=False, default=3.0)
+    place_label: Mapped[str | None] = mapped_column(String, nullable=True)
+    language: Mapped[str] = mapped_column(String, nullable=False, default="en")
+    unsubscribe_token: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    last_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint("channel IN ('webpush','sms')"),
+        CheckConstraint("language IN ('en','hi','ne')"),
+    )
 
 
 class Place(Base):

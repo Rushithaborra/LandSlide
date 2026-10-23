@@ -441,6 +441,48 @@ class AlertSummaryOut(BaseModel):
     no_rainfall_data: int  # no stored rain to check against
 
 
+# Where subscriptions make sense: a loose box around the eight north-eastern states.
+SUBSCRIBE_LAT = (21.5, 30.5)
+SUBSCRIBE_LNG = (87.5, 98.5)
+
+
+class PushKeysIn(BaseModel):
+    p256dh: str = Field(min_length=20, max_length=200)
+    auth: str = Field(min_length=10, max_length=100)
+
+
+class SubscribeIn(BaseModel):
+    """POST /subscriptions: a browser's own push subscription plus where to warn about."""
+
+    endpoint: str = Field(min_length=20, max_length=600)  # host allow-listed in the router
+    keys: PushKeysIn
+    lat: float = Field(ge=SUBSCRIBE_LAT[0], le=SUBSCRIBE_LAT[1])
+    lng: float = Field(ge=SUBSCRIBE_LNG[0], le=SUBSCRIBE_LNG[1])
+    radius_km: float = Field(default=3.0, gt=0, le=10)
+    place_label: str | None = Field(default=None, max_length=120)
+    language: Literal["en", "hi", "ne"] = "en"
+
+
+class SubscribeOut(BaseModel):
+    id: uuid.UUID
+    unsubscribe_token: str  # the only credential for this subscription; kept by the browser
+    radius_km: float
+
+
+class UnsubscribeIn(BaseModel):
+    unsubscribe_token: str = Field(min_length=20, max_length=100)
+
+
+class SubscriptionConfigOut(BaseModel):
+    """GET /subscriptions/config -- whether notifications are switched on and what the browser needs."""
+
+    enabled: bool
+    public_key: str | None  # the VAPID public key the browser subscribes against
+    warning_window_days: int
+    default_radius_km: float
+    max_radius_km: float
+
+
 class GenerateBulletinIn(BaseModel):
     severity: Literal["moderate", "high", "critical"]
 

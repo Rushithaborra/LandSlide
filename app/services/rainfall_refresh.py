@@ -40,6 +40,7 @@ from app.services.alert_engine import (
     escalate_if_worsened,
     evaluate_daily_rainfall,
     has_cleared,
+    notify_if_newly_warning,
 )
 
 FETCH_CHUNK_SIZE = 25  # locations per Open-Meteo request
@@ -315,10 +316,11 @@ def _store_and_evaluate(
                     # has an active alert (so no duplicate alerts or SMS).
                     if check_and_trigger(db, zone.id) is not None:
                         alerts_created += 1
-                    elif zone.id in active_alerts and escalate_if_worsened(
-                        db, active_alerts[zone.id], zone, totals, config, tier
-                    ):
-                        alerts_worsened += 1  # already alerting, and the rain is now clearly worse
+                    elif zone.id in active_alerts:
+                        # Already alerting: a watch (long window only) may have become a warning.
+                        notify_if_newly_warning(db, active_alerts[zone.id], zone.id, crossing.duration_days)
+                        if escalate_if_worsened(db, active_alerts[zone.id], zone, totals, config, tier):
+                            alerts_worsened += 1  # ...and the rain is now clearly worse
                 elif zone.id in has_active_alert and has_cleared(totals, config, tier):
                     to_resolve.append(zone.id)
             except Exception as e:

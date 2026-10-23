@@ -297,7 +297,41 @@ def check_and_trigger(db: Session, zone_id) -> Alert | None:
     except Exception as e:
         print(f"[ALERT] zone={zone_id} {alert.threshold_crossed} — logged (SMS send failed: {e})")
 
+    notify_if_newly_warning(db, alert, zone_id, crossing.duration_days)
     return alert
+
+
+def _zone_name(db: Session, zone) -> str:
+    """The scheduled refresh hands the engine a lightweight ZoneTarget with no name; a full Zone
+    has one. Without this, the "rain worsened" text failed on `zone.name` in production and the
+    error was swallowed (the tests always passed a named zone)."""
+    from app.models import Zone
+
+    name = getattr(zone, "name", None)
+    if name:
+        return name
+    row = db.get(Zone, zone.id)
+    return row.name if row else str(zone.id)
+
+
+def notify_if_newly_warning(db: Session, alert: Alert, zone_id, window_days: int | None) -> bool:
+    """When an alert first reaches WARNING (its shortest crossing window is short enough), tell
+    the opted-in subscribers near it -- once per alert. A watch that later becomes a warning
+    notifies at that moment; an alert that never does, never does. The flag is set BEFORE
+    sending: at most once beats a retry storm, and a push failure can never undo the alert.
+    Alerts that already existed when this feature arrived are flagged silently on their first
+    check, so a deploy cannot blast everyone at once."""
+    from app.services.push_alerts import is_warning, notify_zone_warning
+
+    if alert.warning_notified_at is not None or not is_warning(window_days):
+        return False
+    alert.warning_notified_at = datetime.now(timezone.utc)
+    db.commit()
+    try:
+        print(f"[ALERT] zone={zone_id} reached WARNING level -- push: {notify_zone_warning(db, zone_id)}")
+    except Exception as e:
+        print(f"[ALERT] zone={zone_id} reached WARNING level -- push failed: {e}")
+    return True
 
 
 def worsened_message(zone_name: str, severity: str) -> str:
@@ -348,14 +382,22 @@ def escalate_if_worsened(
     alert.worsened_count = (alert.worsened_count or 0) + 1
     db.commit()
 
+    zone_name = _zone_name(db, zone)
     try:
         from app.services.sms_alerts import trigger_zone_alert
 
-        result = trigger_zone_alert(db, zone.id, zone.name, risk_tier, message=worsened_message(zone.name, risk_tier))
+        result = trigger_zone_alert(db, zone.id, zone_name, risk_tier, message=worsened_message(zone_name, risk_tier))
         if not result.get("skipped") and result.get("sent", 0) > 0 and alert.delivery_method != "sms_twilio":
             alert.delivery_method = "sms_twilio"
             db.commit()
         print(f"[ALERT] zone={zone.id} rain worsened to {ratio:.2f}x the danger level -- {result}")
     except Exception as e:
         print(f"[ALERT] zone={zone.id} rain worsened to {ratio:.2f}x the danger level -- recorded (SMS failed: {e})")
+    try:
+        from app.services.push_alerts import is_warning, notify_zone_warning
+
+        if is_warning(driving_window_days(daily_totals, config, risk_tier)):
+            print(f"[ALERT] zone={zone.id} worsened at WARNING level -- push: {notify_zone_warning(db, zone.id)}")
+    except Exception as e:
+        print(f"[ALERT] zone={zone.id} worsened -- push failed: {e}")
     return True

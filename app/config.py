@@ -95,6 +95,19 @@ class Settings(BaseSettings):
     # calls per hour, so raise it deliberately.
     rainfall_refresh_zones_per_state: int = 100
 
+    # Opt-in browser notifications (app/services/push_alerts.py). The VAPID key pair is what lets
+    # this server send web push; generate it with scripts/generate_vapid_keys.py. Without both
+    # keys the feature is simply off (GET /subscriptions/config says so and the dashboard hides it).
+    vapid_public_key: str | None = None
+    vapid_private_key: str | None = None
+    dashboard_url: str = "https://dashboard-app-resq6.vercel.app"  # where a notification opens; also the VAPID subject
+    # A subscriber is notified only for a WARNING: an alert whose shortest crossing window is at
+    # most this many days. The 10-20 day windows alert on ~every monsoon day (see
+    # scripts/ml/rainfall_rule_comparison.py), so they stay a dashboard "watch", never a push.
+    warning_max_window_days: int = 3
+    # Minimum hours between two notifications to the same subscription.
+    push_cooldown_hours: int = 6
+
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
 
     # Citizen report photo upload (app/routers/reports.py) -- stored in
