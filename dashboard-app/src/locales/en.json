@@ -527,11 +527,11 @@
           },
           {
             "q": "Does the public get warned automatically?",
-            "a": "Not yet. The system can send an automatic SMS when a rain alert is raised (it is a real service, Twilio), but no citizen is subscribed: there is no public sign-up, and filing a report does not add your number to any alert list. Today the only real messages are phone calls to registered officials on Critical broadcasts, and the Twilio account is a trial that can only reach numbers verified in advance. Your job on the ground stays the same."
+            "a": "Only if a person chooses it, and only as a browser notification. On Check my area, anyone can tap Alert me to get a notification on that phone when a landslide WARNING is raised within 3 km of the place they picked: no sign-up and no phone number. A warning means heavy rain over the last 1 to 3 days; weaker rain that builds up over a longer spell only shows on this dashboard as a watch and sends nothing. This is new and has so far been tested on one Android phone, so it is not an official warning channel, and no notification does not mean it is safe. Automatic SMS to the public is still not available: no citizen number is on any list, and the Twilio account is a trial. Your job on the ground stays the same."
           },
           {
             "q": "Who exactly receives those SMS messages?",
-            "a": "Today, no citizens. There is no public sign-up, and filing a citizen report does not add your number to any alert list. Registered officials on the Authority Contacts page get a phone call for Critical broadcasts. A village not receiving warnings has simply not been added, because adding villages is not built yet."
+            "a": "Today, no citizens get an SMS. There is no public sign-up for SMS, and filing a citizen report does not add your number to any alert list. Registered officials on the Authority Contacts page get a phone call for Critical broadcasts. Residents who tapped Alert me on Check my area get a browser notification instead, not an SMS. A village whose people have not done that is not being warned directly."
           },
           {
             "q": "Where does the scrolling text at the top of the screen come from?",
