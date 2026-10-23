@@ -1,0 +1,15 @@
+{
+  "name": "Landslide Early Warning System",
+  "short_name": "Landslide EWS",
+  "description": "Check landslide risk near you and get a notification when a warning is raised.",
+  "start_url": "/check-area",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1d2723",
+  "theme_color": "#1d2723",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
