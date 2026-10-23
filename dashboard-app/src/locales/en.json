@@ -1025,5 +1025,19 @@
   "notFound": {
     "title": "Page not found",
     "body": "This page doesn't exist or has moved. Pick a page from the sidebar, or go back to the overview."
+  },
+  "alertMe": {
+    "title": "Get a notification if a warning is raised near {{place}}",
+    "body": "Free, no sign-up and no phone number. This browser will show a notification when a landslide WARNING is raised within {{km}} km. A warning is rare and is based on heavy recent rain.",
+    "button": "Alert me",
+    "working": "Setting up...",
+    "on": "Alerts are on for {{place}} (within {{km}} km).",
+    "stop": "Stop alerts",
+    "elsewhere": "This browser is alerting for {{place}} right now. It can watch one area at a time; choosing this one replaces it.",
+    "denied": "Notifications are blocked for this site. Allow them in your browser settings, then try again.",
+    "error": "Could not turn alerts on right now. Please try again in a moment.",
+    "unsupported": "This browser can't show alert notifications.",
+    "ios": "On iPhone or iPad, first add this site to your Home Screen (Share, then Add to Home Screen), then open it from there to turn alerts on.",
+    "limits": "It needs mobile data, and it does not replace official warnings: no notification does not mean it is safe. In danger, call 112."
   }
 }

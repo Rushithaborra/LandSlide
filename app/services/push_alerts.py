@@ -18,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import AlertSubscription
+from app.models import AlertSubscription, Zone
 from app.services.geo import KM_PER_DEGREE, distance_km
 
 # The only hosts this server will ever POST a notification to. The endpoint comes from the
@@ -112,12 +112,16 @@ def _send(subscription: AlertSubscription, payload: str) -> None:
     )
 
 
-def notify_zone_warning(db: Session, zone) -> dict:
-    """Notify every eligible subscriber near `zone` (a Zone row: id, name, centroid_lat/lng).
-    A subscription the push service reports gone (404/410: the user revoked it or cleared the
-    browser) is deleted. Returns counts, never raises for a delivery problem."""
+def notify_zone_warning(db: Session, zone_id) -> dict:
+    """Notify every eligible subscriber near the zone with this id. A subscription the push
+    service reports gone (404/410: the user revoked it or cleared the browser) is deleted.
+    Takes the id, like every other engine hook, and loads the zone itself. Returns counts and
+    never raises for a delivery problem."""
     if not push_configured():
         return {"skipped": True, "reason": "web push is not configured"}
+    zone = db.get(Zone, zone_id)
+    if zone is None:
+        return {"skipped": True, "reason": "zone not found"}
     now = datetime.now(timezone.utc)
     sent = failed = removed = 0
     for sub in subscribers_near(db, zone.centroid_lat, zone.centroid_lng, now):

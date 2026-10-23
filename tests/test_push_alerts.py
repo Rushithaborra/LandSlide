@@ -145,7 +145,7 @@ def test_delivery_counts_sends_removes_dead_subscriptions_and_survives_failures(
         sent_to.append(s)
 
     monkeypatch.setattr(pa, "_send", fake_send)
-    result = pa.notify_zone_warning(db, ZONE)
+    result = pa.notify_zone_warning(db, ZONE.id)  # by id, as the engine calls it; the zone is loaded inside
     assert result == {"sent": 1, "failed": 1, "removed": 1}
     assert sent_to == [ok] and ok.last_notified_at is not None and flaky.last_notified_at is None
     db.delete.assert_called_once_with(dead)  # the push service said it is gone: do not keep it
@@ -155,7 +155,13 @@ def test_delivery_counts_sends_removes_dead_subscriptions_and_survives_failures(
 def test_nothing_is_sent_when_push_is_not_configured(monkeypatch):
     monkeypatch.setattr(settings, "vapid_private_key", None)
     monkeypatch.setattr(pa, "_send", lambda *a: pytest.fail("must not send"))
-    assert pa.notify_zone_warning(db_with(sub()), ZONE) == {"skipped": True, "reason": "web push is not configured"}
+    assert pa.notify_zone_warning(db_with(sub()), ZONE.id) == {"skipped": True, "reason": "web push is not configured"}
+
+
+def test_an_unknown_zone_id_is_skipped_not_an_error():
+    db = db_with(sub())
+    db.get.return_value = None
+    assert pa.notify_zone_warning(db, uuid.uuid4()) == {"skipped": True, "reason": "zone not found"}
 
 
 # ---- the alert engine's hooks -----------------------------------------------------------------------

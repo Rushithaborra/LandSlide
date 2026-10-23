@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, CloudRain, LocateFixed, MapPin, Phone, Search, ShieldCheck, TriangleAlert, Volume2, VolumeX } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import SurroundingsPanel from "../components/SurroundingsPanel";
+import AlertMeCard from "../components/AlertMeCard";
 import { fetchLiveRainfall, geocodePlace, getAreaRisk, getRainfallStatus } from "../services/api";
 
 // Colour AND icon AND word: the level must be readable without reading much.
@@ -380,6 +381,8 @@ function Assessment({ result, speech, onCheckNearest }) {
           ) : null}
         </p>
       </div>
+
+      <AlertMeCard place={place} />
 
       <SurroundingsPanel zoneId={zone.id} />
 

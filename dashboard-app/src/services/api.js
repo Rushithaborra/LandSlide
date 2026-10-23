@@ -904,6 +904,36 @@ export async function getAlertSummary(state) {
   }
 }
 
+// Opt-in browser notifications for Warning-level alerts (GET/POST /subscriptions). The config
+// call never throws: if the backend can't be reached the feature just isn't offered.
+export async function getSubscriptionConfig() {
+  try {
+    const r = await getJSON("/subscriptions/config");
+    return { enabled: r.enabled, publicKey: r.public_key, warningWindowDays: r.warning_window_days, defaultRadiusKm: r.default_radius_km };
+  } catch {
+    return null;
+  }
+}
+
+export async function createSubscription(body) {
+  const res = await timedFetch(`${BASE_URL}/subscriptions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`subscribe failed: ${res.status}`);
+  return res.json();
+}
+
+// The token travels in the body, not the URL, so it never lands in an access log.
+export async function removeSubscription(token) {
+  await timedFetch(`${BASE_URL}/subscriptions/unsubscribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ unsubscribe_token: token }),
+  });
+}
+
 export async function getRainfallHeadroom() {
   const r = await getJSON("/rainfall/headroom");
   return r.states.map((s) => ({
