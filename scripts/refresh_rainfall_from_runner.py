@@ -12,6 +12,7 @@ Standard library only, so the workflow needs no install step.
 import argparse
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -21,11 +22,29 @@ import urllib.request
 OPEN_METEO_URL = os.environ.get("OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast")
 CHUNK_SIZE = 25  # locations per Open-Meteo request
 PAST_DAYS, FORECAST_DAYS = 20, 3  # same window the backend uses (covers the longest alert window)
+ROTATE_CHUNKS_PER_HOUR = 3  # how far the starting point moves each hour (see rotate_for_fairness)
+
+
+class RateLimited(RuntimeError):
+    """Open-Meteo's hourly or daily allowance is used up ("...try again in the next hour").
+    Retrying inside this run cannot help, so it is not retried."""
+
+
+def rotate_for_fairness(targets: list[dict], hour: int) -> list[dict]:
+    """Start the list at a different place each hour. When the hourly limit stops a run
+    part-way, the zones at the END of the list go without; with a fixed order that is
+    the same states (the log showed Nagaland and part of Mizoram) every time."""
+    if not targets:
+        return targets
+    shift = (hour * ROTATE_CHUNKS_PER_HOUR * CHUNK_SIZE) % len(targets)
+    return targets[shift:] + targets[:shift]
 
 
 def call(url: str, *, data: dict | None = None, headers: dict | None = None, attempts: int = 4, timeout: int = 90):
     """JSON request with retries. Retries cover a Render server waking up (~50 s)
-    and Open-Meteo's occasional 429/5xx; anything else fails immediately."""
+    and Open-Meteo's occasional 429/5xx (a per-minute 429 clears in a minute; an
+    hourly or daily one does not, so that raises RateLimited at once); anything else
+    fails immediately."""
     body = json.dumps(data).encode() if data is not None else None
     req_headers = {"Content-Type": "application/json", **(headers or {})}
     for attempt in range(1, attempts + 1):
@@ -36,6 +55,8 @@ def call(url: str, *, data: dict | None = None, headers: dict | None = None, att
         except urllib.error.HTTPError as e:
             retryable = e.code == 429 or e.code >= 500
             detail = e.read().decode(errors="replace")[:200]
+            if e.code == 429 and re.search(r"\b(hourly|daily)\b", detail, re.IGNORECASE):
+                raise RateLimited(f"HTTP 429 from {urllib.parse.urlsplit(url).netloc}: {detail}") from None
             if not retryable or attempt == attempts:
                 raise RuntimeError(f"HTTP {e.code} from {urllib.parse.urlsplit(url).netloc}: {detail}") from None
         except (urllib.error.URLError, TimeoutError) as e:
@@ -96,12 +117,17 @@ def main() -> int:
 
     targets = call(f"{backend}/rainfall/targets", headers=auth, attempts=5, timeout=120)  # first call wakes the server
     print(f"{len(targets)} zones to refresh")
+    targets = rotate_for_fairness(targets, int(time.time() // 3600))
 
     readings, failures = [], []
     for i in range(0, len(targets), CHUNK_SIZE):
         chunk = targets[i : i + CHUNK_SIZE]
         try:
             readings.extend(fetch_chunk(chunk))
+        except RateLimited as e:
+            failures.append(str(e))
+            print(f"  Open-Meteo's limit is used up: skipping the last {len(targets) - i} zones until the next run ({e})", file=sys.stderr)
+            break
         except RuntimeError as e:
             failures.append(str(e))
             print(f"  chunk {i // CHUNK_SIZE + 1} failed: {e}", file=sys.stderr)
