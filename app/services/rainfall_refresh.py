@@ -11,9 +11,11 @@ data actually crosses their threshold.
 Cheap on purpose (a request to a sleepy free-tier host must finish quickly):
 zones are fetched a chunk per Open-Meteo request (50 single calls took ~33 s,
 2 chunked requests ~2 s), all zones' readings are written in one batch, and
-the threshold test is done in memory from the fetched data (the 20-day fetch
-covers the longest alert window), so the database is touched a handful of
-times, not once per zone.
+the threshold test is done in memory, so the database is touched a handful of
+times, not once per zone. The threshold test uses the zone's STORED recent
+history with the freshly supplied days laid on top (load_recent_totals): the
+GitHub runner usually sends only the last few days, to stay inside Open-Meteo's
+free daily limit, and older days are already stored from earlier runs.
 
 It also closes alerts whose rain has cleared (alert_engine.has_cleared) -- without
 that, an alert stayed active forever, since the dashboard has no resolve button
@@ -45,6 +47,7 @@ from app.services.alert_engine import (
 
 FETCH_CHUNK_SIZE = 25  # locations per Open-Meteo request
 MAX_FETCH_WORKERS = 3  # chunks fetched in parallel; well under Open-Meteo's per-minute limit
+HISTORY_DAYS = 31  # stored days read back for the threshold test (longest alert window is 20 days)
 
 
 @dataclass
@@ -89,6 +92,24 @@ def store_readings(db: Session, daily_by_zone: dict[uuid.UUID, list[open_meteo.D
     db.add_all(readings)
     db.commit()
     return readings
+
+
+def load_recent_totals(db: Session, zone_ids: list[uuid.UUID], days: int = HISTORY_DAYS) -> dict[uuid.UUID, dict]:
+    """{zone_id: {date: mm}} of what is already stored for these zones over the last
+    `days` days (forecast days included; drop_forecast_days removes them later).
+    One query for all zones."""
+    if not zone_ids:
+        return {}
+    since = datetime.combine(datetime.now(timezone.utc).date() - timedelta(days=days), datetime.min.time(), tzinfo=timezone.utc)
+    rows = db.execute(
+        select(RainfallReading.zone_id, RainfallReading.timestamp, RainfallReading.intensity_mm).where(
+            RainfallReading.zone_id.in_(zone_ids), RainfallReading.timestamp >= since
+        )
+    ).all()
+    out: dict[uuid.UUID, dict] = {}
+    for zone_id, ts, mm in rows:
+        out.setdefault(zone_id, {})[ts.date()] = mm
+    return out
 
 
 def select_zones(db: Session, per_state: int) -> list[ZoneTarget]:
@@ -303,9 +324,12 @@ def _store_and_evaluate(
         alerting = [z for z in zones if z.id in daily_by_zone and can_alert(z.state)]
         active_alerts = _active_alerts_by_zone(db, [z.id for z in alerting])
         has_active_alert = set(active_alerts)
+        history = load_recent_totals(db, [z.id for z in alerting])
         to_resolve: list[uuid.UUID] = []
         for zone in alerting:
-            totals = {d.day: d.intensity_mm for d in daily_by_zone[zone.id]}
+            # Stored history with the fresh days on top: a short fetch (last few days)
+            # still gets judged over the full 20-day alert window.
+            totals = {**history.get(zone.id, {}), **{d.day: d.intensity_mm for d in daily_by_zone[zone.id]}}
             config = get_rainfall_threshold(zone.state)
             tier = zone.risk_tier or "moderate"
             try:

@@ -326,3 +326,37 @@ def test_the_chart_threshold_is_hidden_for_a_state_that_does_not_alert(monkeypat
         assert body["threshold_mm_per_day"] == pytest.approx(40.0 * 0.8)  # high tier scales the 1-day 40 mm
     finally:
         app.dependency_overrides.pop(get_db, None)
+
+
+# --- short fetch + stored history (the runner sends only the last few days most runs) ---
+
+
+def test_a_short_fetch_is_judged_over_the_stored_20_day_history(wired, monkeypatch):
+    """3 mm/day for 20 days crosses the 20-day threshold (40/20 = 2 mm/day) but no
+    short window; the runner only sent the last 3 days, the rest is stored."""
+    z = _zone()
+    wired.zones = [z]
+    wired.fetch = {z.id: _series(mm_today=3.0, mm_before=3.0, days=2)}
+    stored = {TODAY - timedelta(days=i): 3.0 for i in range(1, 21)}
+    monkeypatch.setattr(rr, "load_recent_totals", lambda db, ids: {z.id: stored})
+    rr.refresh_rainfall(MagicMock(), per_state=25)
+    assert wired.triggered == [z.id]
+
+
+def test_without_the_stored_history_the_same_short_fetch_does_not_alert(wired, monkeypatch):
+    z = _zone()
+    wired.zones = [z]
+    wired.fetch = {z.id: _series(mm_today=3.0, mm_before=3.0, days=2)}
+    monkeypatch.setattr(rr, "load_recent_totals", lambda db, ids: {})
+    rr.refresh_rainfall(MagicMock(), per_state=25)
+    assert wired.triggered == []
+
+
+def test_freshly_supplied_days_override_the_stored_ones(wired, monkeypatch):
+    """Open-Meteo revises recent days; the new number must win over the stored one."""
+    z = _zone()
+    wired.zones = [z]
+    wired.fetch = {z.id: _series(mm_today=0.0, mm_before=0.0, days=2)}
+    monkeypatch.setattr(rr, "load_recent_totals", lambda db, ids: {z.id: {TODAY: 90.0}})  # stale, wet
+    rr.refresh_rainfall(MagicMock(), per_state=25)
+    assert wired.triggered == []
