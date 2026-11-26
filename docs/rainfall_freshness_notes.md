@@ -32,11 +32,15 @@ The "114 mm" mentioned for Sikkim was most likely a multi-day total, not one day
 Alerts are judged on multi-day totals against the rainfall threshold.
 
 ## How it works now
-- **Every hour**, a GitHub Actions job fetches rainfall from Open-Meteo itself and
-  sends it to the backend, which stores it and fires or clears alerts. (GitHub's
-  servers are not blocked the way Render's is.)
+- **About every 3 hours**, a GitHub Actions job fetches rainfall from Open-Meteo itself
+  and sends it to the backend, which stores it and fires or clears alerts. (GitHub's
+  servers are not blocked the way Render's is.) The job is started every hour but
+  stops early while the data is under ~3 hours old: fetching ~800 zones every hour
+  used up Open-Meteo's free limit (10,000 calls a day) and the job failed with
+  HTTP 429. Most fetches ask for the last 2 days only; the backend checks alerts
+  against the 20 days it has stored.
 - **Opening the dashboard** also nudges the backend to refresh if the data is over
-  150 minutes old. This is a backstop for a missed hourly run.
+  240 minutes old. This is a backstop for a missed run.
 - The dashboard shows **"Rainfall updated X min ago"**, so anyone can see how fresh
   the data is.
 - **"Rainfall (24h)"** now uses only real, observed days (never a forecast) and
@@ -56,7 +60,7 @@ Alerts are judged on multi-day totals against the rainfall threshold.
    the backend shows when data was last refreshed.
 
 ## If a judge asks
-- *"Is the rainfall live?"* Yes: fetched hourly from Open-Meteo (a real weather
+- *"Is the rainfall live?"* Yes: fetched about every 3 hours from Open-Meteo (a real weather
   model service, not an IMD gauge feed) and refreshed when the dashboard opens.
   The 3 days shown as forecast are labelled as forecast and never trigger alerts.
 - *"Why does Assam show no alerts?"* Alerting is deliberately off for Assam until

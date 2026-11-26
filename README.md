@@ -64,8 +64,13 @@ read endpoints remain open.
 
 ## Scheduled rainfall refresh
 Alerts only fire when rainfall is fetched, so a timer keeps it current:
-`.github/workflows/rainfall-refresh.yml` runs **hourly on a GitHub Actions
-runner**. The runner (`scripts/refresh_rainfall_from_runner.py`, standard library
+`.github/workflows/rainfall-refresh.yml` is **triggered hourly on a GitHub Actions
+runner** and fetches when stored rainfall is ~3 hours old (it exits early
+otherwise). Open-Meteo's free tier is 10,000 calls a day and every zone counts as
+a call, so fetching ~800 zones on every trigger ran out the daily quota and failed
+with HTTP 429; most fetches now request only the last 2 days (plus forecast) and
+the first fetch of each UTC day the full 20 days, and the backend checks alerts
+against its stored history plus the fresh days (~7,000 calls a day). The runner (`scripts/refresh_rainfall_from_runner.py`, standard library
 only) asks the backend which zones to watch (`GET /rainfall/targets`), fetches
 their rainfall from Open-Meteo itself, and posts it to `POST /rainfall/ingest`,
 which stores it and fires/clears alerts exactly as before. Both endpoints need
@@ -107,7 +112,7 @@ alert) are refreshed, not all 100k.
 **Opening the dashboard keeps rainfall current too.** The Overview calls the
 public `POST /rainfall/refresh-if-stale`, which refreshes (and evaluates alerts)
 only when stored rainfall is older than `RAINFALL_REFRESH_MAX_AGE_MINUTES`
-(default 150, so the hourly runner normally keeps it fresh and this only
+(default 240, so the ~3-hourly runner normally keeps it fresh and this only
 covers a missed run), however many people are viewing. It takes no input, so it can't be
 abused to pick what gets fetched; a database lease (`job_runs`, migration 013)
 lets one refresh run at a time, and a crashed or empty run never marks stale data

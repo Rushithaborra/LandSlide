@@ -99,7 +99,7 @@ def refresh_if_stale_endpoint(db: Session = Depends(get_db)):
     """Public on purpose: the dashboard calls this when it opens, so rainfall
     stays current for anyone looking at it (a judge, an officer) without
     depending on a scheduler. Safe to expose: it takes no input, does nothing
-    while the data is fresh (RAINFALL_REFRESH_MAX_AGE_MINUTES, default 60), only
+    while the data is fresh (RAINFALL_REFRESH_MAX_AGE_MINUTES, default 240), only
     one refresh runs at a time, and what it fetches and alerts on is fixed by
     configuration -- a caller can only make it run when it was due anyway."""
     return refresh_if_stale(db, settings.rainfall_refresh_max_age_minutes, settings.rainfall_refresh_zones_per_state)

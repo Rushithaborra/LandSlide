@@ -1,7 +1,18 @@
 # Keeps rainfall current and lets the alert engine run on its own, without
-# anyone opening the dashboard. Every hour this runner asks the backend which
-# zones to watch, fetches their rainfall from Open-Meteo, and posts it to the
-# backend (POST /rainfall/ingest), which stores it and fires/clears alerts.
+# anyone opening the dashboard. This job is TRIGGERED every hour (here and by
+# cron-job.org, see README), but it only FETCHES when the stored rainfall is
+# about 3 hours old: it asks the backend which zones to watch, fetches their
+# rainfall from Open-Meteo, and posts it to the backend (POST /rainfall/ingest),
+# which stores it and fires/clears alerts.
+#
+# Why only every ~3 hours: Open-Meteo's free tier allows 10,000 calls a day, and
+# every zone in a request counts as a call. ~800 zones fetched on every trigger
+# (twice an hour) was far over that, so the daily limit ran out part-way through
+# each day and the remaining runs failed with HTTP 429. Now ~1 full 20-day fetch
+# a day + ~7 short ones (last 2 days + forecast) ~= 7,000 calls, which leaves room
+# for a few forced runs. The backend judges alerts on its stored history plus the
+# fresh days. Raising the frequency (MIN_AGE_MINUTES in the script) or
+# RAINFALL_REFRESH_ZONES_PER_STATE costs quota: redo that arithmetic first.
 #
 # Why the runner fetches and not the backend: Open-Meteo rate-limits (HTTP 429)
 # the shared outgoing IPs of free hosts like Render, so the backend's own fetch
@@ -18,7 +29,7 @@ name: Refresh rainfall
 on:
   schedule:
     # Hourly, at :17 (GitHub queues jobs scheduled exactly on the hour and can
-    # delay them by many minutes).
+    # delay them by many minutes). Most of these runs find the data fresh and stop.
     - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
@@ -26,13 +37,27 @@ on:
         description: "Trigger alerts/SMS for zones over their threshold (false = store rainfall only)"
         type: boolean
         default: true
+      force:
+        description: "Fetch even if rainfall was refreshed in the last ~3 hours (uses Open-Meteo quota)"
+        type: boolean
+        default: false
+      full:
+        description: "Fetch the full 20-day window (costs ~1.6x the quota of a normal fetch)"
+        type: boolean
+        default: false
+
+# GitHub's schedule and cron-job.org can fire together; the second run waits and
+# then finds the data fresh, instead of both fetching at once.
+concurrency:
+  group: rainfall-refresh
+  cancel-in-progress: false
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           sparse-checkout: scripts/refresh_rainfall_from_runner.py
           sparse-checkout-cone-mode: false
@@ -43,13 +68,18 @@ jobs:
           # format() makes it a string: 'cond && false || x' would wrongly fall through to x,
           # because a boolean false is falsy in GitHub's expression language but the string 'false' is not.
           ALERTS: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.alerts) || 'true' }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.force) || 'false' }}
+          FULL: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.full) || 'false' }}
         run: |
           if [ -z "$OFFICER_KEY" ]; then
             # Not silent: this shows as a yellow warning on the run.
             echo "::warning::OFFICER_API_KEY secret is not visible to this repository -- using the public refresh-if-stale endpoint instead."
-            curl --fail-with-body --silent --show-error               --max-time 200 --retry 3 --retry-delay 30 --retry-all-errors               -X POST "$BACKEND_URL/rainfall/refresh-if-stale"
+            curl --fail-with-body --silent --show-error --max-time 200 --retry 3 --retry-delay 30 --retry-all-errors -X POST "$BACKEND_URL/rainfall/refresh-if-stale"
             echo
             exit 0
           fi
-          if [ "$ALERTS" = "false" ]; then FLAG="--no-alerts"; else FLAG=""; fi
-          python3 scripts/refresh_rainfall_from_runner.py $FLAG
+          FLAGS=""
+          if [ "$ALERTS" = "false" ]; then FLAGS="$FLAGS --no-alerts"; fi
+          if [ "$FORCE" = "true" ]; then FLAGS="$FLAGS --force"; fi
+          if [ "$FULL" = "true" ]; then FLAGS="$FLAGS --full"; fi
+          python3 scripts/refresh_rainfall_from_runner.py $FLAGS

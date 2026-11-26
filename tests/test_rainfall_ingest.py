@@ -114,7 +114,7 @@ def test_chunk_maps_open_meteo_locations_to_zones_and_skips_null_days(runner, mo
         {"daily": {"time": ["2026-09-19"], "precipitation_sum": [0.0]}},
     ]
     monkeypatch.setattr(runner, "call", lambda url, **kw: payload)
-    out = runner.fetch_chunk([{"id": "a", "lat": 1, "lng": 2}, {"id": "b", "lat": 3, "lng": 4}])
+    out = runner.fetch_chunk(runner.dedupe_points([{"id": "a", "lat": 1, "lng": 2}, {"id": "b", "lat": 3, "lng": 4}]), runner.SHORT_PAST_DAYS)
     assert out == [
         {"zone_id": "a", "days": [{"day": "2026-09-19", "mm": 1.0}]},
         {"zone_id": "b", "days": [{"day": "2026-09-19", "mm": 0.0}]},
@@ -123,13 +123,13 @@ def test_chunk_maps_open_meteo_locations_to_zones_and_skips_null_days(runner, mo
 
 def test_a_single_zone_chunk_is_handled(runner, monkeypatch):  # Open-Meteo returns an object, not a list, for one point
     monkeypatch.setattr(runner, "call", lambda url, **kw: {"daily": {"time": ["2026-09-20"], "precipitation_sum": [2.0]}})
-    assert runner.fetch_chunk([{"id": "a", "lat": 1, "lng": 2}])[0]["days"] == [{"day": "2026-09-20", "mm": 2.0}]
+    assert runner.fetch_chunk(runner.dedupe_points([{"id": "a", "lat": 1, "lng": 2}]), runner.SHORT_PAST_DAYS)[0]["days"] == [{"day": "2026-09-20", "mm": 2.0}]
 
 
 def test_a_count_mismatch_from_open_meteo_is_an_error(runner, monkeypatch):
     monkeypatch.setattr(runner, "call", lambda url, **kw: [{"daily": {"time": [], "precipitation_sum": []}}])
     with pytest.raises(RuntimeError):
-        runner.fetch_chunk([{"id": "a", "lat": 1, "lng": 2}, {"id": "b", "lat": 3, "lng": 4}])
+        runner.fetch_chunk(runner.dedupe_points([{"id": "a", "lat": 1, "lng": 2}, {"id": "b", "lat": 3, "lng": 4}]), runner.SHORT_PAST_DAYS)
 
 
 def test_nothing_fetched_means_the_backend_is_not_called_and_the_run_fails(runner, monkeypatch):
@@ -141,6 +141,8 @@ def test_nothing_fetched_means_the_backend_is_not_called_and_the_run_fails(runne
 
     def fake_call(url, **kw):
         calls.append(url)
+        if url.endswith("/rainfall/status"):
+            return {"age_minutes": None}
         if url.endswith("/rainfall/targets"):
             return [{"id": "a", "lat": 1, "lng": 2}]
         raise RuntimeError("HTTP 429")

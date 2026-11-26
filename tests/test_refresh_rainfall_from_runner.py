@@ -94,11 +94,14 @@ def test_the_starting_point_moves_each_hour_and_no_zone_is_lost_or_duplicated():
 
 
 def test_a_run_stops_at_the_limit_but_still_sends_what_it_already_fetched(monkeypatch, capsys):
-    targets = [{"id": f"z{i}", "lat": 27.0, "lng": 88.0} for i in range(runner.CHUNK_SIZE * 4)]
+    # distinct points (0.1 degree apart) so de-duplication doesn't merge them
+    targets = [{"id": f"z{i}", "lat": 27.0 + i * 0.1, "lng": 88.0} for i in range(runner.CHUNK_SIZE * 4)]
     posted = {}
     fetch_calls = []
 
     def fake_call(url, **kw):
+        if "/rainfall/status" in url:
+            return {"age_minutes": None}
         if "/rainfall/targets" in url:
             return targets
         if "/rainfall/ingest" in url:
@@ -118,5 +121,75 @@ def test_a_run_stops_at_the_limit_but_still_sends_what_it_already_fetched(monkey
     code = runner.main()
     assert len(fetch_calls) == 3  # the 4th chunk was never attempted
     assert len(posted["readings"]) == runner.CHUNK_SIZE * 2  # the two good chunks were still sent
-    assert code == 1  # a partial run still shows red
-    assert "limit is used up" in capsys.readouterr().err
+    assert code == 0  # cut short only by the quota, data stored: green with a warning
+    assert "::warning::Open-Meteo's limit is used up" in capsys.readouterr().err
+
+
+def test_a_rate_limit_alone_is_green_but_any_other_failure_is_red():
+    limited = runner.RATE_LIMITED_PREFIX + "HTTP 429 ... Daily API request limit exceeded"
+    assert runner.exit_code_for(result(600), failures=[limited]) == 0
+    assert runner.exit_code_for(result(600), failures=[limited, "chunk 3 timed out"]) == 1
+    assert runner.exit_code_for(result(0), failures=[limited]) == 1  # nothing stored is always red
+
+
+def test_zones_in_the_same_1km_cell_share_one_point_and_all_get_readings(monkeypatch):
+    targets = [
+        {"id": "a", "lat": 27.3301, "lng": 88.6101},
+        {"id": "b", "lat": 27.3302, "lng": 88.6102},  # same ~1 km cell as a
+        {"id": "c", "lat": 27.5, "lng": 88.9},
+    ]
+    points = runner.dedupe_points(targets)
+    assert [p["zone_ids"] for p in points] == [["a", "b"], ["c"]]
+
+    urls = []
+
+    def fake_call(url, **kw):
+        urls.append(url)
+        return [{"daily": {"time": ["2026-11-26"], "precipitation_sum": [4.0]}}] * 2
+
+    monkeypatch.setattr(runner, "call", fake_call)
+    readings = runner.fetch_chunk(points, past_days=runner.SHORT_PAST_DAYS)
+    assert sorted(r["zone_id"] for r in readings) == ["a", "b", "c"]
+    assert all(r["days"] == [{"day": "2026-11-26", "mm": 4.0}] for r in readings)
+    assert "past_days=2" in urls[0]
+
+
+def _run_main(monkeypatch, argv, age_minutes=None, utc_hour=9):
+    urls = []
+
+    def fake_call(url, **kw):
+        if "/rainfall/status" in url:
+            return {"age_minutes": age_minutes}
+        if "/rainfall/targets" in url:
+            return [{"id": "z1", "lat": 27.3, "lng": 88.6}]
+        if "/rainfall/ingest" in url:
+            return {"zones_refreshed": 1}
+        urls.append(url)
+        return {"daily": {"time": ["2026-11-26"], "precipitation_sum": [1.0]}}
+
+    monkeypatch.setattr(runner, "call", fake_call)
+    monkeypatch.setattr(runner.time, "sleep", lambda s: None)
+    monkeypatch.setenv("BACKEND_URL", "https://backend.example")
+    monkeypatch.setenv("OFFICER_KEY", "test-key")
+    monkeypatch.setattr(runner.time, "gmtime", lambda *a: type("T", (), {"tm_hour": utc_hour})())
+    monkeypatch.setattr(sys, "argv", ["runner", *argv])
+    assert runner.main() == 0
+    return urls[0] if urls else None
+
+
+def test_most_runs_fetch_the_short_window(monkeypatch):
+    assert f"past_days={runner.SHORT_PAST_DAYS}&" in _run_main(monkeypatch, [])
+
+
+def test_the_first_fetch_of_the_utc_day_and_the_full_flag_fetch_the_whole_window(monkeypatch):
+    assert f"past_days={runner.FULL_PAST_DAYS}&" in _run_main(monkeypatch, [], utc_hour=1)
+    assert f"past_days={runner.FULL_PAST_DAYS}&" in _run_main(monkeypatch, ["--full"])
+
+
+def test_fresh_data_means_no_open_meteo_calls_and_a_green_run(monkeypatch):
+    assert _run_main(monkeypatch, [], age_minutes=runner.MIN_AGE_MINUTES - 1) is None
+
+
+def test_old_enough_data_or_force_fetches(monkeypatch):
+    assert _run_main(monkeypatch, [], age_minutes=runner.MIN_AGE_MINUTES) is not None
+    assert _run_main(monkeypatch, ["--force"], age_minutes=5) is not None

@@ -82,9 +82,11 @@ class Settings(BaseSettings):
 
     # Rainfall is refreshed automatically when it is older than this. Anyone opening
     # the dashboard can trigger it (POST /rainfall/refresh-if-stale), but never more
-    # often than this, so it can't be used to hammer Open-Meteo. Hourly matches how
-    # often Open-Meteo itself updates; ~77 zones a run is well inside its free limits.
-    rainfall_refresh_max_age_minutes: int = 150
+    # often than this, so it can't be used to hammer Open-Meteo. The GitHub runner
+    # fetches about every 3 hours (MIN_AGE_MINUTES = 170 in
+    # scripts/refresh_rainfall_from_runner.py, to fit Open-Meteo's 10,000 calls/day);
+    # 240 leaves room for GitHub's late schedules, so this only covers a missed run.
+    rainfall_refresh_max_age_minutes: int = 240
 
     # Scheduled rainfall refresh (app/services/rainfall_refresh.py): how many of
     # each state's highest-susceptibility zones get live rainfall per run (every
